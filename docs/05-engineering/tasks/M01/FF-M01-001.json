@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 2,
+  "taskId": "FF-M01-001",
+  "status": "CONTRACT_READY",
+  "title": "身份与授权：用户、团队、成员角色、JWT、RBAC",
+  "track": "product-mainline",
+  "stage": "M01",
+  "roleType": "implementer",
+  "specialty": "security",
+  "goal": "实现用户注册登录、团队创建、成员角色管理、Spring Security、JWT、BCrypt 和 RBAC 资源归属校验。",
+  "readSet": [
+    "README.md",
+    "docs/00-governance/project-status.md",
+    "docs/01-product/FrameFlow-PRD.md",
+    "docs/02-architecture/**",
+    "docs/03-data/**",
+    "docs/04-api/**",
+    "docs/05-engineering/development-plan-p0-m17.md",
+    "docs/05-engineering/task-capsule-spec.md",
+    "docs/05-engineering/tasks/P0/FF-P0-001.json"
+  ],
+  "writeSet": [
+    "README.md",
+    "frameflow-modules/identity/**",
+    "frameflow-app/src/main/resources/db/migration/V2__identity.sql",
+    "frameflow-app/src/test/**",
+    "scripts/m01/**",
+    "evidence/m01/**",
+    "docs/00-governance/project-status.md",
+    "docs/05-engineering/task-capsule-catalog.md",
+    "docs/05-engineering/generated/task-capsule-index.md",
+    "docs/09-delivery/evidence-index.md"
+  ],
+  "allowedCommands": [
+    { "pattern": "mvn -B clean verify", "policy": "exact" },
+    { "pattern": "mvn -B test", "policy": "exact" },
+    { "pattern": "mvn -pl frameflow-app test", "policy": "prefix" },
+    { "pattern": "docker compose -f docker-compose.local.yml config", "policy": "exact" },
+    { "pattern": "docker compose -f docker-compose.local.yml up -d --wait", "policy": "exact" },
+    { "pattern": "sh scripts/m01/auth-flows.sh", "policy": "exact" },
+    { "pattern": "sh scripts/m01/check-migration.sh", "policy": "exact" },
+    { "pattern": "sh scripts/m01/check-openapi-diff.sh", "policy": "exact" }
+  ],
+  "networkPolicy": {
+    "allowExternal": false,
+    "allowLocal": true,
+    "allowRegistry": true
+  },
+  "toolCapabilities": ["repo-read", "repo-write", "git-read", "test-run", "docker", "mcp-read"],
+  "nonGoals": [
+    "不引入 Redis、OAuth 或社交登录",
+    "不引入消息队列和微服务",
+    "不实现项目或素材业务（M02 起）",
+    "不创建前端",
+    "不修改 docs/04-api 下的权威契约；实现与契约冲突时上报",
+    "不读取或复制 jcm_media_api 任何内容"
+  ],
+  "prerequisiteTaskIds": ["FF-P0-001"],
+  "facts": [
+    "FF-P0-001 DONE 是本任务进入 READY_FOR_DISPATCH 的唯一任务前置条件",
+    "手写 OpenAPI docs/04-api/openapi/frameflow-v1.yaml 是 M01 API 唯一权威契约",
+    "本任务当前为 CONTRACT_READY，禁止在 P0 验收前派发",
+    "M01 teamRole 枚举为 OWNER、PRODUCER、EDITOR、VIEWER；CLIENT 不属于 teamRole",
+    "M02 起 projectRole 枚举为 PROJECT_MANAGER、CONTRIBUTOR、VIEWER、CLIENT，不在 M01 的 team_members 或 V2 迁移中实现",
+    "用户创建团队后自动成为 OWNER"
+  ],
+  "decisions": [
+    "契约优先：springdoc 只生成运行时文档，不是契约来源",
+    "实现后必须比较 springdoc 运行时文档与手写 OpenAPI，不一致即失败",
+    "RBAC 在后端强制校验，不信任客户端角色",
+    "密码使用 BCrypt，不出现在响应、日志或 Token 中",
+    "身份数据字典、权限矩阵与 Token 契约以 M01 Ready Gate 文档为准",
+    "无权访问资源统一返回 404；已认证但角色不足返回 403；未认证返回 401",
+    "数据库迁移为 forward-only；开发环境失败使用隔离库清库重建，不提供 down migration",
+    "MVP 主库为 PostgreSQL"
+  ],
+  "unknowns": [],
+  "techBoundary": {
+    "allowed": ["Spring Security 6", "JWT", "BCrypt", "MyBatis-Plus/XML", "Flyway", "PostgreSQL", "JUnit 5", "MockMvc"],
+    "forbidden": ["Redis", "OAuth", "消息队列", "微服务", "前端"]
+  },
+  "businessRules": [
+    "PRD：非成员不可访问团队资源",
+    "PRD：仅 OWNER 可直接添加已注册成员、修改角色和移除成员；M01 不实现邀请接受流程",
+    "PRD：重复注册、重复加入团队、非法角色需明确错误语义",
+    "PRD：CLIENT 是项目级外部访问角色，不是团队管理角色"
+  ],
+  "acceptance": [
+    { "acceptanceId": "AC-FF-M01-001-01", "criterion": "注册、登录、当前用户、团队与成员 API 按手写 OpenAPI 实现；GET /teams 只返回当前用户 ACTIVE 团队关系", "testIds": ["TEST-FF-M01-001-01", "TEST-FF-M01-001-02", "TEST-FF-M01-001-10"], "evidenceIds": ["EV-FF-M01-001-01"] },
+    { "acceptanceId": "AC-FF-M01-001-02", "criterion": "springdoc 运行时文档与手写 OpenAPI 差异校验通过", "testIds": ["TEST-FF-M01-001-08"], "evidenceIds": ["EV-FF-M01-001-04"] },
+    { "acceptanceId": "AC-FF-M01-001-03", "criterion": "未登录请求返回 401", "testIds": ["TEST-FF-M01-001-03"], "evidenceIds": ["EV-FF-M01-001-02"] },
+    { "acceptanceId": "AC-FF-M01-001-04", "criterion": "非 OWNER 管理成员返回 403；最后一名 ACTIVE OWNER 不得降级或移除；OWNER 不得自移除；重复 ACTIVE 成员返回稳定错误", "testIds": ["TEST-FF-M01-001-04", "TEST-FF-M01-001-13"], "evidenceIds": ["EV-FF-M01-001-02"] },
+    { "acceptanceId": "AC-FF-M01-001-05", "criterion": "跨团队资源访问返回 404；所有响应包含 X-Request-Id，错误 body 的 requestId 与 header 相同", "testIds": ["TEST-FF-M01-001-05", "TEST-FF-M01-001-13"], "evidenceIds": ["EV-FF-M01-001-02"] },
+    { "acceptanceId": "AC-FF-M01-001-06", "criterion": "密码哈希不泄露；Access Token 强制 RS256 并校验 alg/kid/iss/aud；Refresh Token 仅存哈希、每次轮换，重放后撤销整个 family", "testIds": ["TEST-FF-M01-001-06", "TEST-FF-M01-001-11", "TEST-FF-M01-001-12"], "evidenceIds": ["EV-FF-M01-001-01"] },
+    { "acceptanceId": "AC-FF-M01-001-07", "criterion": "V2 在隔离空库可重复迁移，包含 users/teams/team_members/refresh_token_sessions/idempotency_records 且不包含 M02 project_members", "testIds": ["TEST-FF-M01-001-07", "TEST-FF-M01-001-14"], "evidenceIds": ["EV-FF-M01-001-03"] },
+    { "acceptanceId": "AC-FF-M01-001-08", "criterion": "POST /teams 与 POST /teams/{teamId}/members 均以 PostgreSQL 为幂等事实源：同键同 payload 重放首次结果、同键不同 payload 返回 409、并发只产生一次业务效果", "testIds": ["TEST-FF-M01-001-09"], "evidenceIds": ["EV-FF-M01-001-01"] }
+  ],
+  "evidence": [
+    { "evidenceId": "EV-FF-M01-001-01", "command": "mvn -B clean verify", "expected": "BUILD SUCCESS；两条团队写接口的 PostgreSQL 幂等、GET /teams ACTIVE 过滤、RS256 claims/header 与 refresh 哈希轮换/重放撤销测试全部通过", "outputRef": "evidence/m01/mvn-verify.txt" },
+    { "evidenceId": "EV-FF-M01-001-02", "command": "sh scripts/m01/auth-flows.sh", "expected": "401/403/404、最后 OWNER、自移除、重复成员错误语义可复现；每次响应 X-Request-Id 与错误 body requestId 一致", "outputRef": "evidence/m01/auth-flows.txt" },
+    { "evidenceId": "EV-FF-M01-001-03", "command": "sh scripts/m01/check-migration.sh", "expected": "隔离空库 forward-only V2 迁移成功且重复执行无变更；包含 refresh_token_sessions/idempotency_records，不包含 project_members", "outputRef": "evidence/m01/migration.txt" },
+    { "evidenceId": "EV-FF-M01-001-04", "command": "sh scripts/m01/check-openapi-diff.sh", "expected": "运行时 OpenAPI 与手写权威契约无未批准差异", "outputRef": "evidence/m01/openapi-diff.txt" }
+  ],
+  "requirementIds": ["REQ-IAM-001"],
+  "testIds": [
+    "TEST-FF-M01-001-01",
+    "TEST-FF-M01-001-02",
+    "TEST-FF-M01-001-03",
+    "TEST-FF-M01-001-04",
+    "TEST-FF-M01-001-05",
+    "TEST-FF-M01-001-06",
+    "TEST-FF-M01-001-07",
+    "TEST-FF-M01-001-08",
+    "TEST-FF-M01-001-09",
+    "TEST-FF-M01-001-10",
+    "TEST-FF-M01-001-11",
+    "TEST-FF-M01-001-12",
+    "TEST-FF-M01-001-13",
+    "TEST-FF-M01-001-14"
+  ],
+  "rollback": "在独立任务分支执行；失败时停止、保留现场和失败证据，已有独立提交只用 git revert 回退；开发隔离库可清库重建，禁止 down migration、reset 和删除 .git",
+  "approvalPoints": [
+    { "action": "migration-v2", "approvalType": "local", "reason": "本地隔离开发库新增身份表，可重建；执行前确认目标数据库" }
+  ],
+  "budget": {
+    "maxFiles": 80,
+    "maxCommands": 50,
+    "maxMinutes": 240
+  }
+}

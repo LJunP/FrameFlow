@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "requirements": [
+    {
+      "requirementId": "REQ-GOV-001",
+      "title": "P0-Prep 治理与可执行基线",
+      "sourceRef": "docs/00-governance/project-status.md"
+    },
+    {
+      "requirementId": "REQ-ENG-001",
+      "title": "可复现的 Java 工程基座",
+      "sourceRef": "docs/05-engineering/development-plan-p0-m17.md"
+    },
+    {
+      "requirementId": "REQ-IAM-001",
+      "title": "身份、团队与授权能力",
+      "sourceRef": "docs/01-product/FrameFlow-PRD.md"
+    }
+  ]
+}

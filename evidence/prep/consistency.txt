@@ -1,0 +1,16 @@
+Evidence ID: EV-FF-PP-001-01
+Task ID: FF-PP-001
+Stage: P0-Prep
+Goal: Repository mode and ownership consistency
+Generated at: 2026-08-13T03:12:54+00:00
+Environment: Python 3.9.6; macOS-15.2-arm64-arm-64bit
+Command: python3 scripts/validate_p0_prep.py
+Result: PASS
+Git commit: NOT_AVAILABLE (FF-PP-001 pre-Git bootstrap exception; the immutable baseline is the first authorized P0 commit, recorded by P0 evidence)
+
+Checks:
+[PASS] Required authoritative documents exist — all present
+[PASS] Single-repository mode A is consistent — README, project status and CONTRIBUTING
+[PASS] Service ownership and AI Worker boundary are explicit — project-service owns tasks/comments; asset-workflow owns review/delivery facts; Worker owns no business tables
+[PASS] .zcode local-only boundary is consistent — retained locally, ignored, non-authoritative and excluded from delivery
+[PASS] Authoritative Markdown links resolve — no broken local links

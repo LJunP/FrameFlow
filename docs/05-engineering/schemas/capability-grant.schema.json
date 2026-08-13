@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "frameflow-capability-grant.schema.json",
+  "title": "FrameFlow Capability Grant",
+  "description": "随 Task Capsule 下发给执行 Agent 的能力授权凭证：能读写哪些路径、能跑哪些命令、网络和工具边界。",
+  "type": "object",
+  "$defs": {
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*(?:^|/)\\.git(?:/|$))(?!.*\\\\)(?!.*//)[^\\u0000\\r\\n]+$"
+    },
+    "safeCommand": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!.*[\\r\\n])(?!.*(?:[;&|<>`]|\\$\\()).+$"
+    }
+  },
+  "required": [
+    "grantId",
+    "taskId",
+    "capabilityVersion",
+    "issuedAt",
+    "expiresAt",
+    "identity",
+    "files",
+    "commands",
+    "network",
+    "tools",
+    "approvals"
+  ],
+  "properties": {
+    "grantId": { "type": "string", "pattern": "^GRANT-FF-(PP|P0|M[0-9]{2}[A-Z]?)-[0-9]{3}-[0-9]{4}$" },
+    "taskId": { "type": "string", "pattern": "^FF-(PP|P0|M[0-9]{2}[A-Z]?)-[0-9]{3}$" },
+    "capabilityVersion": { "const": 1 },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "identity": {
+      "type": "object",
+      "required": ["agent", "roleType", "specialty", "workspace"],
+      "properties": {
+        "agent": { "type": "string", "minLength": 1 },
+        "roleType": { "type": "string", "enum": ["planner", "architect", "implementer", "verifier", "reviewer"] },
+        "specialty": { "type": "string", "enum": ["general", "test", "security", "reliability", "code", "operations"] },
+        "workspace": { "$ref": "#/$defs/repoPath" }
+      },
+      "additionalProperties": false
+    },
+    "files": {
+      "type": "object",
+      "required": ["read", "write"],
+      "properties": {
+        "read": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/repoPath" } },
+        "write": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/repoPath" } }
+      },
+      "additionalProperties": false
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["pattern", "policy"],
+        "properties": {
+          "pattern": { "$ref": "#/$defs/safeCommand" },
+          "policy": { "type": "string", "enum": ["exact", "prefix"] }
+        },
+        "additionalProperties": false
+      },
+      "description": "必须是 Task Capsule allowedCommands 的子集；prefix 仅按完整命令词边界匹配"
+    },
+    "network": {
+      "type": "object",
+      "required": ["allowExternal", "allowLocal", "allowRegistry"],
+      "properties": {
+        "allowExternal": { "type": "boolean" },
+        "allowLocal": { "type": "boolean" },
+        "allowRegistry": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "tools": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["repo-read", "repo-list", "repo-write", "git-read", "test-run", "docs-index", "kubectl", "docker", "mcp-read"] },
+      "description": "显式允许的 MCP/宿主工具白名单"
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action", "approvalType", "status"],
+        "properties": {
+          "action": { "type": "string" },
+          "approvalType": { "type": "string", "enum": ["irreversible", "destructive", "release", "security", "local"] },
+          "status": { "type": "string", "enum": ["pending", "approved", "denied"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "frameflow-agent-receipt.schema.json",
+  "title": "FrameFlow Agent Receipt",
+  "description": "Agent 执行任务包后的结构化回执：实际做了什么、命令结果、测试结果、证据引用、超预算和未知项。",
+  "type": "object",
+  "$defs": {
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*(?:^|/)\\.git(?:/|$))(?!.*\\\\)(?!.*//)[^\\u0000\\r\\n]+$"
+    }
+  },
+  "required": [
+    "receiptId",
+    "taskId",
+    "grantId",
+    "status",
+    "startedAt",
+    "finishedAt",
+    "changedPaths",
+    "commandResults",
+    "testResults",
+    "evidenceRefs",
+    "acceptanceResults",
+    "overBudget",
+    "unknowns",
+    "proposals"
+  ],
+  "properties": {
+    "receiptId": { "type": "string", "pattern": "^RCPT-FF-(PP|P0|M[0-9]{2}[A-Z]?)-[0-9]{3}-[0-9]{4}$" },
+    "taskId": { "type": "string", "pattern": "^FF-(PP|P0|M[0-9]{2}[A-Z]?)-[0-9]{3}$" },
+    "grantId": { "type": "string", "pattern": "^GRANT-FF-(PP|P0|M[0-9]{2}[A-Z]?)-[0-9]{3}-[0-9]{4}$" },
+    "status": {
+      "type": "string",
+      "enum": ["COMPLETED", "BLOCKED", "NEEDS_CONTEXT", "FAILED", "PARTIAL"]
+    },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "changedPaths": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/repoPath" },
+      "description": "实际变更路径，必须全部在 grant.files.write 内"
+    },
+    "commandResults": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["command", "exitCode", "stdoutRef"],
+        "properties": {
+          "command": { "type": "string" },
+          "exitCode": { "type": "integer" },
+          "stdoutRef": { "$ref": "#/$defs/repoPath" },
+          "stderrRef": { "$ref": "#/$defs/repoPath" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "testResults": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["testId", "result", "reportRef"],
+        "properties": {
+          "testId": { "type": "string", "pattern": "^TEST-FF-(PP|P0|M[0-9]{2}[A-Z]?)-[0-9]{3}-[0-9]{2}$" },
+          "result": { "type": "string", "enum": ["PASS", "FAIL", "SKIPPED", "ERROR"] },
+          "reportRef": { "$ref": "#/$defs/repoPath" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^EV-FF-(PP|P0|M[0-9]{2}[A-Z]?)-[0-9]{3}-[0-9]{2}$" },
+      "description": "必须与任务包 evidence.evidenceId 对应"
+    },
+    "acceptanceResults": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["acceptanceId", "result"],
+        "properties": {
+          "acceptanceId": { "type": "string", "pattern": "^AC-FF-(PP|P0|M[0-9]{2}[A-Z]?)-[0-9]{3}-[0-9]{2}$" },
+          "result": { "type": "string", "enum": ["PASS", "FAIL", "NOT_VERIFIED"] },
+          "evidenceIds": { "type": "array", "items": { "type": "string", "pattern": "^EV-FF-(PP|P0|M[0-9]{2}[A-Z]?)-[0-9]{3}-[0-9]{2}$" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "overBudget": { "type": "boolean" },
+    "unknowns": { "type": "array", "items": { "type": "string" } },
+    "proposals": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

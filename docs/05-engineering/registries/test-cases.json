@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "testCases": [
+    { "testId": "TEST-FF-P0-001-01", "taskId": "FF-P0-001", "title": "完整 Maven 验证" },
+    { "testId": "TEST-FF-P0-001-02", "taskId": "FF-P0-001", "title": "健康检查不依赖数据库" },
+    { "testId": "TEST-FF-P0-001-03", "taskId": "FF-P0-001", "title": "数据库不可用时就绪检查失败" },
+    { "testId": "TEST-FF-P0-001-04", "taskId": "FF-P0-001", "title": "数据库恢复后就绪检查成功" },
+    { "testId": "TEST-FF-P0-001-05", "taskId": "FF-P0-001", "title": "Flyway 空库迁移与幂等重跑" },
+    { "testId": "TEST-FF-P0-001-06", "taskId": "FF-P0-001", "title": "Git 跟踪、忽略、归档与工作区卫生" },
+    { "testId": "TEST-FF-M01-001-01", "taskId": "FF-M01-001", "title": "注册登录契约测试" },
+    { "testId": "TEST-FF-M01-001-02", "taskId": "FF-M01-001", "title": "团队和成员契约测试" },
+    { "testId": "TEST-FF-M01-001-03", "taskId": "FF-M01-001", "title": "未认证请求返回 401" },
+    { "testId": "TEST-FF-M01-001-04", "taskId": "FF-M01-001", "title": "非 OWNER 管理成员返回 403" },
+    { "testId": "TEST-FF-M01-001-05", "taskId": "FF-M01-001", "title": "跨团队访问返回 404" },
+    { "testId": "TEST-FF-M01-001-06", "taskId": "FF-M01-001", "title": "密码与 Token 安全规则" },
+    { "testId": "TEST-FF-M01-001-07", "taskId": "FF-M01-001", "title": "身份表迁移验证" },
+    { "testId": "TEST-FF-M01-001-08", "taskId": "FF-M01-001", "title": "运行时 OpenAPI 差异校验" },
+    { "testId": "TEST-FF-M01-001-09", "taskId": "FF-M01-001", "title": "两条团队写接口的 PostgreSQL 幂等重放、冲突与并发唯一效果" },
+    { "testId": "TEST-FF-M01-001-10", "taskId": "FF-M01-001", "title": "GET /teams 仅返回当前用户 ACTIVE 团队关系" },
+    { "testId": "TEST-FF-M01-001-11", "taskId": "FF-M01-001", "title": "RS256 alg、kid、iss 与 aud 强校验" },
+    { "testId": "TEST-FF-M01-001-12", "taskId": "FF-M01-001", "title": "Refresh Token 哈希存储、轮换与重放撤销 family" },
+    { "testId": "TEST-FF-M01-001-13", "taskId": "FF-M01-001", "title": "最后 OWNER、自移除、重复 ACTIVE 成员与 requestId 错误语义" },
+    { "testId": "TEST-FF-M01-001-14", "taskId": "FF-M01-001", "title": "V2 Identity 表集合与 project_members 排除边界" }
+  ]
+}

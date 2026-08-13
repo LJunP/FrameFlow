@@ -1,0 +1,34 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Build and IDE
+target/
+build/
+.idea/
+.vscode/
+*.iml
+
+# Runtime data and logs
+logs/
+data/
+.tmp/
+*.log
+.DS_Store
+__MACOSX/
+
+# Local tooling and plans
+.zcode/
+.codex/
+
+# Node frontend artifacts
+node_modules/
+dist/
+coverage/

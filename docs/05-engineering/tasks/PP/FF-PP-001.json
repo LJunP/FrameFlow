@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 2,
+  "taskId": "FF-PP-001",
+  "status": "DONE",
+  "title": "P0-Prep：文档收敛门禁",
+  "track": "prep",
+  "stage": "P0-Prep",
+  "roleType": "planner",
+  "specialty": "general",
+  "goal": "完成仓库角色、服务归属、编号体系、任务协议 v2、P0 Task 可复现性和包卫生的收敛；全部验收项由同一校验器验证并形成证据后，P0-Prep 才标记 DONE。",
+  "readSet": [
+    "README.md",
+    "docs/**"
+  ],
+  "writeSet": [
+    "README.md",
+    "docs/00-governance/project-status.md",
+    "docs/00-governance/正式开发前检查清单.md",
+    "docs/00-governance/下次继续FrameFlow开发启动指南.md",
+    "docs/00-governance/packaging-policy.md",
+    "docs/05-engineering/task-capsule-spec.md",
+    "docs/05-engineering/task-capsule-catalog.md",
+    "docs/05-engineering/schemas/**",
+    "docs/05-engineering/registries/**",
+    "docs/05-engineering/generated/**",
+    "docs/09-delivery/evidence-index.md",
+    "scripts/validate_p0_prep.py",
+    "evidence/prep/**",
+    ".gitignore",
+    "CONTRIBUTING.md"
+  ],
+  "allowedCommands": [
+    { "pattern": "python3 scripts/validate_p0_prep.py", "policy": "exact" }
+  ],
+  "networkPolicy": {
+    "allowExternal": false,
+    "allowLocal": true,
+    "allowRegistry": false
+  },
+  "toolCapabilities": ["repo-read", "repo-write", "git-read", "mcp-read"],
+  "nonGoals": [
+    "不写任何业务代码",
+    "不初始化 Git（由 FF-P0-001 执行）",
+    "不修改 ADR 已定稿的架构决策"
+  ],
+  "prerequisiteTaskIds": [],
+  "facts": [
+    "2026-08-13 已运行 python3 scripts/validate_p0_prep.py；五类门禁 37/37 项通过并生成 EV-FF-PP-001-01～05 原始证据",
+    "开发机 JDK 17（17.0.18）已满足；配套 Spring Boot 3.4.x 与 Java 17 兼容",
+    ".zcode 是用户明确保留的本地工具目录，已由 .gitignore 排除，不属于 FrameFlow 权威内容或交付包",
+    "FF-PP-001 是 Git 与控制面建立前的一次性 bootstrap：当时不存在可签发的 Capability Grant、可校验的 Agent Receipt 或不可变前置基线；未补造历史记录，完整边界见 evidence/prep/p0-prep-bootstrap-audit.md"
+  ],
+  "decisions": [
+    "仓库模式 A：源码单仓库",
+    "服务归属定稿（ADR-008）",
+    "JDK 17 唯一基线（本机环境）；MinIO=M4-B；Testcontainers 随首次引入",
+    "Task Protocol v2：readSet/writeSet/allowedCommands/Req/Test/验收映射",
+    "编号方案 A：FF-M01-001 风格（两位阶段编号）",
+    "正式交付使用 git archive 或等价的干净打包流程；.zcode 可保留在本地，但必须被 Git 和交付包排除"
+  ],
+  "unknowns": [
+    "Git 前置基线不存在，因此 FF-PP-001 的 exact before/after diff 与完整 changedPaths 无法密码学重建",
+    "历史命令总数、精确耗时与 budget 合规性没有前置控制面记录，无法事后可靠重建"
+  ],
+  "techBoundary": {
+    "allowed": ["Markdown", "JSON Schema", "Python 3 标准库校验器", "git archive 等打包工具"],
+    "forbidden": ["业务代码", "依赖安装"]
+  },
+  "businessRules": [],
+  "acceptance": [
+    { "acceptanceId": "AC-FF-PP-001-01", "criterion": "仓库模式 A 口径一致（README/status/catalog）", "testIds": [], "evidenceIds": ["EV-FF-PP-001-01"] },
+    { "acceptanceId": "AC-FF-PP-001-02", "criterion": "服务归属与 AI Worker 所有权定稿且全库一致", "testIds": [], "evidenceIds": ["EV-FF-PP-001-01"] },
+    { "acceptanceId": "AC-FF-PP-001-03", "criterion": "编号体系（方案 A）、三个 Schema 与注册表落地，PP/P0/M01 实例通过结构及交叉引用校验", "testIds": [], "evidenceIds": ["EV-FF-PP-001-02"] },
+    { "acceptanceId": "AC-FF-PP-001-04", "criterion": "阶段基线唯一：JDK 17、MinIO=M4-B、Testcontainers 随首次引入", "testIds": [], "evidenceIds": ["EV-FF-PP-001-03"] },
+    { "acceptanceId": "AC-FF-PP-001-05", "criterion": "FF-P0-001 可复现（固定版本、健康契约、等待逻辑、安全回滚）", "testIds": [], "evidenceIds": ["EV-FF-PP-001-04"] },
+    { "acceptanceId": "AC-FF-PP-001-06", "criterion": "实际任务文件、Task ID、状态、依赖、catalog 与 generated 索引一致；PLANNED 条目无任务文件且禁止派发", "testIds": [], "evidenceIds": ["EV-FF-PP-001-02"] },
+    { "acceptanceId": "AC-FF-PP-001-07", "criterion": "仓库无被纳入交付的 .DS_Store/__MACOSX/个人绝对路径；本地 .zcode 被 .gitignore 和打包流程排除且明确为非权威内容", "testIds": [], "evidenceIds": ["EV-FF-PP-001-05"] }
+  ],
+  "evidence": [
+    { "evidenceId": "EV-FF-PP-001-01", "command": "python3 scripts/validate_p0_prep.py", "expected": "仓库模式与服务归属口径一致", "outputRef": "evidence/prep/consistency.txt" },
+    { "evidenceId": "EV-FF-PP-001-02", "command": "python3 scripts/validate_p0_prep.py", "expected": "三个 Schema JSON 可解析；PP/P0/M01 Task Capsule 通过当前 task-capsule Schema 所使用关键字与交叉引用校验；Grant/Receipt 运行时约束边界已披露", "outputRef": "evidence/prep/schema-validate.txt" },
+    { "evidenceId": "EV-FF-PP-001-03", "command": "python3 scripts/validate_p0_prep.py", "expected": "JDK、MinIO 与 Testcontainers 阶段基线无冲突", "outputRef": "evidence/prep/stage-baseline.txt" },
+    { "evidenceId": "EV-FF-PP-001-04", "command": "python3 scripts/validate_p0_prep.py", "expected": "FF-P0-001 版本固定、契约完整、证据命令可执行且回滚安全", "outputRef": "evidence/prep/p0-task-review.txt" },
+    { "evidenceId": "EV-FF-PP-001-05", "command": "python3 scripts/validate_p0_prep.py", "expected": "平台垃圾与个人路径未进入交付范围；.zcode 保留在本地但被忽略、排除且非权威", "outputRef": "evidence/prep/hygiene.txt" }
+  ],
+  "requirementIds": ["REQ-GOV-001"],
+  "testIds": [],
+  "rollback": "FF-PP-001 发生在 Git 前置基线之前，无法可靠回退或重建 exact 历史差异；保留一次性 bootstrap 审计，首个授权 Git baseline 后的修复只能通过新提交与 git revert 演进，禁止伪造前置历史",
+  "approvalPoints": [],
+  "budget": {
+    "maxFiles": 30,
+    "maxCommands": 20,
+    "maxMinutes": 120
+  }
+}
