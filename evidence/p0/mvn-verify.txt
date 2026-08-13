@@ -120,32 +120,32 @@
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
 [INFO] Running com.frameflow.FrameFlowApplicationIntegrationTest
-11:29:01.401 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
-11:29:01.404 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
-11:29:01.417 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.20.6
-11:29:01.533 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
-11:29:01.703 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
-11:29:01.704 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-11:29:01.717 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+11:35:01.600 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+11:35:01.603 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+11:35:01.617 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.20.6
+11:35:01.728 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+11:35:01.881 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+11:35:01.882 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+11:35:01.896 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
   Server Version: 29.6.1
   API Version: 1.55
   Operating System: Docker Desktop
   Total Memory: 7936 MB
   Labels: 
     com.docker.desktop.address=unix://<USER_HOME>/Library/Containers/com.docker.docker/Data/docker-cli.sock
-11:29:01.806 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Creating container for image: testcontainers/ryuk:0.11.0
-11:29:01.941 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
-11:29:02.040 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 is starting: cee00c0e222846b281cf694ea393cd772e0dd534487f6473baddd3b15eacbdcc
-11:29:02.251 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 started in PT0.445629S
-11:29:02.257 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
-11:29:02.257 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
-11:29:02.257 [main] INFO org.testcontainers.DockerClientFactory -- ?? Docker server version should be at least 1.6.0
-11:29:02.258 [main] INFO tc.postgres:16-alpine -- Creating container for image: postgres:16-alpine
-11:29:02.298 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine is starting: c8b352b6ff38a68de5d28fbfb43c52bc8790bc7d3b65f04c2eca745b05db7b68
-11:29:03.250 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine started in PT0.992325S
-11:29:03.251 [main] INFO tc.postgres:16-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:64673/frameflow_test?loggerLevel=OFF)
-11:29:03.305 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.frameflow.FrameFlowApplicationIntegrationTest]: FrameFlowApplicationIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-11:29:03.379 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.FrameFlowApplicationIntegrationTest
+11:35:01.954 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Creating container for image: testcontainers/ryuk:0.11.0
+11:35:02.066 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+11:35:02.183 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 is starting: 5775b8300249028adc4fffdbfde3d27d27accf48956c81461ce62b8276680883
+11:35:02.385 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 started in PT0.431137S
+11:35:02.391 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+11:35:02.391 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+11:35:02.392 [main] INFO org.testcontainers.DockerClientFactory -- ?? Docker server version should be at least 1.6.0
+11:35:02.392 [main] INFO tc.postgres:16-alpine -- Creating container for image: postgres:16-alpine
+11:35:02.437 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine is starting: c14691a5b6faaec6360d44c1cd6ddf7f31264a87b6443198c8be405c9f9c464c
+11:35:03.424 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine started in PT1.03216S
+11:35:03.425 [main] INFO tc.postgres:16-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:65350/frameflow_test?loggerLevel=OFF)
+11:35:03.479 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.frameflow.FrameFlowApplicationIntegrationTest]: FrameFlowApplicationIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+11:35:03.553 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.FrameFlowApplicationIntegrationTest
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -156,42 +156,42 @@
 
  :: Spring Boot ::                (v3.4.5)
 
-2026-08-13T11:29:03.607+08:00  INFO 46103 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : Starting FrameFlowApplicationIntegrationTest using Java 17.0.18 with PID 46103 (started by lijunpeng in <WORKSPACE>/frameflow-app)
-2026-08-13T11:29:03.608+08:00  INFO 46103 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : No active profile set, falling back to 1 default profile: "default"
-2026-08-13T11:29:04.239+08:00  INFO 46103 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
-2026-08-13T11:29:04.248+08:00  INFO 46103 --- [frameflow] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-08-13T11:29:04.248+08:00  INFO 46103 --- [frameflow] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
-2026-08-13T11:29:04.272+08:00  INFO 46103 --- [frameflow] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-08-13T11:29:04.273+08:00  INFO 46103 --- [frameflow] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 656 ms
-2026-08-13T11:29:04.460+08:00  INFO 46103 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-08-13T11:29:04.571+08:00  INFO 46103 --- [frameflow] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@4c79ca55
-2026-08-13T11:29:04.572+08:00  INFO 46103 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-08-13T11:29:04.590+08:00  INFO 46103 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:64673/frameflow_test?loggerLevel=OFF (PostgreSQL 16.14)
-2026-08-13T11:29:04.618+08:00  INFO 46103 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
-2026-08-13T11:29:04.621+08:00  INFO 46103 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.011s)
-2026-08-13T11:29:04.633+08:00  INFO 46103 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
-2026-08-13T11:29:04.686+08:00  INFO 46103 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
-2026-08-13T11:29:04.691+08:00  INFO 46103 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - baseline"
-2026-08-13T11:29:04.711+08:00  INFO 46103 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.006s)
-2026-08-13T11:29:04.955+08:00  INFO 46103 --- [frameflow] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-08-13T11:29:05.069+08:00  INFO 46103 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 64677 (http) with context path '/'
-2026-08-13T11:29:05.082+08:00  INFO 46103 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : Started FrameFlowApplicationIntegrationTest in 1.632 seconds (process running for 4.016)
+2026-08-13T11:35:03.793+08:00  INFO 51549 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : Starting FrameFlowApplicationIntegrationTest using Java 17.0.18 with PID 51549 (started by lijunpeng in <WORKSPACE>/frameflow-app)
+2026-08-13T11:35:03.794+08:00  INFO 51549 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : No active profile set, falling back to 1 default profile: "default"
+2026-08-13T11:35:04.423+08:00  INFO 51549 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-08-13T11:35:04.433+08:00  INFO 51549 --- [frameflow] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-13T11:35:04.433+08:00  INFO 51549 --- [frameflow] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-08-13T11:35:04.458+08:00  INFO 51549 --- [frameflow] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-13T11:35:04.459+08:00  INFO 51549 --- [frameflow] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 655 ms
+2026-08-13T11:35:04.623+08:00  INFO 51549 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-13T11:35:04.736+08:00  INFO 51549 --- [frameflow] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@432f4626
+2026-08-13T11:35:04.737+08:00  INFO 51549 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-13T11:35:04.755+08:00  INFO 51549 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:65350/frameflow_test?loggerLevel=OFF (PostgreSQL 16.14)
+2026-08-13T11:35:04.781+08:00  INFO 51549 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-08-13T11:35:04.783+08:00  INFO 51549 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.009s)
+2026-08-13T11:35:04.793+08:00  INFO 51549 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-08-13T11:35:04.844+08:00  INFO 51549 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-08-13T11:35:04.849+08:00  INFO 51549 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - baseline"
+2026-08-13T11:35:04.868+08:00  INFO 51549 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.006s)
+2026-08-13T11:35:05.099+08:00  INFO 51549 --- [frameflow] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-08-13T11:35:05.228+08:00  INFO 51549 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 65356 (http) with context path '/'
+2026-08-13T11:35:05.242+08:00  INFO 51549 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : Started FrameFlowApplicationIntegrationTest in 1.615 seconds (process running for 3.956)
 OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-2026-08-13T11:29:05.587+08:00  INFO 46103 --- [frameflow] [1-auto-1-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-08-13T11:29:05.587+08:00  INFO 46103 --- [frameflow] [1-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-08-13T11:29:05.588+08:00  INFO 46103 --- [frameflow] [1-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.554 s -- in com.frameflow.FrameFlowApplicationIntegrationTest
+2026-08-13T11:35:05.751+08:00  INFO 51549 --- [frameflow] [1-auto-1-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-13T11:35:05.751+08:00  INFO 51549 --- [frameflow] [1-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-13T11:35:05.752+08:00  INFO 51549 --- [frameflow] [1-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.514 s -- in com.frameflow.FrameFlowApplicationIntegrationTest
 [INFO] Running com.frameflow.probe.ProbeControllerTest
-2026-08-13T11:29:06.023+08:00  INFO 46103 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
-2026-08-13T11:29:06.024+08:00  INFO 46103 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
-2026-08-13T11:29:06.024+08:00  INFO 46103 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
-2026-08-13T11:29:06.049+08:00  INFO 46103 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
-2026-08-13T11:29:06.049+08:00  INFO 46103 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
-2026-08-13T11:29:06.049+08:00  INFO 46103 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
-2026-08-13T11:29:06.067+08:00  INFO 46103 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
-2026-08-13T11:29:06.067+08:00  INFO 46103 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
-2026-08-13T11:29:06.067+08:00  INFO 46103 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.155 s -- in com.frameflow.probe.ProbeControllerTest
+2026-08-13T11:35:06.171+08:00  INFO 51549 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-13T11:35:06.171+08:00  INFO 51549 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-13T11:35:06.172+08:00  INFO 51549 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-08-13T11:35:06.196+08:00  INFO 51549 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-13T11:35:06.197+08:00  INFO 51549 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-13T11:35:06.197+08:00  INFO 51549 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-13T11:35:06.214+08:00  INFO 51549 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-13T11:35:06.214+08:00  INFO 51549 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-13T11:35:06.214+08:00  INFO 51549 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.147 s -- in com.frameflow.probe.ProbeControllerTest
 [INFO] 
 [INFO] Results:
 [INFO] 
@@ -202,58 +202,24 @@ OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader clas
 [INFO] Building jar: <WORKSPACE>/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar
 [INFO] 
 [INFO] --- spring-boot:3.4.5:repackage (repackage) @ frameflow-app ---
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/springframework/boot/spring-boot-buildpack-platform/3.4.5/spring-boot-buildpack-platform-3.4.5.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/springframework/boot/spring-boot-buildpack-platform/3.4.5/spring-boot-buildpack-platform-3.4.5.pom (3.2 kB at 7.4 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/client5/httpclient5/5.4.3/httpclient5-5.4.3.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/client5/httpclient5/5.4.3/httpclient5-5.4.3.pom (6.1 kB at 43 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/client5/httpclient5-parent/5.4.3/httpclient5-parent-5.4.3.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/client5/httpclient5-parent/5.4.3/httpclient5-parent-5.4.3.pom (16 kB at 58 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/junit/junit-bom/5.11.0/junit-bom-5.11.0.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/junit/junit-bom/5.11.0/junit-bom-5.11.0.pom (5.6 kB at 20 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5/5.3.4/httpcore5-5.3.4.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5/5.3.4/httpcore5-5.3.4.pom (3.9 kB at 18 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5-parent/5.3.4/httpcore5-parent-5.3.4.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5-parent/5.3.4/httpcore5-parent-5.3.4.pom (14 kB at 126 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5-h2/5.3.4/httpcore5-h2-5.3.4.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5-h2/5.3.4/httpcore5-h2-5.3.4.pom (3.6 kB at 37 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/springframework/boot/spring-boot-loader-tools/3.4.5/spring-boot-loader-tools-3.4.5.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/springframework/boot/spring-boot-loader-tools/3.4.5/spring-boot-loader-tools-3.4.5.pom (2.2 kB at 9.7 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/io/micrometer/micrometer-observation/1.14.5/micrometer-observation-1.14.5.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/io/micrometer/micrometer-observation/1.14.5/micrometer-observation-1.14.5.pom (3.8 kB at 18 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/io/micrometer/micrometer-commons/1.14.5/micrometer-commons-1.14.5.pom
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/io/micrometer/micrometer-commons/1.14.5/micrometer-commons-1.14.5.pom (3.4 kB at 14 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/springframework/boot/spring-boot-buildpack-platform/3.4.5/spring-boot-buildpack-platform-3.4.5.jar
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/springframework/boot/spring-boot-buildpack-platform/3.4.5/spring-boot-buildpack-platform-3.4.5.jar (300 kB at 917 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/client5/httpclient5/5.4.3/httpclient5-5.4.3.jar
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5/5.3.4/httpcore5-5.3.4.jar
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5-h2/5.3.4/httpcore5-h2-5.3.4.jar
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/springframework/boot/spring-boot-loader-tools/3.4.5/spring-boot-loader-tools-3.4.5.jar
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/io/micrometer/micrometer-observation/1.14.5/micrometer-observation-1.14.5.jar
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5-h2/5.3.4/httpcore5-h2-5.3.4.jar (242 kB at 585 kB/s)
-[INFO] Downloading from alimaven: http://maven.aliyun.com/nexus/content/groups/public/io/micrometer/micrometer-commons/1.14.5/micrometer-commons-1.14.5.jar
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/client5/httpclient5/5.4.3/httpclient5-5.4.3.jar (910 kB at 1.7 MB/s)
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/io/micrometer/micrometer-observation/1.14.5/micrometer-observation-1.14.5.jar (75 kB at 116 kB/s)
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/springframework/boot/spring-boot-loader-tools/3.4.5/spring-boot-loader-tools-3.4.5.jar (465 kB at 681 kB/s)
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/io/micrometer/micrometer-commons/1.14.5/micrometer-commons-1.14.5.jar (48 kB at 69 kB/s)
-[INFO] Downloaded from alimaven: http://maven.aliyun.com/nexus/content/groups/public/org/apache/httpcomponents/core5/httpcore5/5.3.4/httpcore5-5.3.4.jar (909 kB at 1.0 MB/s)
 [INFO] Replacing main artifact <WORKSPACE>/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
 [INFO] The original artifact has been renamed to <WORKSPACE>/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar.original
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary for FrameFlow 0.1.0-SNAPSHOT:
 [INFO] 
-[INFO] FrameFlow .......................................... SUCCESS [  0.165 s]
-[INFO] FrameFlow Shared Kernel ............................ SUCCESS [  0.583 s]
-[INFO] FrameFlow Identity Module .......................... SUCCESS [  0.061 s]
-[INFO] FrameFlow Business Modules ......................... SUCCESS [  0.002 s]
-[INFO] FrameFlow Application .............................. SUCCESS [ 10.078 s]
+[INFO] FrameFlow .......................................... SUCCESS [  0.171 s]
+[INFO] FrameFlow Shared Kernel ............................ SUCCESS [  0.599 s]
+[INFO] FrameFlow Identity Module .......................... SUCCESS [  0.060 s]
+[INFO] FrameFlow Business Modules ......................... SUCCESS [  0.003 s]
+[INFO] FrameFlow Application .............................. SUCCESS [  6.386 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  11.075 s
-[INFO] Finished at: 2026-08-13T11:29:10+08:00
+[INFO] Total time:  7.402 s
+[INFO] Finished at: 2026-08-13T11:35:06+08:00
 [INFO] ------------------------------------------------------------------------
 
-P0 evidence subject commit: 9c3662a4364bd99d6dbf619d121d54ea26746fe9
+P0 evidence subject commit: acbe53d52c3c0056e6eca53c9f4b999ec591824a
 Command: mvn -B clean verify
 Exit code: 0
 Result: PASS
