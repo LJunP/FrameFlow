@@ -15,7 +15,6 @@
     "docker-compose.local.yml",
     "docs/00-governance/project-status.md",
     "docs/05-engineering/generated/task-capsule-index.md",
-    "docs/05-engineering/local-development.md",
     "docs/05-engineering/task-capsule-catalog.md",
     "docs/09-delivery/evidence-index.md",
     "evidence/p0/agent-receipt.json",
