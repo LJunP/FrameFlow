@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "taskId": "FF-P0-001",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "title": "工程基座：Git、Maven 多模块、Spring Boot、PostgreSQL Compose",
   "track": "product-mainline",
   "stage": "P0",
@@ -80,9 +80,9 @@
   ],
   "prerequisiteTaskIds": ["FF-PP-001"],
   "facts": [
-    "当前仓库为开发前治理基线，仅有文档、任务协议、P0-Prep 校验脚本与原始证据，业务开发进度为 0",
+    "P0 已建立可运行工程基座与验收证据；M01 用户、团队、认证业务开发进度仍为 0",
     "P0-Prep 门禁（FF-PP-001）已通过才允许本任务派发",
-    "初始化 Git 与执行 P0 是两个独立审批点；FF-PP-001 DONE 后两项均获用户明确授权，调度器才可将本任务改为 READY_FOR_DISPATCH",
+    "初始化 Git 与执行 P0 是两个独立审批点；FF-PP-001 DONE 后两项均获用户明确授权，调度器才可派发本任务",
     "Git 初始化和首个 baseline commit 是 P0 派发后的首个受审批动作；该 commit 由 P0 Receipt/Evidence 记录为 PP pre-Git 当前态的后继锚点，不重写 PP 原始证据",
     "开发机必须为 JDK 17（本机 17.0.18；配套 Spring Boot 3.4.5 与 Java 17 兼容）",
     "Docker daemon 可用性以 docker version 实际结果为准"

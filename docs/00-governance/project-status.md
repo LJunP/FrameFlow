@@ -51,7 +51,7 @@
 | 阶段 | 目标 | 当前状态 | 完成判定 |
 |---|---|---|---|
 | P0-Prep | 执行基线收敛（仓库角色/归属/编号/任务包格式/契约/证据/包卫生） | **PASSED（FF-PP-001=DONE）** | 2026-08-13 五类机器门禁 37/37 PASS，原始证据已登记 |
-| P0 | Java/Spring Boot 基座、PostgreSQL、迁移、健康检查 | **IN_PROGRESS** | 六条验收证据、Receipt、卫生检查和状态回写全部 PASS |
+| P0 | Java/Spring Boot 基座、PostgreSQL、迁移、健康检查 | **DONE** | 六条验收证据、Receipt、卫生检查和状态回写全部 PASS |
 | M1～M4 | 身份、项目、任务、素材核心闭环 | M01 契约已收敛为 CONTRACT_READY；等待 P0 完成，尚不可派发 | 业务 API、权限、事务、版本和 E2E |
 | M5～M8 | Redis、MinIO、RabbitMQ、AI suggestion、审核交付 | 未开始 | 基础设施集成和故障证据 |
 | M9～M12 | DDD、Outbox/Kafka、测试、压测、JVM（lab） | 未开始 | 原始测试/性能/采样/复盘 |
@@ -63,7 +63,7 @@
 ## 6. 阻塞项与风险
 
 - P0-Prep 已通过并有原始证据，不再是阻塞项。
-- P0 正在收口：Git 初始化、P0 执行授权和环境预检已通过；在六条证据与 Receipt 完成前，`FF-P0-001` 不标记 DONE，M01 不派发。
+- P0 已完成：Git 初始化、P0 执行授权、环境预检、六条证据和 Receipt 均通过；M01 保持 `CONTRACT_READY`，不自动派发。
 - M01 仍不得派发：它依赖 P0 验收通过；当前仅为 `CONTRACT_READY`。
 - P0-Prep 发生在 Git 初始化之前，其原始证据用时间、命令、路径和内容摘要锚定并保持 pre-Git 不可变；首个 Git commit 由 P0 Receipt/Evidence 记录为后继锚点，不回写或伪装成 PP 证据所属 commit。此例外只适用于 P0-Prep。
 - Git 初始化不是 P0-Prep 的通过条件。它是 P0 开始动作，并且必须在 P0-Prep 通过后取得用户明确授权；授权前保持当前非 Git 工作区。
@@ -74,11 +74,9 @@
 
 ## 7. 下一步入口
 
-1. 完成 P0-01～06 六条原始证据并登记目标提交。
-2. 生成合法 P0 Receipt，回写验收结果与限制。
-3. 运行仓库卫生检查并完成最后证据提交，确认 `.zcode` 保留但未跟踪、未归档。
-4. 将 `FF-P0-001` 标记 DONE，保持 `FF-M01-001=CONTRACT_READY`，停在 P0。
-5. 下一阶段必须经用户确认后，才把 `FF-M01-001` 标记 READY_FOR_DISPATCH。
+1. P0 已完成，代码、运行证据、Receipt 和卫生提交已固定。
+2. 保持 `FF-M01-001=CONTRACT_READY`，不自动派发。
+3. 下一阶段必须经用户确认后，才把 `FF-M01-001` 标记 READY_FOR_DISPATCH。
 
 ## 8. 更新规则
 

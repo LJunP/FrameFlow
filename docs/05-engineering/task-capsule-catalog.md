@@ -24,7 +24,7 @@
 | Task ID | 阶段 | 轨道 | 状态 | 目标 | 任务文件 |
 |---|---|---|---|---|---|
 | FF-PP-001 | P0-Prep | prep | DONE | 文档收敛门禁 | `tasks/PP/FF-PP-001.json` |
-| FF-P0-001 | P0 | product-mainline | IN_PROGRESS | Git、Maven 多模块、Spring Boot 3.4.5、PostgreSQL、Flyway、health/readiness | `tasks/P0/FF-P0-001.json` |
+| FF-P0-001 | P0 | product-mainline | DONE | Git、Maven 多模块、Spring Boot 3.4.5、PostgreSQL、Flyway、health/readiness | `tasks/P0/FF-P0-001.json` |
 | FF-M01-001 | M01 | product-mainline | CONTRACT_READY | 用户、团队、角色、JWT、RBAC（OpenAPI 已定稿，P0 验收后 READY_FOR_DISPATCH） | `tasks/M01/FF-M01-001.json` |
 | FF-M02-001 | M2 | product-mainline | PLANNED | 客户、项目、Brief 版本、状态机、事务 | `tasks/M2/FF-M02-001.json` |
 | FF-M03-001 | M3 | product-mainline | PLANNED | 任务、评论、乐观锁 | `tasks/M3/FF-M03-001.json` |
@@ -63,6 +63,6 @@
 
 ## 4. 当前状态
 
-- 已有规范任务文件：FF-PP-001（DONE）、FF-P0-001（IN_PROGRESS）、FF-M01-001（CONTRACT_READY）。
+- 已有规范任务文件：FF-PP-001（DONE）、FF-P0-001（DONE）、FF-M01-001（CONTRACT_READY）。
 - 其余为 PLANNED，派发前按同一 schema 创建。
 - 自动生成的索引见 `generated/task-capsule-index.md`。

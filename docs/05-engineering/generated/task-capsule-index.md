@@ -7,7 +7,7 @@
 | Task ID | 阶段 | 轨道 | 状态 | 文件 |
 |---|---|---|---|---|
 | FF-PP-001 | P0-Prep | prep | DONE | `tasks/PP/FF-PP-001.json` |
-| FF-P0-001 | P0 | product-mainline | IN_PROGRESS | `tasks/P0/FF-P0-001.json` |
+| FF-P0-001 | P0 | product-mainline | DONE | `tasks/P0/FF-P0-001.json` |
 | FF-M01-001 | M01 | product-mainline | CONTRACT_READY | `tasks/M01/FF-M01-001.json` |
 
 ## PLANNED（规划中，任务文件尚未创建，禁止派发）

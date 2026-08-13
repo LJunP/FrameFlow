@@ -1,6 +1,6 @@
 # 交付证据索引
 
-> 状态：**P0 工程基座开发中，M01 业务开发进度为 0**。P0-Prep 已于 2026-08-13 通过五类机器门禁（37/37 项 PASS）；P0 六条证据正在收口。证据编号必须与任务包 JSON 中声明的 `evidenceId` 一致（见 `docs/05-engineering/schemas/task-capsule.schema.json`）。
+> 状态：**P0 已完成，M01 业务开发进度为 0**。P0-Prep 已于 2026-08-13 通过五类机器门禁（37/37 项 PASS）；P0 六条证据均已登记。证据编号必须与任务包 JSON 中声明的 `evidenceId` 一致（见 `docs/05-engineering/schemas/task-capsule.schema.json`）。
 
 ## 1. 证据总表
 
@@ -16,7 +16,7 @@
 | EV-FF-P0-001-03 | FF-P0-001 | P0 | readiness 依赖失败语义 | `sh scripts/p0/check-readiness-db-down.sh`；`evidence/p0/readiness-db-down.txt` | PASS | 依赖失败如何退流量 |
 | EV-FF-P0-001-04 | FF-P0-001 | P0 | readiness 恢复语义 | `sh scripts/p0/check-readiness-db-up.sh`；`evidence/p0/readiness-db-up.txt` | PASS | 依赖恢复判断 |
 | EV-FF-P0-001-05 | FF-P0-001 | P0 | Flyway 可重复迁移 | `sh scripts/p0/check-flyway.sh`；`evidence/p0/flyway-migrate.txt` | PASS | 数据库版本如何演进 |
-| EV-FF-P0-001-06 | FF-P0-001 | P0 | Git 与敏感文件卫生 | `sh scripts/p0/check-repo-hygiene.sh`；`evidence/p0/repo-hygiene.txt` | 待最后干净提交验证 | 如何保持可交付基线 |
+| EV-FF-P0-001-06 | FF-P0-001 | P0 | Git 与敏感文件卫生 | `sh scripts/p0/check-repo-hygiene.sh`；`evidence/p0/repo-hygiene.txt` | PASS（针对实现/运行证据提交） | 如何保持可交付基线 |
 | EV-FF-M01-001-01 | FF-M01-001 | M01 | Spring Security/RBAC/幂等/Token | `mvn -B clean verify` | 未开始 | 权限、幂等与会话安全如何落地 |
 | EV-FF-M01-001-02 | FF-M01-001 | M01 | 认证与资源授权流 | `sh scripts/m01/auth-flows.sh` | 未开始 | 401/403/404、OWNER 不变量与 requestId |
 | EV-FF-M01-001-03 | FF-M01-001 | M01 | 身份库迁移 | `sh scripts/m01/check-migration.sh` | 未开始 | forward-only 与模块表边界 |
