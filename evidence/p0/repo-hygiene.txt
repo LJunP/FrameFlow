@@ -1,0 +1,14 @@
+Evidence: EV-FF-P0-001-06
+Subject commit: 8e4ec46c1ab37b5af115d1a6a6e50f856da38215
+Tracked files inspected: 119
+Archive entries inspected: 163
+.zcode local directory required: true
+.zcode ignored: PASS
+.zcode tracked: NO
+.zcode archived: NO
+Evidence and legacy material archived: NO
+Sensitive/generated/platform files tracked: NO
+Private-key markers in tracked content: NO
+Personal absolute paths in tracked content: NO
+Worktree before evidence write: CLEAN
+Result: PASS
