@@ -1,6 +1,6 @@
 # FrameFlow 任务包目录
 
-> 状态：**开发进度为 0**。本目录是任务包清单；机器可读定义见 `tasks/<阶段>/<taskId>.json`，格式见 `task-capsule-spec.md` 与 `schemas/`。
+> 状态：**P0 工程基座开发中，业务功能进度为 0**。本目录是任务包清单；机器可读定义见 `tasks/<阶段>/<taskId>.json`，格式见 `task-capsule-spec.md` 与 `schemas/`。
 > 任务状态：`NOT_READY`/`CONTRACT_READY`（禁止派发）/`READY_FOR_DISPATCH`（前置与授权已满足，可派发）/`PLANNED`（仅规划，文件未创建）。
 
 ## 1. P0-Prep（FF-PP-001）：文档收敛门禁——PASSED
@@ -24,7 +24,7 @@
 | Task ID | 阶段 | 轨道 | 状态 | 目标 | 任务文件 |
 |---|---|---|---|---|---|
 | FF-PP-001 | P0-Prep | prep | DONE | 文档收敛门禁 | `tasks/PP/FF-PP-001.json` |
-| FF-P0-001 | P0 | product-mainline | READY_FOR_DISPATCH | Git、Maven 多模块、Spring Boot 3.4.5、PostgreSQL、Flyway、health/readiness | `tasks/P0/FF-P0-001.json` |
+| FF-P0-001 | P0 | product-mainline | IN_PROGRESS | Git、Maven 多模块、Spring Boot 3.4.5、PostgreSQL、Flyway、health/readiness | `tasks/P0/FF-P0-001.json` |
 | FF-M01-001 | M01 | product-mainline | CONTRACT_READY | 用户、团队、角色、JWT、RBAC（OpenAPI 已定稿，P0 验收后 READY_FOR_DISPATCH） | `tasks/M01/FF-M01-001.json` |
 | FF-M02-001 | M2 | product-mainline | PLANNED | 客户、项目、Brief 版本、状态机、事务 | `tasks/M2/FF-M02-001.json` |
 | FF-M03-001 | M3 | product-mainline | PLANNED | 任务、评论、乐观锁 | `tasks/M3/FF-M03-001.json` |
@@ -63,6 +63,6 @@
 
 ## 4. 当前状态
 
-- 已有规范任务文件：FF-PP-001（DONE）、FF-P0-001（READY_FOR_DISPATCH）、FF-M01-001（CONTRACT_READY）。
+- 已有规范任务文件：FF-PP-001（DONE）、FF-P0-001（IN_PROGRESS）、FF-M01-001（CONTRACT_READY）。
 - 其余为 PLANNED，派发前按同一 schema 创建。
 - 自动生成的索引见 `generated/task-capsule-index.md`。

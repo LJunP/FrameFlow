@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "taskId": "FF-P0-001",
-  "status": "READY_FOR_DISPATCH",
+  "status": "IN_PROGRESS",
   "title": "工程基座：Git、Maven 多模块、Spring Boot、PostgreSQL Compose",
   "track": "product-mainline",
   "stage": "P0",
