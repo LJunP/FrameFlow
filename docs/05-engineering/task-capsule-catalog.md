@@ -1,6 +1,6 @@
 # FrameFlow 任务包目录
 
-> 状态：**P0 工程基座开发中，业务功能进度为 0**。本目录是任务包清单；机器可读定义见 `tasks/<阶段>/<taskId>.json`，格式见 `task-capsule-spec.md` 与 `schemas/`。
+> 状态：**P0 工程基座已完成，业务功能进度为 0**。本目录是任务包清单；机器可读定义见 `tasks/<阶段>/<taskId>.json`，格式见 `task-capsule-spec.md` 与 `schemas/`。
 > 任务状态：`NOT_READY`/`CONTRACT_READY`（禁止派发）/`READY_FOR_DISPATCH`（前置与授权已满足，可派发）/`PLANNED`（仅规划，文件未创建）。
 
 ## 1. P0-Prep（FF-PP-001）：文档收敛门禁——PASSED

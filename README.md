@@ -8,9 +8,9 @@
 
 ## 当前真实状态
 
-- 当前仓库已完成 Git 基线并处于 **P0 工程基座开发中**：已有 Maven 多模块、Spring Boot 应用、PostgreSQL/Flyway、健康探针、自动化测试与本地验收脚本；用户/团队/认证等 M01 业务开发进度仍为 0。
+- 当前仓库已完成 Git 基线并完成 **P0 工程基座**：已有 Maven 多模块、Spring Boot 应用、PostgreSQL/Flyway、健康探针、自动化测试与本地验收脚本；用户/团队/认证等 M01 业务开发进度仍为 0。
 - 仓库模式：**A（源码单仓库）**——P0-Prep 门禁通过后，代码、docs/、deploy/ 与 evidence/ 将全部在本仓库内开发。
-- P0-Prep 已于 2026-08-13 通过：五类机器门禁 37/37 项 PASS，原始结果在 `evidence/prep/`。P0 已获用户授权并完成 Git 基线，当前正在完成六条 P0 验收证据；P0 完成后停下，不自动进入 M01。
+- P0-Prep 已于 2026-08-13 通过：五类机器门禁 37/37 项 PASS，原始结果在 `evidence/prep/`。P0 已获用户授权并完成 Git 基线，六条 P0 验收证据均已通过；P0 完成后停下，不自动进入 M01。
 - `.zcode/` 按用户要求作为已忽略的本地工具目录保留；它不是项目权威事实源、产品源码或验收证据，也不进入正式交付包。
 - 文档中的技术、测试、压测、Kubernetes、Istio 和 AI 能力，除非在 [`docs/09-delivery/evidence-index.md`](./docs/09-delivery/evidence-index.md) 有命令与原始结果，否则只能视为计划或设计。
 - 开发派发以 [`docs/05-engineering/tasks/`](./docs/05-engineering/tasks/) 下的结构化任务包（JSON）为准，由多 Agent 调度工具执行。
