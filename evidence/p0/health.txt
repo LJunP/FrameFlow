@@ -1,0 +1,6 @@
+Evidence: EV-FF-P0-001-02
+Subject commit: 9c3662a4364bd99d6dbf619d121d54ea26746fe9
+Request: GET /health
+HTTP status: 200
+Response body: {"status":"UP"}
+Result: PASS

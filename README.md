@@ -8,9 +8,9 @@
 
 ## 当前真实状态
 
-- 当前仓库是**开发前治理基线**：已有文档、结构化任务协议、P0-Prep 校验脚本与原始证据；没有业务代码、构建工程、业务测试实现或部署清单（业务开发进度为 0）。
+- 当前仓库已完成 Git 基线并处于 **P0 工程基座开发中**：已有 Maven 多模块、Spring Boot 应用、PostgreSQL/Flyway、健康探针、自动化测试与本地验收脚本；用户/团队/认证等 M01 业务开发进度仍为 0。
 - 仓库模式：**A（源码单仓库）**——P0-Prep 门禁通过后，代码、docs/、deploy/ 与 evidence/ 将全部在本仓库内开发。
-- P0-Prep 已于 2026-08-13 通过：五类机器门禁 37/37 项 PASS，原始结果在 `evidence/prep/`。P0 仍未开始；用户对 Git 初始化及 P0 执行分别授权且环境预检通过后，调度器才把 P0 标记为可派发，Git 初始化与基线提交是 P0 派发后的首个受审批动作。
+- P0-Prep 已于 2026-08-13 通过：五类机器门禁 37/37 项 PASS，原始结果在 `evidence/prep/`。P0 已获用户授权并完成 Git 基线，当前正在完成六条 P0 验收证据；P0 完成后停下，不自动进入 M01。
 - `.zcode/` 按用户要求作为已忽略的本地工具目录保留；它不是项目权威事实源、产品源码或验收证据，也不进入正式交付包。
 - 文档中的技术、测试、压测、Kubernetes、Istio 和 AI 能力，除非在 [`docs/09-delivery/evidence-index.md`](./docs/09-delivery/evidence-index.md) 有命令与原始结果，否则只能视为计划或设计。
 - 开发派发以 [`docs/05-engineering/tasks/`](./docs/05-engineering/tasks/) 下的结构化任务包（JSON）为准，由多 Agent 调度工具执行。
@@ -148,7 +148,20 @@ asset-workflow-service PostgreSQL
 
 ## 运行方式
 
-当前没有可运行服务。所有启动、测试和部署命令将在正式开发阶段由开发工具执行并回写 README。计划中的运行模式为：
+P0 已提供可运行的本地基座。默认只绑定本机地址，数据库使用 FrameFlow 独立 Compose project 和具名 volume：
+
+```text
+docker compose -f docker-compose.local.yml up -d --wait
+./mvnw -B clean verify
+java -jar frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar
+curl http://127.0.0.1:8080/health
+curl http://127.0.0.1:8080/readiness
+docker compose -f docker-compose.local.yml stop
+```
+
+`/health` 返回 `200 {"status":"UP"}` 且不查询数据库；`/readiness` 在数据库可用时返回 `200 READY`，数据库停止时返回 `503 NOT_READY`。停止命令不会删除数据库 volume；清理 volume 只能作为明确的本地重置动作执行。六条 P0 原始验收结果登记在 `evidence/p0/`。
+
+后续运行模式为：
 
 | 模式 | 目的 | 主要依赖 |
 |---|---|---|

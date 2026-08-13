@@ -18,6 +18,19 @@
 | `local-k8s` | kind/minikube、Helm、镜像 | K8s 发布和排障 | M16 |
 | `local-istio` | Kubernetes、Istio | 灰度、mTLS、授权 | M16-G |
 
+P0 本地基座已可运行：
+
+```text
+docker compose -f docker-compose.local.yml up -d --wait
+./mvnw -B clean verify
+java -jar frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar
+curl http://127.0.0.1:8080/health
+curl http://127.0.0.1:8080/readiness
+docker compose -f docker-compose.local.yml stop
+```
+
+应用默认监听 `127.0.0.1:8080`，数据库默认绑定 `127.0.0.1:54329`；真实 `.env` 不提交，默认值只适用于本地隔离环境。
+
 ## 3. 每种模式必须记录
 
 ```text

@@ -1,0 +1,60 @@
+Evidence: EV-FF-P0-001-05
+Subject commit: 9c3662a4364bd99d6dbf619d121d54ea26746fe9
+Isolated database: frameflow_p0_migration_<pid>
+First migrate successful rows: 1
+Baseline technical rows: 1
+Second migrate successful rows: 1
+History snapshot: 1|V1__baseline.sql|1522983781|true
+
+--- First migration log ---
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.5)
+
+2026-08-13T11:30:34.444+08:00  INFO 48633 --- [frameflow] [           main] com.frameflow.FrameFlowApplication       : Starting FrameFlowApplication v0.1.0-SNAPSHOT using Java 17.0.18 with PID 48633 (<WORKSPACE>/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar started by lijunpeng in <WORKSPACE>)
+2026-08-13T11:30:34.445+08:00  INFO 48633 --- [frameflow] [           main] com.frameflow.FrameFlowApplication       : No active profile set, falling back to 1 default profile: "default"
+2026-08-13T11:30:35.095+08:00  INFO 48633 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-13T11:30:35.238+08:00  INFO 48633 --- [frameflow] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@57f847af
+2026-08-13T11:30:35.239+08:00  INFO 48633 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-13T11:30:35.264+08:00  INFO 48633 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:54329/frameflow_p0_migration_48613 (PostgreSQL 16.14)
+2026-08-13T11:30:35.293+08:00  INFO 48633 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-08-13T11:30:35.295+08:00  INFO 48633 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.011s)
+2026-08-13T11:30:35.307+08:00  INFO 48633 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-08-13T11:30:35.368+08:00  INFO 48633 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-08-13T11:30:35.375+08:00  INFO 48633 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - baseline"
+2026-08-13T11:30:35.399+08:00  INFO 48633 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.008s)
+2026-08-13T11:30:35.610+08:00  INFO 48633 --- [frameflow] [           main] com.frameflow.FrameFlowApplication       : Started FrameFlowApplication in 1.432 seconds (process running for 1.675)
+2026-08-13T11:30:35.614+08:00  INFO 48633 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-13T11:30:35.616+08:00  INFO 48633 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+
+--- Second migration log ---
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.5)
+
+2026-08-13T11:30:36.515+08:00  INFO 48649 --- [frameflow] [           main] com.frameflow.FrameFlowApplication       : Starting FrameFlowApplication v0.1.0-SNAPSHOT using Java 17.0.18 with PID 48649 (<WORKSPACE>/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar started by lijunpeng in <WORKSPACE>)
+2026-08-13T11:30:36.517+08:00  INFO 48649 --- [frameflow] [           main] com.frameflow.FrameFlowApplication       : No active profile set, falling back to 1 default profile: "default"
+2026-08-13T11:30:37.154+08:00  INFO 48649 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-13T11:30:37.284+08:00  INFO 48649 --- [frameflow] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@95eb320
+2026-08-13T11:30:37.285+08:00  INFO 48649 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-13T11:30:37.306+08:00  INFO 48649 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:54329/frameflow_p0_migration_48613 (PostgreSQL 16.14)
+2026-08-13T11:30:37.345+08:00  INFO 48649 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.020s)
+2026-08-13T11:30:37.380+08:00  INFO 48649 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 1
+2026-08-13T11:30:37.382+08:00  INFO 48649 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-08-13T11:30:37.583+08:00  INFO 48649 --- [frameflow] [           main] com.frameflow.FrameFlowApplication       : Started FrameFlowApplication in 1.323 seconds (process running for 1.563)
+2026-08-13T11:30:37.586+08:00  INFO 48649 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-13T11:30:37.588+08:00  INFO 48649 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+
+Result: PASS (second migration was a no-op)

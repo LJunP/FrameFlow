@@ -4,13 +4,12 @@
 
 ## 1. 当前已验证事实
 
-- 当前处于**开发前治理基线阶段**，已有文档、任务协议、P0-Prep 校验脚本与原始证据，正式业务代码尚未开始。
+- 当前处于**P0 工程基座开发阶段**：Git、Maven 多模块、Spring Boot、PostgreSQL/Flyway、探针测试和本地验收脚本已建立；正式业务（M01 用户/团队/认证）尚未开始。
 - 已重建文档事实源：README、三书、治理、API、工程、测试、运维、证据索引和 ADR-001～011。
-- 当前没有任何 `pom.xml`、`src/`、迁移、Docker Compose、Dockerfile、Kubernetes 清单、业务测试实现或 Git 提交。
-- 当前没有可验证的启动命令、测试结果、压测结果、JVM 采样、Kubernetes 发布记录或 Istio 实验记录。
-- 工作区不是 Git 仓库；Git 初始化将由后续正式开发流程执行。
+- 当前已有 `pom.xml`、`src/`、Flyway V1 迁移、Docker Compose、探针测试和 P0 验收脚本；尚无 M01 业务实现、Dockerfile、Kubernetes 清单、压测结果、JVM 采样或 Istio 实验记录。
+- Git 已初始化为 `main` 基线并创建独立 P0 分支；P0 实现提交和后续证据提交由本任务记录。
 - `.zcode/` 由用户明确要求保留，当前仅作为被 `.gitignore` 排除的本地工具目录；它不属于产品源码、权威计划、验收证据或正式交付包，其存在本身不是 P0-Prep 阻塞项。
-- Docker 客户端 29.6.1 已安装，但 2026-08-13 复核时本地 Docker daemon 未运行；这不阻塞 P0-Prep，进入 P0 前必须重新验证并启动可用的本地容器环境。
+- Docker Engine 29.6.1、Compose v5.3.0 已在 P0 运行验证；Testcontainers 使用本地 Docker socket 的 API 1.44 兼容配置。
 - 2026-08-13 已运行 `python3 scripts/validate_p0_prep.py`：仓库/归属 5/5、协议/引用 12/12、阶段基线 5/5、P0 可复现性 8/8、包卫生 7/7，合计 37/37 PASS；原始结果位于 `evidence/prep/`。
 - 当前没有 Elasticsearch/OpenSearch、RocketMQ、Netty、Vue3 或若依代码/配置证据。
 
@@ -42,10 +41,9 @@
 ## 4. 当前目标阶段
 
 ```text
-当前：P0-Prep 已通过（FF-PP-001=DONE），业务开发进度仍为 0
-下一步：取得用户对初始化 Git 与执行 P0 的明确授权，并启动可用的 Docker daemon
-随后：环境预检通过后将 FF-P0-001 标记 READY_FOR_DISPATCH；派发后首个受审批动作是初始化 Git 并建立基线，完成后再实施工程基座
-之后：产品主线 P0→M8 → 工程实验 M9→M17（按选择执行）
+当前：P0-Prep 已通过（FF-PP-001=DONE），P0 工程基座已实现并正在收口验收，M01 业务开发进度为 0
+随后：完成 P0 六条证据、Receipt、状态回写和卫生提交
+之后：停在 P0，待用户确认后才进入 M01；产品主线再按 P0→M8 推进，工程实验按需进入 M9→M17
 ```
 
 ## 5. 阶段状态
@@ -53,7 +51,7 @@
 | 阶段 | 目标 | 当前状态 | 完成判定 |
 |---|---|---|---|
 | P0-Prep | 执行基线收敛（仓库角色/归属/编号/任务包格式/契约/证据/包卫生） | **PASSED（FF-PP-001=DONE）** | 2026-08-13 五类机器门禁 37/37 PASS，原始证据已登记 |
-| P0 | Java/Spring Boot 基座、PostgreSQL、迁移、健康检查 | 未开始（禁止派发） | 双授权与环境预检后派发；任务内建立 Git 基线，并有源码、构建、测试、启动和证据 |
+| P0 | Java/Spring Boot 基座、PostgreSQL、迁移、健康检查 | **IN_PROGRESS** | 六条验收证据、Receipt、卫生检查和状态回写全部 PASS |
 | M1～M4 | 身份、项目、任务、素材核心闭环 | M01 契约已收敛为 CONTRACT_READY；等待 P0 完成，尚不可派发 | 业务 API、权限、事务、版本和 E2E |
 | M5～M8 | Redis、MinIO、RabbitMQ、AI suggestion、审核交付 | 未开始 | 基础设施集成和故障证据 |
 | M9～M12 | DDD、Outbox/Kafka、测试、压测、JVM（lab） | 未开始 | 原始测试/性能/采样/复盘 |
@@ -65,23 +63,22 @@
 ## 6. 阻塞项与风险
 
 - P0-Prep 已通过并有原始证据，不再是阻塞项。
-- P0 仍不得派发：Git 初始化与 P0 执行尚未取得用户明确授权，且 Docker daemon 当前未运行；`FF-P0-001` 保持 `NOT_READY`。
+- P0 正在收口：Git 初始化、P0 执行授权和环境预检已通过；在六条证据与 Receipt 完成前，`FF-P0-001` 不标记 DONE，M01 不派发。
 - M01 仍不得派发：它依赖 P0 验收通过；当前仅为 `CONTRACT_READY`。
 - P0-Prep 发生在 Git 初始化之前，其原始证据用时间、命令、路径和内容摘要锚定并保持 pre-Git 不可变；首个 Git commit 由 P0 Receipt/Evidence 记录为后继锚点，不回写或伪装成 PP 证据所属 commit。此例外只适用于 P0-Prep。
 - Git 初始化不是 P0-Prep 的通过条件。它是 P0 开始动作，并且必须在 P0-Prep 通过后取得用户明确授权；授权前保持当前非 Git 工作区。
 - `.zcode/` 允许保留且已由忽略规则覆盖；P0-Prep 验证忽略与打包规则，Git 基线建立后再验证它未被跟踪、未进入正式归档；任何阶段都不把它当作权威事实源，也不要求删除本地目录。
-- JDK 17 已满足（本机 17.0.18）；Spring Boot 3.4.x 与 Java 17 兼容。Docker daemon 当前未运行，服务可用性须在 P0 开始时重新验证。
+- JDK 17 已满足（本机 17.0.18）；Spring Boot 3.4.x 与 Java 17 兼容。Docker Engine 29.6.1 与 Compose v5.3.0 已在 P0 验收中验证；数据库容器按需启动并由脚本恢复。
 - 尚未锁定前端范围、真实 Provider、媒体规格和首个真实试用对象；这些不阻塞 P0。
 - 外部服务、真实密钥、客户数据和旧项目配置永远不进入本项目。
 
 ## 7. 下一步入口
 
-1. 请求并取得用户对 Git 初始化与执行 P0 的明确授权。
-2. 启动 Docker daemon，并在 P0 开始前重新验证 Java、Maven、Git、Docker 与 Compose。
-3. 双授权和环境预检满足后，由调度器将 `FF-P0-001` 标记 `READY_FOR_DISPATCH` 并生成受限 Capability Grant。
-4. 派发 P0；任务首个受审批动作是建立可追溯 Git 基线，并由 P0 Receipt/Evidence 记录首个 commit 作为 PP 当前态的后继锚点，随后实施工程基座；不得提前实现 M01 业务。
-5. P0 验收通过且 M01 Ready Gate 复核通过后，才把 `FF-M01-001` 标记 READY_FOR_DISPATCH。
-6. 每个阶段完成后，工具按 `evidence-index.md` 回写证据。
+1. 完成 P0-01～06 六条原始证据并登记目标提交。
+2. 生成合法 P0 Receipt，回写验收结果与限制。
+3. 运行仓库卫生检查并完成最后证据提交，确认 `.zcode` 保留但未跟踪、未归档。
+4. 将 `FF-P0-001` 标记 DONE，保持 `FF-M01-001=CONTRACT_READY`，停在 P0。
+5. 下一阶段必须经用户确认后，才把 `FF-M01-001` 标记 READY_FOR_DISPATCH。
 
 ## 8. 更新规则
 

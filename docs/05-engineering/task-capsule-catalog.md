@@ -17,7 +17,7 @@
 - [x] 实际任务文件、状态、依赖、catalog 与 generated 索引一致；PLANNED 无任务文件且禁止派发 —— evidence=EV-FF-PP-001-02
 - [x] `.DS_Store`/`__MACOSX`/个人绝对路径不进入交付；本地 `.zcode` 被 Git/打包排除且非权威 —— evidence=EV-FF-PP-001-05
 
-**结论：P0-Prep 已通过**。2026-08-13 运行 `python3 scripts/validate_p0_prep.py`，五类门禁 37/37 项 PASS，并生成 `EV-FF-PP-001-01`～`05` 原始证据。由于 PP 同时建立 Git 前治理基线和控制面，当时没有 Grant/Receipt 或不可变前置 baseline；没有补造历史对象，透明边界记录在 `evidence/prep/p0-prep-bootstrap-audit.md`。该一次性例外仅限 PP，不可复用。用户已授权 Git 初始化与执行 P0，必要环境预检已通过，`FF-P0-001` 已进入 `READY_FOR_DISPATCH`。
+**结论：P0-Prep 已通过**。2026-08-13 运行 `python3 scripts/validate_p0_prep.py`，五类门禁 37/37 项 PASS，并生成 `EV-FF-PP-001-01`～`05` 原始证据。由于 PP 同时建立 Git 前治理基线和控制面，当时没有 Grant/Receipt 或不可变前置 baseline；没有补造历史对象，透明边界记录在 `evidence/prep/p0-prep-bootstrap-audit.md`。该一次性例外仅限 PP，不可复用。用户已授权 Git 初始化与执行 P0，必要环境预检已通过，`FF-P0-001` 已派发并处于 `IN_PROGRESS`。
 
 ## 2. 任务包总表
 
