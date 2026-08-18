@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "taskId": "FF-M01-001",
-  "status": "CONTRACT_READY",
+  "status": "READY_FOR_DISPATCH",
   "title": "身份与授权：用户、团队、成员角色、JWT、RBAC",
   "track": "product-mainline",
   "stage": "M01",
