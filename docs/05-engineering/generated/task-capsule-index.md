@@ -1,6 +1,6 @@
 # 任务包索引（generated）
 
-> 本文件由 `docs/05-engineering/tasks/**/*.json` 生成，不手写维护。生成规则：扫描任务文件 → 按 taskId 排序 → 校验 schema → 标注状态。当前为手动同步快照，接入调度工具后改为自动生成。
+> 本文件由 `docs/05-engineering/tasks/**/*.json` 生成，不手写维护。生成规则：扫描任务文件 → 按 taskId 排序 → 校验 schema → 标注状态。当前为手动同步快照，接入调度工具后改为自动生成。M01 的 Receipt 已生成，任务文件状态由调度器校验后同步。
 
 ## 实际存在且可校验的任务文件
 
@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | FF-PP-001 | P0-Prep | prep | DONE | `tasks/PP/FF-PP-001.json` |
 | FF-P0-001 | P0 | product-mainline | DONE | `tasks/P0/FF-P0-001.json` |
-| FF-M01-001 | M01 | product-mainline | READY_FOR_DISPATCH | `tasks/M01/FF-M01-001.json` |
+| FF-M01-001 | M01 | product-mainline | DONE | `tasks/M01/FF-M01-001.json` |
 
 ## PLANNED（规划中，任务文件尚未创建，禁止派发）
 

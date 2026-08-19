@@ -1,0 +1,103 @@
+FrameFlow M01 auth-flows evidence
+subject commit: a88fd8220f4e81cd0f3f33da74a5fe4a4d60841c
+generated at:  2026-08-19T03:00:37Z
+
+>>> POST /api/v1/auth/register
+    -> 201  X-Request-Id=1c4cdd16-bc8d-4ac7-ad68-dcedb24f9e01
+    body={"id":4,"email":"flow-a-1787108441@example.com","displayName":"Flow A","status":"ACTIVE","lastLoginAt":null}
+PASS | 注册 A (HTTP 201)
+>>> POST /api/v1/auth/register
+    -> 201  X-Request-Id=920f6629-e211-4a85-b46f-ea029948ac7f
+    body={"id":5,"email":"flow-b-1787108441@example.com","displayName":"Flow B","status":"ACTIVE","lastLoginAt":null}
+PASS | 注册 B (HTTP 201)
+>>> POST /api/v1/auth/register
+    -> 201  X-Request-Id=b26417c0-aebc-4fb9-844c-3466b3121ed0
+    body={"id":6,"email":"flow-c-1787108441@example.com","displayName":"Flow C","status":"ACTIVE","lastLoginAt":null}
+PASS | 注册 C (HTTP 201)
+>>> POST /api/v1/auth/register
+    -> 409  X-Request-Id=6fa62e53-f3ea-4406-b4e0-6389909cbbd5
+    body={"code":"USER_EMAIL_CONFLICT","message":"该邮箱已被注册","requestId":"6fa62e53-f3ea-4406-b4e0-6389909cbbd5","traceId":null}
+PASS | 重复注册 USER_EMAIL_CONFLICT (HTTP 409)
+>>> GET /api/v1/auth/me
+    -> 401  X-Request-Id=45ca4a7f-27f6-41e0-9d38-0a0fbca977c2
+    body={"code":"AUTH_REQUIRED","message":"????????","requestId":"45ca4a7f-27f6-41e0-9d38-0a0fbca977c2"}
+PASS | 未认证 /auth/me (HTTP 401)
+PASS | 未认证 401 requestId 一致 (requestId header==body)
+>>> POST /api/v1/auth/login
+    -> 401  X-Request-Id=7382640c-a2cc-45bc-aaa9-1a550766ec6c
+    body={"code":"AUTH_REQUIRED","message":"邮箱或密码错误","requestId":"7382640c-a2cc-45bc-aaa9-1a550766ec6c","traceId":null}
+PASS | 错误密码登录 (HTTP 401)
+>>> POST /api/v1/auth/login
+    -> 200  X-Request-Id=6db0a1c4-ba11-4450-b9d1-96348b5f37d3
+    body={"accessToken":"eyJraWQiOiJsb2NhbC1tMDEta2lkIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI0IiwiYXVkIjoiZnJhbWVmbG93LWFwaSIsImlzcyI6ImZyYW1lZmxvdyIsImV4cCI6MTc4NzEwOTM0MSwiaWF0IjoxNzg3MTA4NDQxLCJqdGkiOiIxYzYwYmIyMy1kZDZlLTQwMGMtOWUxZS1lM2YzOGFhYzNhNWMifQ.ZgaLP-2ovH2-Ex3xEiILYvMnEK-rVB6ebMcCf09enkCzvP7MxJ2IiP6Q4jhZvEQf287yBw_G6P1CDGSPa77xvVlZoacvOhB_AKvMt5JP0T259zi2bm-C6WJ9LC_zUf0yQYDRMQpNFEbBibqHlqSYQASitxJGNZUK97UD0vgLTS0soB7Zibwr7wibkPz7dkfpSHUwk-yD2UaEyqqawzsMHUxd7eZFPFRTwMscQDkxscB6VF0qSzwxKiRFl4cYxD1B4S9jGxXfzo9abfyGT_9FeHZDMlS8e5RCo_AbWX-3Xj_wUfLqrEE4t_KJ0e-OJf_MuG4me_OOj7GQkRubqnj-ig","refreshToken":"eaXKLEjaZJPQan4d7S0wfB_J-kc5lJ4hzqpeXpbGGFw","expiresIn":900,"tokenType":"Bearer"}
+PASS | A 登录 (HTTP 200)
+>>> POST /api/v1/auth/login
+    -> 200  X-Request-Id=1a611c5a-fc7f-4408-9971-0a813e9463d7
+    body={"accessToken":"eyJraWQiOiJsb2NhbC1tMDEta2lkIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI1IiwiYXVkIjoiZnJhbWVmbG93LWFwaSIsImlzcyI6ImZyYW1lZmxvdyIsImV4cCI6MTc4NzEwOTM0MiwiaWF0IjoxNzg3MTA4NDQyLCJqdGkiOiI3ODZmMGNkYi0xYzQxLTQ5YWMtYTg3ZS1kZjc1YTE4M2E5MWEifQ.MqrgSjPtyjU1U3KCedZYxP4W8lvPbdMfEesFxdTHrEHMpV42kmeOKcTF7i2V7psl5UZ9bysjwEysklvCUD2Fwcjr3ysiNCC9iKtw9pHEq5pHVaHdP0XETObjN0Se48rMPAFZVZxKtBlGVw4xL_5wsQpln-umeGvW1j14uHc-PpfDzYJtHX8wF5rvGfhsR7bkU5_CQeUfzvsIa3vYKCdQEnMvLKEElAV1el7VdkJBnByyZmNZ2p2f01fQ9FSCRhH1eDpW8h0PELqB_K_6L_ZUEuYsz5Z1FUyk8TZP1wzsw7iPLxUTV-KA_R9C3Q82EN1qzjBhwkhqjl2Bn9Xi_7ZD-A","refreshToken":"KDxpXpKIDWgfGT_P76w91aJCrjZgtZDG3exGOW-ITt0","expiresIn":900,"tokenType":"Bearer"}
+>>> POST /api/v1/auth/login
+    -> 200  X-Request-Id=e127aa19-8923-44ea-9b6e-852f22878a56
+    body={"accessToken":"eyJraWQiOiJsb2NhbC1tMDEta2lkIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI2IiwiYXVkIjoiZnJhbWVmbG93LWFwaSIsImlzcyI6ImZyYW1lZmxvdyIsImV4cCI6MTc4NzEwOTM0MiwiaWF0IjoxNzg3MTA4NDQyLCJqdGkiOiJjZTVmZmFkNy04ODAzLTQyNWUtOGFiMy0yMWJmNThhY2JmNjAifQ.G9KQPliW6VY52DGErKDaNXsq8i3xs7ezzX-DrXoaPL_0JoGA6GweiaqdZUz13lWhx92mgVpJn8EQiK1iW2xVQY4BURHU_vGD2JlvCEAehWzv1X5ECDbB0PEGO4jkJAGkW6k8-RntsMG2MV6bbSOkFkMPoeNurhQjfY8xqrIcylapJkN3CjS0nSSbs1EtJ76uJM2rmNzwUPcYnYAZm4zqtCMXq9wbmnVxbJmeNJpzKSvVZeqdTmSZcEguL8O02mtFbeQOLUQi7jolJJeCVL_aIkftBNN8J9jHhGDjYqBPabgFonZLcCI-1GEXtiMkR4ZdhT_f_wG4qoHEQQnOOnKo1w","refreshToken":"HkF26j5VUpbxXwOoIuc16bt4blsxzaLWLXgtEdztzSM","expiresIn":900,"tokenType":"Bearer"}
+>>> POST /api/v1/teams
+    -> 201  X-Request-Id=3b65b7bf-5104-4221-914f-47917fcc57d0
+    body={"id":2,"name":"flow-team-1787108442","createdAt":null}
+PASS | A 创建团队 (HTTP 201)
+>>> GET /api/v1/auth/me
+    -> 200  X-Request-Id=d66a344e-4df3-470f-ad58-b37371ffe879
+    body={"id":5,"email":"flow-b-1787108441@example.com","displayName":"Flow B","status":"ACTIVE","lastLoginAt":"2026-08-19T03:00:41.919944Z"}
+>>> GET /api/v1/auth/me
+    -> 200  X-Request-Id=0a402c25-3200-47ed-b466-e2d912dedfb7
+    body={"id":6,"email":"flow-c-1787108441@example.com","displayName":"Flow C","status":"ACTIVE","lastLoginAt":"2026-08-19T03:00:42.074911Z"}
+>>> POST /api/v1/teams/2/members
+    -> 201  X-Request-Id=677d7d17-12c2-4bc8-ad43-066d4d97ffbf
+    body={"id":4,"teamId":2,"userId":5,"email":"flow-b-1787108441@example.com","role":"EDITOR","status":"ACTIVE"}
+PASS | A 添加 B (HTTP 201)
+>>> POST /api/v1/teams/2/members
+    -> 409  X-Request-Id=dffbafa4-f335-4e3e-b68f-a494a179ae16
+    body={"code":"TEAM_MEMBER_ALREADY_EXISTS","message":"该用户已经是此团队的 ACTIVE 成员","requestId":"dffbafa4-f335-4e3e-b68f-a494a179ae16","traceId":null}
+PASS | 重复 ACTIVE 成员 TEAM_MEMBER_ALREADY_EXISTS (HTTP 409)
+PASS | 重复成员 409 requestId 一致 (requestId header==body)
+>>> GET /api/v1/teams/2
+    -> 404  X-Request-Id=a19e7e6a-e49c-432e-8ea2-bc52c09be337
+    body={"code":"RESOURCE_NOT_FOUND","message":"团队不存在或无权访问","requestId":"a19e7e6a-e49c-432e-8ea2-bc52c09be337","traceId":null}
+PASS | 非成员访问团队 404 (HTTP 404)
+PASS | 404 requestId 一致 (requestId header==body)
+>>> POST /api/v1/teams/2/members
+    -> 403  X-Request-Id=380403de-bca4-4c08-ad0e-1908161f8933
+    body={"code":"FORBIDDEN","message":"仅团队 OWNER 可以添加成员","requestId":"380403de-bca4-4c08-ad0e-1908161f8933","traceId":null}
+PASS | 非 OWNER 添加成员 403 (HTTP 403)
+>>> PATCH /api/v1/teams/2/members/6
+    -> 403  X-Request-Id=f0ee3f4f-c168-480d-8464-64398bac98cb
+    body={"code":"FORBIDDEN","message":"仅团队 OWNER 可以修改成员角色","requestId":"f0ee3f4f-c168-480d-8464-64398bac98cb","traceId":null}
+PASS | 非 OWNER 修改角色 403 (HTTP 403)
+PASS | 403 requestId 一致 (requestId header==body)
+>>> GET /api/v1/auth/me
+    -> 200  X-Request-Id=9c4a436c-a4d9-4512-a5dd-989652c3fd84
+    body={"id":4,"email":"flow-a-1787108441@example.com","displayName":"Flow A","status":"ACTIVE","lastLoginAt":"2026-08-19T03:00:41.679992Z"}
+>>> DELETE /api/v1/teams/2/members/4
+    -> 409  X-Request-Id=fb981213-ae72-4475-97e1-5e248c627ec9
+    body={"code":"TEAM_SELF_REMOVAL_FORBIDDEN","message":"OWNER 不能通过成员删除接口移除自己","requestId":"fb981213-ae72-4475-97e1-5e248c627ec9","traceId":null}
+PASS | OWNER 自移除 TEAM_SELF_REMOVAL_FORBIDDEN (HTTP 409)
+PASS | 自移除 409 requestId 一致 (requestId header==body)
+>>> PATCH /api/v1/teams/2/members/4
+    -> 409  X-Request-Id=60581df7-a291-4ea7-8fee-901a9cbe6e74
+    body={"code":"TEAM_LAST_OWNER_CONFLICT","message":"团队必须至少保留一名 ACTIVE OWNER","requestId":"60581df7-a291-4ea7-8fee-901a9cbe6e74","traceId":null}
+PASS | 最后一名 OWNER 降级 TEAM_LAST_OWNER_CONFLICT (HTTP 409)
+>>> DELETE /api/v1/teams/2/members/5
+    -> 204  X-Request-Id=1cb309b6-5b8f-4b0d-b5a4-2be170856132
+    body=
+PASS | 移除普通成员 204 (HTTP 204)
+PASS | 204 响应带 X-Request-Id
+>>> POST /api/v1/auth/refresh
+    -> 200  X-Request-Id=76247db5-f227-4a8d-b902-d4f7fc5a22b6
+    body={"accessToken":"eyJraWQiOiJsb2NhbC1tMDEta2lkIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI0IiwiYXVkIjoiZnJhbWVmbG93LWFwaSIsImlzcyI6ImZyYW1lZmxvdyIsImV4cCI6MTc4NzEwOTM0MiwiaWF0IjoxNzg3MTA4NDQyLCJqdGkiOiIxZDdkNDA0YS02MmU5LTRhYjgtYWI3Yy02YWZiNzYxOGQ4OTIifQ.r3JIVU3bumXVOtQSgidxix3Uwg9z8QIL96QVDM0BkwF_39RrT2yQN2cv0f1UdNOo-kej9ZSZA7n6peusgzIngfcZ6wjt1pJGIJitvSez7gNLxd8_02YbRe_z78wgMbxLo9joIQmOS_UvRBixQu0Hq87kfccrC7RsxVRTesck9tqCCvH5YN_vVBh6tM8bzHliCmTANY04INBOMjxqPOF4MohgmexXaDe7cLZqPAhOpStQqsY5gOpCEkq9-xCQQMt0ijpX9t6YqWKZdaqq_-VxwrxvepH7Dbl0x0PpQypmgs1bg9IkbhUkVghRHcgvJRLqBa-73FA_ZuaAya60NtQTkg","refreshToken":"tAjk71PTaztrBe735-p650g5RYyB8YeZYgd21Ler7_Q","expiresIn":900,"tokenType":"Bearer"}
+PASS | refresh 轮换 (HTTP 200)
+>>> POST /api/v1/auth/refresh
+    -> 401  X-Request-Id=531443a5-0042-4a11-9d93-d022c7fe95ac
+    body={"code":"AUTH_REQUIRED","message":"Refresh Token 已被轮换或撤销（检测到重放），已撤销该 token family","requestId":"531443a5-0042-4a11-9d93-d022c7fe95ac","traceId":null}
+PASS | refresh 重放撤销 (HTTP 401)
+>>> POST /api/v1/auth/refresh
+    -> 401  X-Request-Id=5ee09b76-0ba4-446d-a009-58777e212973
+    body={"code":"AUTH_REQUIRED","message":"Refresh Token 已被轮换或撤销（检测到重放），已撤销该 token family","requestId":"5ee09b76-0ba4-446d-a009-58777e212973","traceId":null}
+PASS | family 已撤销 (HTTP 401)
+
+RESULT: CHECKS=25 FAILURES=0
