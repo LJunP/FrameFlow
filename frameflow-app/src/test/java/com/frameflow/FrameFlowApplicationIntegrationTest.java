@@ -2,6 +2,7 @@ package com.frameflow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.frameflow.identity.support.TestJwtKeys;
 import com.frameflow.probe.ProbeResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ class FrameFlowApplicationIntegrationTest {
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
+        TestJwtKeys.register(registry);
     }
 
     @LocalServerPort

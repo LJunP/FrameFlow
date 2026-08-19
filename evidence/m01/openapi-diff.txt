@@ -1,0 +1,1371 @@
+FrameFlow M01 runtime OpenAPI <-> authoritative contract diff evidence
+subject commit: a88fd8220f4e81cd0f3f33da74a5fe4a4d60841c
+generated at:  2026-08-19T03:29:51Z
+contract:      docs/04-api/openapi/frameflow-v1.yaml (docs/04-api 权威契约，未修改)
+
+runtime contract: {
+  "paths" : {
+    "/auth/login" : {
+      "post" : {
+        "operationId" : "login",
+        "security" : [ "none" ],
+        "parameters" : [ ],
+        "requestBody" : "LoginRequest",
+        "responses" : {
+          "200" : "TokenPair",
+          "400" : "Error",
+          "401" : "Error"
+        }
+      }
+    },
+    "/auth/logout" : {
+      "post" : {
+        "operationId" : "logout",
+        "security" : [ "none" ],
+        "parameters" : [ ],
+        "requestBody" : "RefreshRequest",
+        "responses" : {
+          "204" : null,
+          "401" : "Error"
+        }
+      }
+    },
+    "/auth/me" : {
+      "get" : {
+        "operationId" : "currentUser",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ ],
+        "requestBody" : null,
+        "responses" : {
+          "200" : "User",
+          "401" : "Error"
+        }
+      }
+    },
+    "/auth/refresh" : {
+      "post" : {
+        "operationId" : "refreshToken",
+        "security" : [ "none" ],
+        "parameters" : [ ],
+        "requestBody" : "RefreshRequest",
+        "responses" : {
+          "200" : "TokenPair",
+          "401" : "Error"
+        }
+      }
+    },
+    "/auth/register" : {
+      "post" : {
+        "operationId" : "registerUser",
+        "security" : [ "none" ],
+        "parameters" : [ ],
+        "requestBody" : "RegisterRequest",
+        "responses" : {
+          "201" : "User",
+          "400" : "Error",
+          "409" : "Error"
+        }
+      }
+    },
+    "/teams" : {
+      "get" : {
+        "operationId" : "listMyTeams",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ ],
+        "requestBody" : null,
+        "responses" : {
+          "200" : "TeamList",
+          "401" : "Error"
+        }
+      },
+      "post" : {
+        "operationId" : "createTeam",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "Idempotency-Key",
+          "in" : "header",
+          "required" : true,
+          "type" : "string",
+          "format" : "uuid",
+          "enum" : null
+        } ],
+        "requestBody" : "CreateTeamRequest",
+        "responses" : {
+          "201" : "Team",
+          "400" : "Error",
+          "401" : "Error",
+          "409" : "Error"
+        }
+      }
+    },
+    "/teams/{teamId}" : {
+      "get" : {
+        "operationId" : "getTeam",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : null,
+        "responses" : {
+          "200" : "Team",
+          "401" : "Error",
+          "404" : "Error"
+        }
+      }
+    },
+    "/teams/{teamId}/members" : {
+      "get" : {
+        "operationId" : "listTeamMembers",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : null,
+        "responses" : {
+          "200" : "MemberList",
+          "401" : "Error",
+          "404" : "Error"
+        }
+      },
+      "post" : {
+        "operationId" : "addTeamMember",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "Idempotency-Key",
+          "in" : "header",
+          "required" : true,
+          "type" : "string",
+          "format" : "uuid",
+          "enum" : null
+        }, {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : "AddMemberRequest",
+        "responses" : {
+          "201" : "TeamMember",
+          "400" : "Error",
+          "401" : "Error",
+          "403" : "Error",
+          "404" : "Error",
+          "409" : "Error"
+        }
+      }
+    },
+    "/teams/{teamId}/members/{userId}" : {
+      "delete" : {
+        "operationId" : "removeTeamMember",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        }, {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : null,
+        "responses" : {
+          "204" : null,
+          "401" : "Error",
+          "403" : "Error",
+          "404" : "Error",
+          "409" : "Error"
+        }
+      },
+      "patch" : {
+        "operationId" : "updateMemberRole",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        }, {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : "UpdateMemberRoleRequest",
+        "responses" : {
+          "200" : "TeamMember",
+          "400" : "Error",
+          "401" : "Error",
+          "403" : "Error",
+          "404" : "Error",
+          "409" : "Error"
+        }
+      }
+    }
+  },
+  "schemas" : {
+    "AddMemberRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "email" : {
+          "format" : "email",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "role" : {
+          "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "email", "role" ],
+      "type" : "object"
+    },
+    "CreateTeamRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "name" : {
+          "format" : null,
+          "maxLength" : 100,
+          "minLength" : 1,
+          "type" : "string"
+        }
+      },
+      "required" : [ "name" ],
+      "type" : "object"
+    },
+    "Error" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "code" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "message" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "requestId" : {
+          "format" : "uuid",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "traceId" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "code", "message", "requestId" ],
+      "type" : "object"
+    },
+    "LoginRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "email" : {
+          "format" : "email",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "password" : {
+          "format" : "password",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "email", "password" ],
+      "type" : "object"
+    },
+    "MemberList" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "items" : {
+          "format" : null,
+          "items" : {
+            "format" : null,
+            "maxLength" : null,
+            "minLength" : null,
+            "properties" : {
+              "email" : {
+                "format" : "email",
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "id" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "integer"
+              },
+              "role" : {
+                "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "status" : {
+                "enum" : [ "ACTIVE" ],
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "teamId" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "integer"
+              },
+              "userId" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "integer"
+              }
+            },
+            "required" : [ "email", "id", "role", "status", "teamId", "userId" ],
+            "type" : "object"
+          },
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "array"
+        }
+      },
+      "required" : [ "items" ],
+      "type" : "object"
+    },
+    "RefreshRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "refreshToken" : {
+          "format" : null,
+          "maxLength" : 43,
+          "minLength" : 43,
+          "type" : "string"
+        }
+      },
+      "required" : [ "refreshToken" ],
+      "type" : "object"
+    },
+    "RegisterRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "displayName" : {
+          "format" : null,
+          "maxLength" : 100,
+          "minLength" : 1,
+          "type" : "string"
+        },
+        "email" : {
+          "format" : "email",
+          "maxLength" : 255,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "password" : {
+          "format" : "password",
+          "maxLength" : 72,
+          "minLength" : 8,
+          "type" : "string"
+        }
+      },
+      "required" : [ "displayName", "email", "password" ],
+      "type" : "object"
+    },
+    "Team" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "createdAt" : {
+          "format" : "date-time",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "id" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "name" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "createdAt", "id", "name" ],
+      "type" : "object"
+    },
+    "TeamList" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "items" : {
+          "format" : null,
+          "items" : {
+            "format" : null,
+            "maxLength" : null,
+            "minLength" : null,
+            "properties" : {
+              "createdAt" : {
+                "format" : "date-time",
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "name" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "role" : {
+                "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "status" : {
+                "enum" : [ "ACTIVE" ],
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "teamId" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "integer"
+              }
+            },
+            "required" : [ "createdAt", "name", "role", "status", "teamId" ],
+            "type" : "object"
+          },
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "array"
+        }
+      },
+      "required" : [ "items" ],
+      "type" : "object"
+    },
+    "TeamMember" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "email" : {
+          "format" : "email",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "id" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "role" : {
+          "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "status" : {
+          "enum" : [ "ACTIVE" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "teamId" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "userId" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        }
+      },
+      "required" : [ "email", "id", "role", "status", "teamId", "userId" ],
+      "type" : "object"
+    },
+    "TeamMembershipSummary" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "createdAt" : {
+          "format" : "date-time",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "name" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "role" : {
+          "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "status" : {
+          "enum" : [ "ACTIVE" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "teamId" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        }
+      },
+      "required" : [ "createdAt", "name", "role", "status", "teamId" ],
+      "type" : "object"
+    },
+    "TokenPair" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "accessToken" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "expiresIn" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "refreshToken" : {
+          "format" : null,
+          "maxLength" : 43,
+          "minLength" : 43,
+          "type" : "string"
+        },
+        "tokenType" : {
+          "enum" : [ "Bearer" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "accessToken", "expiresIn", "refreshToken", "tokenType" ],
+      "type" : "object"
+    },
+    "UpdateMemberRoleRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "role" : {
+          "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "role" ],
+      "type" : "object"
+    },
+    "User" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "displayName" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "email" : {
+          "format" : "email",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "id" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "lastLoginAt" : {
+          "format" : "date-time",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "status" : {
+          "enum" : [ "ACTIVE", "DISABLED", "PENDING" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "displayName", "email", "id", "status" ],
+      "type" : "object"
+    }
+  }
+}
+
+authoritative contract: {
+  "paths" : {
+    "/auth/login" : {
+      "post" : {
+        "operationId" : "login",
+        "security" : [ "none" ],
+        "parameters" : [ ],
+        "requestBody" : "LoginRequest",
+        "responses" : {
+          "200" : "TokenPair",
+          "400" : "Error",
+          "401" : "Error"
+        }
+      }
+    },
+    "/auth/logout" : {
+      "post" : {
+        "operationId" : "logout",
+        "security" : [ "none" ],
+        "parameters" : [ ],
+        "requestBody" : "RefreshRequest",
+        "responses" : {
+          "204" : null,
+          "401" : "Error"
+        }
+      }
+    },
+    "/auth/me" : {
+      "get" : {
+        "operationId" : "currentUser",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ ],
+        "requestBody" : null,
+        "responses" : {
+          "200" : "User",
+          "401" : "Error"
+        }
+      }
+    },
+    "/auth/refresh" : {
+      "post" : {
+        "operationId" : "refreshToken",
+        "security" : [ "none" ],
+        "parameters" : [ ],
+        "requestBody" : "RefreshRequest",
+        "responses" : {
+          "200" : "TokenPair",
+          "401" : "Error"
+        }
+      }
+    },
+    "/auth/register" : {
+      "post" : {
+        "operationId" : "registerUser",
+        "security" : [ "none" ],
+        "parameters" : [ ],
+        "requestBody" : "RegisterRequest",
+        "responses" : {
+          "201" : "User",
+          "400" : "Error",
+          "409" : "Error"
+        }
+      }
+    },
+    "/teams" : {
+      "get" : {
+        "operationId" : "listMyTeams",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ ],
+        "requestBody" : null,
+        "responses" : {
+          "200" : "TeamList",
+          "401" : "Error"
+        }
+      },
+      "post" : {
+        "operationId" : "createTeam",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "Idempotency-Key",
+          "in" : "header",
+          "required" : true,
+          "type" : "string",
+          "format" : "uuid",
+          "enum" : null
+        } ],
+        "requestBody" : "CreateTeamRequest",
+        "responses" : {
+          "201" : "Team",
+          "400" : "Error",
+          "401" : "Error",
+          "409" : "Error"
+        }
+      }
+    },
+    "/teams/{teamId}" : {
+      "get" : {
+        "operationId" : "getTeam",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : null,
+        "responses" : {
+          "200" : "Team",
+          "401" : "Error",
+          "404" : "Error"
+        }
+      }
+    },
+    "/teams/{teamId}/members" : {
+      "get" : {
+        "operationId" : "listTeamMembers",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : null,
+        "responses" : {
+          "200" : "MemberList",
+          "401" : "Error",
+          "404" : "Error"
+        }
+      },
+      "post" : {
+        "operationId" : "addTeamMember",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "Idempotency-Key",
+          "in" : "header",
+          "required" : true,
+          "type" : "string",
+          "format" : "uuid",
+          "enum" : null
+        }, {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : "AddMemberRequest",
+        "responses" : {
+          "201" : "TeamMember",
+          "400" : "Error",
+          "401" : "Error",
+          "403" : "Error",
+          "404" : "Error",
+          "409" : "Error"
+        }
+      }
+    },
+    "/teams/{teamId}/members/{userId}" : {
+      "delete" : {
+        "operationId" : "removeTeamMember",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        }, {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : null,
+        "responses" : {
+          "204" : null,
+          "401" : "Error",
+          "403" : "Error",
+          "404" : "Error",
+          "409" : "Error"
+        }
+      },
+      "patch" : {
+        "operationId" : "updateMemberRole",
+        "security" : [ "bearerAuth" ],
+        "parameters" : [ {
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        }, {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int64",
+          "enum" : null
+        } ],
+        "requestBody" : "UpdateMemberRoleRequest",
+        "responses" : {
+          "200" : "TeamMember",
+          "400" : "Error",
+          "401" : "Error",
+          "403" : "Error",
+          "404" : "Error",
+          "409" : "Error"
+        }
+      }
+    }
+  },
+  "schemas" : {
+    "AddMemberRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "email" : {
+          "format" : "email",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "role" : {
+          "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "email", "role" ],
+      "type" : "object"
+    },
+    "CreateTeamRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "name" : {
+          "format" : null,
+          "maxLength" : 100,
+          "minLength" : 1,
+          "type" : "string"
+        }
+      },
+      "required" : [ "name" ],
+      "type" : "object"
+    },
+    "Error" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "code" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "message" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "requestId" : {
+          "format" : "uuid",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "traceId" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "code", "message", "requestId" ],
+      "type" : "object"
+    },
+    "LoginRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "email" : {
+          "format" : "email",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "password" : {
+          "format" : "password",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "email", "password" ],
+      "type" : "object"
+    },
+    "MemberList" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "items" : {
+          "format" : null,
+          "items" : {
+            "format" : null,
+            "maxLength" : null,
+            "minLength" : null,
+            "properties" : {
+              "email" : {
+                "format" : "email",
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "id" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "integer"
+              },
+              "role" : {
+                "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "status" : {
+                "enum" : [ "ACTIVE" ],
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "teamId" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "integer"
+              },
+              "userId" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "integer"
+              }
+            },
+            "required" : [ "email", "id", "role", "status", "teamId", "userId" ],
+            "type" : "object"
+          },
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "array"
+        }
+      },
+      "required" : [ "items" ],
+      "type" : "object"
+    },
+    "RefreshRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "refreshToken" : {
+          "format" : null,
+          "maxLength" : 43,
+          "minLength" : 43,
+          "type" : "string"
+        }
+      },
+      "required" : [ "refreshToken" ],
+      "type" : "object"
+    },
+    "RegisterRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "displayName" : {
+          "format" : null,
+          "maxLength" : 100,
+          "minLength" : 1,
+          "type" : "string"
+        },
+        "email" : {
+          "format" : "email",
+          "maxLength" : 255,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "password" : {
+          "format" : "password",
+          "maxLength" : 72,
+          "minLength" : 8,
+          "type" : "string"
+        }
+      },
+      "required" : [ "displayName", "email", "password" ],
+      "type" : "object"
+    },
+    "Team" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "createdAt" : {
+          "format" : "date-time",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "id" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "name" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "createdAt", "id", "name" ],
+      "type" : "object"
+    },
+    "TeamList" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "items" : {
+          "format" : null,
+          "items" : {
+            "format" : null,
+            "maxLength" : null,
+            "minLength" : null,
+            "properties" : {
+              "createdAt" : {
+                "format" : "date-time",
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "name" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "role" : {
+                "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "status" : {
+                "enum" : [ "ACTIVE" ],
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "string"
+              },
+              "teamId" : {
+                "format" : null,
+                "maxLength" : null,
+                "minLength" : null,
+                "type" : "integer"
+              }
+            },
+            "required" : [ "createdAt", "name", "role", "status", "teamId" ],
+            "type" : "object"
+          },
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "array"
+        }
+      },
+      "required" : [ "items" ],
+      "type" : "object"
+    },
+    "TeamMember" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "email" : {
+          "format" : "email",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "id" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "role" : {
+          "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "status" : {
+          "enum" : [ "ACTIVE" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "teamId" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "userId" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        }
+      },
+      "required" : [ "email", "id", "role", "status", "teamId", "userId" ],
+      "type" : "object"
+    },
+    "TeamMembershipSummary" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "createdAt" : {
+          "format" : "date-time",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "name" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "role" : {
+          "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "status" : {
+          "enum" : [ "ACTIVE" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "teamId" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        }
+      },
+      "required" : [ "createdAt", "name", "role", "status", "teamId" ],
+      "type" : "object"
+    },
+    "TokenPair" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "accessToken" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "expiresIn" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "refreshToken" : {
+          "format" : null,
+          "maxLength" : 43,
+          "minLength" : 43,
+          "type" : "string"
+        },
+        "tokenType" : {
+          "enum" : [ "Bearer" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "accessToken", "expiresIn", "refreshToken", "tokenType" ],
+      "type" : "object"
+    },
+    "UpdateMemberRoleRequest" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "role" : {
+          "enum" : [ "EDITOR", "OWNER", "PRODUCER", "VIEWER" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "role" ],
+      "type" : "object"
+    },
+    "User" : {
+      "format" : null,
+      "maxLength" : null,
+      "minLength" : null,
+      "properties" : {
+        "displayName" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "email" : {
+          "format" : "email",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "id" : {
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "integer"
+        },
+        "lastLoginAt" : {
+          "format" : "date-time",
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        },
+        "status" : {
+          "enum" : [ "ACTIVE", "DISABLED", "PENDING" ],
+          "format" : null,
+          "maxLength" : null,
+          "minLength" : null,
+          "type" : "string"
+        }
+      },
+      "required" : [ "displayName", "email", "id", "status" ],
+      "type" : "object"
+    }
+  }
+}
+
+OPENAPI-DIFF: PASS (normalized runtime OpenAPI equals authoritative contract)
+
+runtime doc snapshot: /var/folders/sx/8nnc1jc50ds34g2zp6_dndkr0000gn/T//frameflow-m01-openapi-runtime.46WPrF
+comparator:          OpenApiDiffRunner + OpenApiNormalizer (test-scoped, same as TEST-FF-M01-001-08)
