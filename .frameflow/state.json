@@ -2,20 +2,22 @@
   "schemaVersion": "1.0.0",
   "project": "FrameFlow Select",
   "status": "DEVELOPING",
-  "activeStage": "S0",
-  "activeTask": "FF-PIV-004",
-  "lastAcceptedTask": "FF-PIV-003",
+  "activeStage": "S1",
+  "activeTask": "FF-FEA-003",
+  "lastAcceptedTask": "FF-FEA-001",
   "lastGate": "PIVOT_BASELINE_ACCEPTED_LOCAL",
   "target": "LOCAL_MVP_COMPLETE",
   "externalValidation": "EXTERNAL_VALIDATION_PENDING",
   "attempts": {},
   "decisions": [],
   "blockers": [],
-  "updatedAt": "2026-08-20T13:39:40.020168+00:00",
+  "updatedAt": "2026-08-20T14:12:54.215165+00:00",
   "acceptedTasks": [
     "FF-PIV-001",
     "FF-PIV-002",
-    "FF-PIV-003"
+    "FF-PIV-003",
+    "FF-FEA-002",
+    "FF-FEA-001"
   ],
   "stageGates": {
     "PIVOT_BASELINE_ACCEPTED_LOCAL": {
@@ -49,7 +51,19 @@
       "gate": "PIVOT_BASELINE_ACCEPTED_LOCAL",
       "verdict": "OWNER_PROXY_ACCEPTED_LOCAL",
       "commit": "dec02aec73454edda2c1d55df87688c5fa71acca"
+    },
+    {
+      "at": "2026-08-20T14:12:43.957123+00:00",
+      "event": "TASK_ACCEPTED",
+      "taskId": "FF-FEA-002",
+      "commit": "dc1527b140d866870a8f576f3275a071ee179c75"
+    },
+    {
+      "at": "2026-08-20T14:12:54.215165+00:00",
+      "event": "TASK_ACCEPTED",
+      "taskId": "FF-FEA-001",
+      "commit": "dc1527b140d866870a8f576f3275a071ee179c75"
     }
   ],
-  "currentCommit": "dec02aec73454edda2c1d55df87688c5fa71acca"
+  "currentCommit": "dc1527b140d866870a8f576f3275a071ee179c75"
 }
