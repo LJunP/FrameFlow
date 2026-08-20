@@ -1,0 +1,64 @@
+{
+  "taskId": "FF-VSL-003",
+  "stage": "S3",
+  "goal": "Complete and independently verify the single-candidate vertical slice (upload->analysis->result->finding->review->rerun) with restart/duplicate/corrupt-media semantics.",
+  "nonGoals": [
+    "batch scheduling (S4)",
+    "clustering/ranking (S6)"
+  ],
+  "readSet": [
+    "docs/core/BOOK-04",
+    "docs/contracts/*.json"
+  ],
+  "writeSet": [
+    ".frameflow/tasks/FF-VSL-003.json",
+    "frameflow-app/src/test/java/com/frameflow/product/SingleCandidateSliceE2ETest.java",
+    "evidence/frameflow-select/s3/**"
+  ],
+  "allowedCommands": [
+    "./mvnw -B test"
+  ],
+  "networkPolicy": "OFF",
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "upload start progress result finding review and rerun work end to end"
+    },
+    {
+      "id": "A2",
+      "criterion": "restart does not lose terminal or recoverable state"
+    },
+    {
+      "id": "A3",
+      "criterion": "corrupt media ends as analysis error not quality reject"
+    },
+    {
+      "id": "A4",
+      "criterion": "clean fixture e2e passes"
+    }
+  ],
+  "tests": [
+    {
+      "id": "T1",
+      "command": "SingleCandidateSliceE2ETest"
+    },
+    {
+      "id": "T2",
+      "command": "ProductFlowIntegrationTest"
+    }
+  ],
+  "evidence": [
+    {
+      "acceptanceId": "A4",
+      "path": "evidence/frameflow-select/s3/single-candidate-slice.txt"
+    },
+    {
+      "acceptanceId": "A1",
+      "path": "frameflow-app/src/test/java/com/frameflow/product/SingleCandidateSliceE2ETest.java"
+    }
+  ],
+  "rollback": "worker + storage additive; results idempotent",
+  "fallback": "synchronous local adapter while preserving async resource contracts",
+  "attempt": 1,
+  "status": "VERIFYING"
+}

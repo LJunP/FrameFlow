@@ -21,6 +21,7 @@ public class WorkerRunner {
 
     private final BatchRepositories batchRepos;
     private final ProjectRepositories projectRepos;
+    private final com.frameflow.product.application.StoragePort storage;
     private final ObjectMapper mapper;
 
     @Value("${frameflow.worker.python:}")
@@ -30,9 +31,11 @@ public class WorkerRunner {
     private String cliModule;
 
     public WorkerRunner(BatchRepositories batchRepos, ProjectRepositories projectRepos,
+                        com.frameflow.product.application.StoragePort storage,
                         ObjectMapper mapper) {
         this.batchRepos = batchRepos;
         this.projectRepos = projectRepos;
+        this.storage = storage;
         this.mapper = mapper;
     }
 
@@ -48,7 +51,7 @@ public class WorkerRunner {
         Candidate candidate = batchRepos.requireCandidate(teamId, candidateId);
         CandidateVersion cv = batchRepos.requireVersion(candidateId, (int) candidateVersionId);
         QualityProfileVersion profile = projectRepos.requireVersionById(profileVersionId);
-        Path media = Path.of(cv.getObjectRef());
+        Path media = storage.localPath(cv.getObjectRef());
         if (!media.toFile().exists()) {
             throw ApiException.notFound("candidate media not found for worker");
         }
