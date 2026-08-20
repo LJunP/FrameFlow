@@ -1,0 +1,87 @@
+================================================================================
+FrameFlow Select — FF-FEA-003 Feasibility Gate: INDEPENDENT VERIFIER VERDICT
+================================================================================
+Verifier: independent (no implementer explanation relied upon)
+Branch:   frameflow-select/main
+Git HEAD: 58c2a837bf27e513a0cda1341e16fe5e7aa07b5b
+Worktree: .frameflow/runtime/worktrees/s1-verify (detached at HEAD)
+Date:     2026-08-20 (UTC)
+
+--------------------------------------------------------------------------------
+CHECK 1 — HEAD & branch
+--------------------------------------------------------------------------------
+cmd:  git rev-parse HEAD
+out:  58c2a837bf27e513a0cda1341e16fe5e7aa07b5b
+cmd:  git branch --show-current
+out:  frameflow-select/main
+RESULT: PASS
+--------------------------------------------------------------------------------
+CHECK 2 — create disposable detached worktree at HEAD
+--------------------------------------------------------------------------------
+cmd:  git worktree add --detach .frameflow/runtime/worktrees/s1-verify HEAD
+out:  HEAD is now at 58c2a83 chore(s1): set active task FF-FEA-003 (feasibility gate)
+RESULT: PASS
+--------------------------------------------------------------------------------
+CHECK 3 — regenerate synthetic fixtures in worktree (venv binary from main repo)
+--------------------------------------------------------------------------------
+cmd:  PYTHONPATH=<worktree>/frameflow-ai-worker/src <main-venv> \
+        -m frameflow_ai.fixtures --output <worktree>/experiments/fixtures/generated
+out:  {"status":"OK", cases: 10,
+      "binaries":{"ffmpeg":".../static_ffmpeg/bin/darwin_arm64/ffmpeg"}}
+      (generator resolved static-ffmpeg from venv site-packages)
+RESULT: PASS (10 cases regenerated in detached worktree)
+--------------------------------------------------------------------------------
+CHECK 4 — run test suite (must be 20 passed)
+--------------------------------------------------------------------------------
+cmd:  PYTHONPATH=<worktree>/frameflow-ai-worker/src <venv-python> \
+        -m pytest <worktree>/frameflow-ai-worker/tests -q
+out:  ........................  [100%]
+      ============================== 20 passed in 1.01s ==============================
+      (20 collected test items)
+RESULT: PASS (20 passed)
+--------------------------------------------------------------------------------
+CHECK 5 — run offline evaluation (must report tested=10 matched=10 failures=[]
+          and MUST NOT claim real-world accuracy)
+--------------------------------------------------------------------------------
+cmd:  PYTHONPATH=<worktree>/frameflow-ai-worker/src <venv-python> \
+        -m frameflow_ai.eval --dataset <worktree>/experiments/fixtures/generated \
+        --profile <worktree>/experiments/fixtures/profile-ECOMMERCE_SHORT_AD_V1.json
+out (report):
+      {
+        "kind": "LOCAL_FEASIBILITY_EVALUATION",
+        "casesTotal": 10,
+        "tested": 10,
+        "matchedExpected": 10,
+        "failures": [],
+        "unexpectedAnalysisErrors": [],
+        "notes": [
+          "SYNTHETIC_AND_LOCAL_ONLY: not a claim of real-world accuracy",
+          "deterministic_qa_only; semantic provider is the Fake provider"
+        ]
+      }
+RESULT: PASS (tested=10, matched=10, failures=[]; notes explicitly disclaim
+       real-world accuracy — NO real-world accuracy claim made)
+--------------------------------------------------------------------------------
+CHECK 6 — generator uses only lavfi synthetic sources; manifest source field
+--------------------------------------------------------------------------------
+cmd:  grep '"source"' <worktree>/experiments/fixtures/generated/dataset-manifest.json
+out:  "source": "SYNTHETIC_FFMPEG_LAVFI"
+grep fixtures.py for http/https/urlopen/requests/download/curl: none found
+ffmpeg inputs are exclusively "-f lavfi" (testsrc2, smptebars, color, sine)
+RESULT: PASS (synthetic + reproducible + copyright-safe)
+--------------------------------------------------------------------------------
+CHECK 7 — fake provider supports PASS/VIOLATE/UNKNOWN/ERROR
+--------------------------------------------------------------------------------
+file: frameflow-ai-worker/src/frameflow_ai/semantic.py
+      SemanticVerdict.verdict: PASS | VIOLATE | UNKNOWN | ERROR
+      FakeSemanticProvider.evaluate returns PASS/VIOLATE/UNKNOWN/ERROR +
+      forcedOutcome ERROR / UNKNOWN paths
+file: frameflow-ai-worker/tests/test_semantic.py
+      test_fake_provider_pass_violate_unknown_error asserts all four verdicts
+      test_fake_provider_forced_error asserts ERROR forced path
+      test_registry_and_spec asserts registry + provider_spec
+RESULT: PASS
+--------------------------------------------------------------------------------
+OVERALL VERDICT: PASS
+--------------------------------------------------------------------------------
+
