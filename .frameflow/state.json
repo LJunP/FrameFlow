@@ -2,16 +2,16 @@
   "schemaVersion": "1.0.0",
   "project": "FrameFlow Select",
   "status": "DEVELOPING",
-  "activeStage": "S3",
-  "activeTask": "FF-VSL-003",
-  "lastAcceptedTask": "FF-VSL-002",
-  "lastGate": "DOMAIN_FOUNDATION_ACCEPTED",
+  "activeStage": "S4",
+  "activeTask": "FF-BAT-003",
+  "lastAcceptedTask": "FF-VSL-003",
+  "lastGate": "SINGLE_CANDIDATE_SLICE_ACCEPTED",
   "target": "LOCAL_MVP_COMPLETE",
   "externalValidation": "EXTERNAL_VALIDATION_PENDING",
   "attempts": {},
   "decisions": [],
   "blockers": [],
-  "updatedAt": "2026-08-20T16:32:17.208323+00:00",
+  "updatedAt": "2026-08-20T16:44:32.586432+00:00",
   "acceptedTasks": [
     "FF-PIV-001",
     "FF-PIV-002",
@@ -21,7 +21,8 @@
     "FF-FEA-003",
     "FF-DOM-002",
     "FF-DOM-003",
-    "FF-VSL-002"
+    "FF-VSL-002",
+    "FF-VSL-003"
   ],
   "stageGates": {
     "PIVOT_BASELINE_ACCEPTED_LOCAL": {
@@ -38,6 +39,11 @@
       "verdict": "OWNER_PROXY_ACCEPTED_LOCAL",
       "at": "2026-08-20T16:18:06.461379+00:00",
       "commit": null
+    },
+    "SINGLE_CANDIDATE_SLICE_ACCEPTED": {
+      "verdict": "OWNER_PROXY_ACCEPTED_LOCAL",
+      "at": "2026-08-20T16:44:32.586432+00:00",
+      "commit": "1321cb66051de17d9dee89ed1965756f46c5aa97"
     }
   },
   "history": [
@@ -115,7 +121,20 @@
       "event": "TASK_ACCEPTED",
       "taskId": "FF-VSL-002",
       "commit": null
+    },
+    {
+      "at": "2026-08-20T16:44:32.586432+00:00",
+      "event": "TASK_ACCEPTED",
+      "taskId": "FF-VSL-003",
+      "commit": "1321cb66051de17d9dee89ed1965756f46c5aa97"
+    },
+    {
+      "at": "2026-08-20T16:44:32.586432+00:00",
+      "event": "STAGE_GATE",
+      "gate": "SINGLE_CANDIDATE_SLICE_ACCEPTED",
+      "verdict": "OWNER_PROXY_ACCEPTED_LOCAL",
+      "commit": "1321cb66051de17d9dee89ed1965756f46c5aa97"
     }
   ],
-  "currentCommit": "d62f9fa943bc144e8b9f06a181b46937fef18018"
+  "currentCommit": "1321cb66051de17d9dee89ed1965756f46c5aa97"
 }
