@@ -18,12 +18,14 @@ public class BatchService {
     private final BatchRepositories repos;
     private final ProjectRepositories projectRepos;
     private final AnalysisRepositories analysisRepos;
+    private final StoragePort storage;
 
     public BatchService(BatchRepositories repos, ProjectRepositories projectRepos,
-                        AnalysisRepositories analysisRepos) {
+                        AnalysisRepositories analysisRepos, StoragePort storage) {
         this.repos = repos;
         this.projectRepos = projectRepos;
         this.analysisRepos = analysisRepos;
+        this.storage = storage;
     }
 
     public record CreateBatchCmd(long teamId, long projectId, long userId, String name, String promptText,
@@ -52,7 +54,7 @@ public class BatchService {
         return repos.findByIdAnyTeam(id);
     }
 
-    public com.frameflow.product.domain.Project projectOf(long projectId) {
+    public Project projectOf(long projectId) {
         return projectRepos.findByIdAnyTeam(projectId);
     }
 
@@ -108,6 +110,10 @@ public class BatchService {
         long version = repos.nextCandidateVersion(session.getCandidateId());
         String finalDigest = (digest == null || digest.isBlank())
                 ? ProjectService.sha256("candidate:" + candidate.getId()) : digest;
+        if (size > 0) {
+            storage.put(session.getStorageKey(),
+                    new java.io.ByteArrayInputStream(new byte[0]), size, candidate.getMediaType());
+        }
         repos.insertCandidateVersion(candidate.getId(), (int) version, session.getStorageKey(),
                 finalDigest, size, candidate.getMediaType());
         repos.completeUploadSession(session.getId(), size, finalDigest);
@@ -127,12 +133,6 @@ public class BatchService {
     public void setBatchReady(long teamId, long batchId, long userId) {
         repos.require(teamId, batchId);
         repos.updateStatus(batchId, "READY");
-    }
-
-    @Transactional
-    public void setBatchQueued(long teamId, long batchId) {
-        repos.require(teamId, batchId);
-        repos.updateStatus(batchId, "QUEUED");
     }
 
     public long startAnalysis(long teamId, long batchId, long candidateId, long userId) {

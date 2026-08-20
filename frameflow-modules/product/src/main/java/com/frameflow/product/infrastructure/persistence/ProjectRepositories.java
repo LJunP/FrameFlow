@@ -154,6 +154,12 @@ public class ProjectRepositories {
                 status, status, id);
     }
 
+    public QualityProfileVersion requireVersionById(long versionId) {
+        List<QualityProfileVersion> rows = jdbc.query(
+                "SELECT * FROM quality_profile_versions WHERE id = ?", this::mapVersion, versionId);
+        return rows.stream().findFirst().orElseThrow(() -> ApiException.notFound("profile version not found"));
+    }
+
     /** The quality_profiles.id owning the given quality_profile_versions.id. */
     public long profileIdOfVersion(long versionId) {
         Long pid = jdbc.queryForObject(

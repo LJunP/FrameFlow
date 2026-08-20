@@ -1,0 +1,69 @@
+{
+  "taskId": "FF-VSL-001",
+  "stage": "S3",
+  "goal": "Implement immutable candidate upload and object-storage boundary (StoragePort + local adapter, upload session, checksum validation) without exposing browser-storage credentials.",
+  "nonGoals": [
+    "MinIO deployment",
+    "multi-batch scheduling"
+  ],
+  "readSet": [
+    "docs/core/BOOK-04",
+    "docs/contracts/worker-command.schema.json"
+  ],
+  "writeSet": [
+    "frameflow-modules/product/src/main/java/com/frameflow/product/application/StoragePort.java",
+    "frameflow-modules/product/src/main/java/com/frameflow/product/config/ProductStorageConfig.java",
+    "frameflow-modules/product/src/main/java/com/frameflow/product/application/BatchService.java",
+    ".frameflow/tasks/FF-VSL-001.json"
+  ],
+  "allowedCommands": [
+    "./mvnw -B compile"
+  ],
+  "networkPolicy": "OFF",
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "browser never receives permanent storage credentials"
+    },
+    {
+      "id": "A2",
+      "criterion": "object keys are tenant scoped"
+    },
+    {
+      "id": "A3",
+      "criterion": "size type digest and completion validated"
+    },
+    {
+      "id": "A4",
+      "criterion": "candidate source metadata not fabricated"
+    },
+    {
+      "id": "A5",
+      "criterion": "local adapter matches storage contract"
+    }
+  ],
+  "tests": [
+    {
+      "id": "T1",
+      "command": "product compile"
+    },
+    {
+      "id": "T2",
+      "command": "StoragePort.local unit"
+    }
+  ],
+  "evidence": [
+    {
+      "acceptanceId": "A1",
+      "path": "frameflow-modules/product/src/main/java/com/frameflow/product/application/StoragePort.java"
+    },
+    {
+      "acceptanceId": "A2",
+      "path": "frameflow-modules/product/src/main/java/com/frameflow/product/application/BatchService.java"
+    }
+  ],
+  "rollback": "StoragePort is additive; local adapter default",
+  "fallback": "local filesystem adapter as default keeping MinIO integration optional",
+  "attempt": 1,
+  "status": "ACCEPTED"
+}
