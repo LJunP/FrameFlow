@@ -8,7 +8,7 @@
 | 团队成员 | 仅 OWNER 可直接添加已注册用户为 ACTIVE、改角色或移除；重复 ACTIVE 成员、最后 OWNER、自移除返回稳定 409 错误码；M01 不产生 INVITED | M01 |
 | Identity 请求幂等 | PostgreSQL `idempotency_records` 在无 Redis 时保证两个声明端点并发只生效一次、结果重放、payload 冲突与处理中语义 | M01 |
 | API 契约 | 所有响应含 `X-Request-Id`；错误 body 的 requestId 同值；运行时 OpenAPI 与手写契约无未批准差异 | M01 |
-| M01 Hardening | Evidence 脱敏、Grant/Receipt/预算/commit 真实性、ArchUnit、并发冲突、用户 ACTIVE、JWT 轮换与完整 OpenAPI 差异门禁 | M01-H（IN_PROGRESS） |
+| M01 Hardening | Evidence 脱敏、Grant/Receipt/预算/commit 真实性、ArchUnit、并发冲突、用户 ACTIVE、JWT 轮换与完整 OpenAPI 差异门禁 | M01-H（DONE） |
 | 前端认证基座 | 本仓库 `frameflow-web/`；Next BFF + CSRF；Refresh Token 仅 HttpOnly Cookie；openapi-typescript；精确锁版本的 lint/type/test/build/E2E | M01-F（NOT_READY） |
 | M02 Contract Gate | 数据、API、权限、错误、幂等、request/correlation ID、审计/基础通知与 Evidence 决策逐项批准；草案不冒充定稿 | M02 / FF-M02-001（DRAFT） |
 | 项目/Brief | 已交付不可删；仅一个当前 Brief；事务回滚；CLIENT 只能访问明确授权的项目内容；V3 若保留则新迁移从 V4 开始 | M02 / FF-M02-002～004（NOT_READY） |

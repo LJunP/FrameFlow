@@ -4,14 +4,14 @@
 
 ## 1. 当前已验证事实
 
-- `main` 已包含 **P0 工程基座**与 **M01 身份/授权功能**，`FF-P0-001=DONE`、`FF-M01-001=DONE`。`FF-M01H-001=IN_PROGRESS`：它正在加固 M01 的证据安全、架构边界、并发/用户状态、JWT 轮换与 OpenAPI 差异门禁，不得写成 Hardening 已完成。
+- `main` 已包含 **P0 工程基座**、**M01 身份/授权功能**与 **M01-Hardening**，`FF-P0-001`、`FF-M01-001`、`FF-M01H-001` 均为 `DONE`。M01-H 的构建、认证、迁移、OpenAPI 与治理 Evidence 全部锚定实现提交 `4139d94`，Receipt 为 `COMPLETED`。
 - 已重建文档事实源：README、三书、治理、API、工程、测试、运维、证据索引和 ADR-001～012。
-- 当前已有 `pom.xml`、`src/`、已跟踪的 Flyway V1/V2 迁移、Docker Compose、探针测试、P0 验收脚本和 M01 验收脚本；另有一份任务开始前即存在、尚未跟踪的 V3 注释迁移，本轮只验证其可运行并保留现场，不把它冒充已合并成果。尚无 Dockerfile、Kubernetes 清单、压测结果、JVM 采样或 Istio 实验记录。
+- 当前已有 `pom.xml`、`src/`、Flyway V1/V2/V3 迁移、Docker Compose、探针测试、P0/M01/M01-H 验收脚本；V3 注释迁移按用户授权独立提交为 `2aa295d`，只增加数据库注释，不改结构或数据。尚无 Dockerfile、Kubernetes 清单、压测结果、JVM 采样或 Istio 实验记录。
 - Git 已初始化为 `main` 基线并创建独立 P0 分支；P0 实现提交和后续证据提交由本任务记录。
 - `.zcode/` 由用户明确要求保留，当前仅作为被 `.gitignore` 排除的本地工具目录；它不属于产品源码、权威计划、验收证据或正式交付包，其存在本身不是 P0-Prep 阻塞项。
 - Docker Engine 29.6.1、Compose v5.3.0 已在 P0 运行验证；Testcontainers 使用本地 Docker socket 的 API 1.44 兼容配置。
 - 2026-08-13 已运行 `python3 scripts/validate_p0_prep.py`：仓库/归属 5/5、协议/引用 12/12、阶段基线 5/5、P0 可复现性 8/8、包卫生 7/7，合计 37/37 PASS；原始结果位于 `evidence/prep/`。
-- 当前没有 Elasticsearch/OpenSearch、RocketMQ、Netty 或若依代码/配置证据。本仓库 `frameflow-web/` 前端代码尚未开始；`FF-M01F-001` 仍为 NOT_READY，必须等待 `FF-M01H-001=DONE`。
+- 当前没有 Elasticsearch/OpenSearch、RocketMQ、Netty 或若依代码/配置证据。本仓库 `frameflow-web/` 前端代码尚未开始；`FF-M01F-001` 的 M01-H 前置已满足，但在精确版本、授权与派发条件锁定前仍保持 `NOT_READY`。
 
 ## 2. 已批准的产品决策
 
@@ -46,9 +46,9 @@
 ## 4. 当前目标阶段
 
 ```text
-当前：FF-PP-001 / FF-P0-001 / FF-M01-001 均为 DONE；FF-M01H-001=IN_PROGRESS
-并行收敛：M01-Hardening + M02 Contract Gate 草案（FF-M02-001=DRAFT）
-之后：M02 Contract Gate 获批准且 M01H DONE 后才能派发 M02 实现；M08 是后端门禁，M08-F 是产品 MVP 门禁，真实用户验证只在 M08-F 之后开始
+当前：FF-PP-001 / FF-P0-001 / FF-M01-001 / FF-M01H-001 均为 DONE
+下一主线：M02 Contract Gate 草案（FF-M02-001=DRAFT），先解决 UNKNOWN 并取得用户批准
+之后：M02 Contract Gate 获批准后才能派发 M02 实现；M08 是后端门禁，M08-F 是产品 MVP 门禁，真实用户验证只在 M08-F 之后开始
 ```
 
 ## 5. 阶段状态
@@ -57,7 +57,7 @@
 |---|---|---|---|
 | P0-Prep | 执行基线收敛（仓库角色/归属/编号/任务包格式/契约/证据/包卫生） | **PASSED（FF-PP-001=DONE）** | 2026-08-13 五类机器门禁 37/37 PASS，原始证据已登记 |
 | P0 | Java/Spring Boot 基座、PostgreSQL、迁移、健康检查 | **DONE** | 六条验收证据、Receipt、卫生检查和状态回写全部 PASS |
-| M01-H | M01 验收、安全与架构加固 | **IN_PROGRESS** | M01H 全部验收、Receipt 和证据闭环 |
+| M01-H | M01 验收、安全与架构加固 | **DONE** | 五条 Evidence 锚定 `4139d94`，Receipt=`COMPLETED` |
 | M02 Contract Gate | 项目/Brief 数据、API、权限、测试与 Evidence 决策 | **DRAFT，尚未批准** | UNKNOWN 全部解决、用户批准，权威契约另行受控更新 |
 | M01-F / M04-F / M08-F | 本仓库 `frameflow-web/` | DRAFT/NOT_READY，未实现 | 分别依赖 M01H、M02/M03/M04A、M07/M08；M08-F 是产品 MVP Gate |
 | M02～M08 | 项目到审核/交付的后端闭环 | M02 尚在 Contract Gate，未实现 | M08 是 backend gate；M05 Redis 可选且不阻塞 |
@@ -72,7 +72,7 @@
 
 - P0-Prep 已通过并有原始证据，不再是阻塞项。
 - P0 已完成：Git 初始化、P0 执行授权、环境预检、六条证据和 Receipt 均通过。
-- M01 功能任务已合并且 `FF-M01-001=DONE`；M01H 仍在进行，新证据、Receipt 与加固门禁未全部闭环前不得宣称 M01-Hardening DONE。
+- M01 功能与 M01-Hardening 均已完成；旧 M01 Evidence 已安全脱敏并标记失效，M01-H 替代 Evidence 已闭环。旧 Token 是否已从 Git 历史撤销仍为 UNKNOWN，历史清理需另行授权。
 - P0-Prep 发生在 Git 初始化之前，其原始证据用时间、命令、路径和内容摘要锚定并保持 pre-Git 不可变；首个 Git commit 由 P0 Receipt/Evidence 记录为后继锚点，不回写或伪装成 PP 证据所属 commit。此例外只适用于 P0-Prep。
 - Git 初始化不是 P0-Prep 的通过条件；它已在 P0-Prep 通过并取得用户授权后作为 P0 动作完成。当前仓库已经是 Git 仓库，这条只说明历史授权边界，不是当前阻塞项。
 - `.zcode/` 允许保留且已由忽略规则覆盖；P0-Prep 验证忽略与打包规则，Git 基线建立后再验证它未被跟踪、未进入正式归档；任何阶段都不把它当作权威事实源，也不要求删除本地目录。
@@ -82,10 +82,10 @@
 
 ## 7. 下一步入口
 
-1. 继续完成 `FF-M01H-001`，保持状态 `IN_PROGRESS`，直到加固验收、Evidence 与 Receipt 全部通过。
-2. 并行完善 `FF-M02-001` Contract Gate 的 UNKNOWN/决策输入；本阶段不写 M02 业务代码，不修改 `docs/04-api/openapi/frameflow-v1.yaml`。
-3. 只有 M02 数据/API/权限/测试/Evidence 决策获用户批准，且 M01H DONE 后，才能将 M02 实现任务从 NOT_READY 提升。
-4. 前端任务按 M01-F→M04-F→M08-F 推进；代码只放在本仓库 `frameflow-web/`。
+1. 完善 `FF-M02-001` Contract Gate 的 UNKNOWN/决策输入并逐项取得用户批准；本阶段不写 M02 业务代码，不修改 `docs/04-api/openapi/frameflow-v1.yaml`。
+2. Contract Gate 批准后，另立受控契约更新动作，再决定是否将 M02 实现任务从 `NOT_READY` 提升。
+3. 若选择并行启动 M01-F，先锁定派发日受支持的 Node.js、包管理器与核心依赖精确版本，再签发受限 Grant；代码只放在本仓库 `frameflow-web/`。
+4. 旧 Token 历史清理与撤销另立安全任务，不与 M02 或前端开发混做。
 
 ## 8. 更新规则
 

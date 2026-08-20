@@ -8,9 +8,9 @@
 
 ## 当前真实状态
 
-- 当前仓库 `main` 已合并 **P0 工程基座**与 **M01（用户/团队/认证）功能实现**；`FF-M01-001=DONE`。M01 的安全、证据与架构边界加固任务 `FF-M01H-001` 仍为 **IN_PROGRESS**，因此不能把 M01-Hardening 写成已完成。
+- 当前仓库 `main` 已完成 **P0 工程基座**、**M01（用户/团队/认证）功能**与 **M01-Hardening**；`FF-P0-001`、`FF-M01-001`、`FF-M01H-001` 均为 `DONE`。M01-H 五条正式 Evidence 全部锚定实现提交 `4139d94`，合法 Receipt 为 `COMPLETED`。
 - 仓库模式：**A（源码单仓库）**——P0-Prep 门禁通过后，代码、docs/、deploy/ 与 evidence/ 将全部在本仓库内开发。
-- P0-Prep 已于 2026-08-13 通过：五类机器门禁 37/37 项 PASS，原始结果在 `evidence/prep/`。P0 与 M01 功能任务均已完成；当前工作入口是 **M01-Hardening + M02 Contract Gate 草案**，M02 尚未获得实现派发条件。
+- P0-Prep 已于 2026-08-13 通过：五类机器门禁 37/37 项 PASS，原始结果在 `evidence/prep/`。当前主线入口是 **M02 Contract Gate 草案**；M02 数据/API/权限/测试/Evidence 决策尚未获用户批准，因此 M02 业务实现仍不可派发。
 - `.zcode/` 按用户要求作为已忽略的本地工具目录保留；它不是项目权威事实源、产品源码或验收证据，也不进入正式交付包。
 - 文档中的技术、测试、压测、Kubernetes、Istio 和 AI 能力，除非在 [`docs/09-delivery/evidence-index.md`](./docs/09-delivery/evidence-index.md) 有命令与原始结果，否则只能视为计划或设计。
 - 开发派发以 [`docs/05-engineering/tasks/`](./docs/05-engineering/tasks/) 下的结构化任务包（JSON）为准，由多 Agent 调度工具执行。

@@ -1,6 +1,6 @@
 # 交付证据索引
 
-> 状态：**P0 已完成；M01 旧证据已因安全与治理问题标记 SUPERSEDED / SECURITY-REDACTED；M01-H 五条替代证据已在 dirty worktree 复验通过，但尚无 formal subject commit**。P0-Prep 已于 2026-08-13 通过五类机器门禁（37/37 项 PASS）；P0 六条证据均已登记。M01-H Receipt 保持 `PARTIAL`、Task 保持 `IN_PROGRESS`，建立干净提交并按该 commit 重跑前不得标记 DONE。证据编号必须与任务包 JSON 中声明的 `evidenceId` 一致（见 `docs/05-engineering/schemas/task-capsule.schema.json`）。
+> 状态：**P0、M01 功能与 M01-H 已完成；M01 旧证据因安全与治理问题标记 SUPERSEDED / SECURITY-REDACTED，M01-H 五条替代证据全部锚定实现提交 `4139d94` 并通过**。P0-Prep 已于 2026-08-13 通过五类机器门禁（37/37 项 PASS）；M01-H Receipt=`COMPLETED`、Task=`DONE`。证据编号必须与任务包 JSON 中声明的 `evidenceId` 一致（见 `docs/05-engineering/schemas/task-capsule.schema.json`）。
 
 ## 1. 证据总表
 
@@ -21,11 +21,11 @@
 | EV-FF-M01-001-02 | FF-M01-001 | M01 | 认证与资源授权流 | 历史脱敏副本：`evidence/m01/auth-flows.txt` | SUPERSEDED / SECURITY-REDACTED | 401/403/404、OWNER 不变量与 requestId |
 | EV-FF-M01-001-03 | FF-M01-001 | M01 | 身份库迁移 | 历史脱敏副本：`evidence/m01/migration.txt` | SUPERSEDED / SECURITY-REDACTED | forward-only 与模块表边界 |
 | EV-FF-M01-001-04 | FF-M01-001 | M01 | OpenAPI 契约防漂移 | 历史脱敏副本：`evidence/m01/openapi-diff.txt` | SUPERSEDED / SECURITY-REDACTED | 契约优先如何落实 |
-| EV-FF-M01H-001-01 | FF-M01H-001 | M01-H | 全量构建与安全/架构回归 | `sh scripts/m01h/check-build.sh`；`evidence/m01h/mvn-verify.txt` | 工作树 PASS；待 commit 锚点 | 加固后如何建立可复现构建证据 |
-| EV-FF-M01H-001-02 | FF-M01H-001 | M01-H | Evidence 与治理一致性 | `sh scripts/m01h/check-hardening.sh`；`evidence/m01h/hardening-checks.txt` | 工作树 PASS；待 commit 锚点 | 如何机械防止秘密、路径和治理失真 |
-| EV-FF-M01H-001-03 | FF-M01H-001 | M01-H | 认证与资源授权流复验 | `FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/auth-flows.sh`；`evidence/m01h/auth-flows.txt` | 工作树 PASS；待 commit 锚点 | 如何从生成源阻断 Token 落盘 |
-| EV-FF-M01H-001-04 | FF-M01H-001 | M01-H | V1 至当前版本动态迁移 | `FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-migration.sh`；`evidence/m01h/migration.txt` | 工作树 PASS；待 commit 锚点 | forward-only 迁移如何随版本演进 |
-| EV-FF-M01H-001-05 | FF-M01H-001 | M01-H | OpenAPI 功能字段防漂移 | `FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-openapi-diff.sh`；`evidence/m01h/openapi-diff.txt` | 工作树 PASS；待 commit 锚点 | 契约比较如何覆盖安全与响应语义 |
+| EV-FF-M01H-001-01 | FF-M01H-001 | M01-H | 全量构建与安全/架构回归 | `sh scripts/m01h/check-build.sh`；`evidence/m01h/mvn-verify.txt` | PASS（`4139d94`） | 加固后如何建立可复现构建证据 |
+| EV-FF-M01H-001-02 | FF-M01H-001 | M01-H | Evidence 与治理一致性 | `sh scripts/m01h/check-hardening.sh`；`evidence/m01h/hardening-checks.txt` | PASS（`4139d94`） | 如何机械防止秘密、路径和治理失真 |
+| EV-FF-M01H-001-03 | FF-M01H-001 | M01-H | 认证与资源授权流复验 | `FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/auth-flows.sh`；`evidence/m01h/auth-flows.txt` | PASS（`4139d94`） | 如何从生成源阻断 Token 落盘 |
+| EV-FF-M01H-001-04 | FF-M01H-001 | M01-H | V1 至当前版本动态迁移 | `FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-migration.sh`；`evidence/m01h/migration.txt` | PASS（`4139d94`） | forward-only 迁移如何随版本演进 |
+| EV-FF-M01H-001-05 | FF-M01H-001 | M01-H | OpenAPI 功能字段防漂移 | `FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-openapi-diff.sh`；`evidence/m01h/openapi-diff.txt` | PASS（`4139d94`） | 契约比较如何覆盖安全与响应语义 |
 | EV-FF-M01F-001-01 | FF-M01F-001 | M01-F | 前端构建与契约生成 | `FRAMEFLOW_WEB_EVIDENCE_DIR=evidence/m01f sh frameflow-web/scripts/check-verify.sh`；`evidence/m01f/build.txt` | 未开始 | 前端基线如何保持可复现 |
 | EV-FF-M01F-001-02 | FF-M01F-001 | M01-F | BFF 与浏览器安全 | `FRAMEFLOW_WEB_EVIDENCE_DIR=evidence/m01f sh frameflow-web/scripts/check-security.sh`；`evidence/m01f/security-tests.txt` | 未开始 | Cookie、轮换、CSRF 与存储安全 |
 | EV-FF-M01F-001-03 | FF-M01F-001 | M01-F | 认证与团队前端 E2E | `FRAMEFLOW_WEB_EVIDENCE_DIR=evidence/m01f sh frameflow-web/scripts/check-e2e.sh`；`evidence/m01f/e2e.txt` | 未开始 | 前后端错误语义如何一致 |
@@ -83,7 +83,7 @@ Git commit（由调度工具记录；P0-Prep 原始证据按第 4 节保持 pre-
 Requirement ID（REQ-*）→ Task ID（FF-*）→ Test ID（TEST-FF-*）→ Evidence ID（EV-FF-*）
 ```
 
-已创建任务实例的证据索引与任务包 JSON `evidence` 字段必须双向一一对应；任一缺失或多余均视为该任务包未完成。M01 四份旧文本证据仅做安全脱敏并保留其中原 `subject commit` 作为历史记录，不把脱敏后的文件冒充该 commit 的原始 bytes，也不再作为当前验收依据；工作树脱敏不等于历史 Token 已撤销，也不等于 Git 历史已清理。M01-H 的正式证据必须记录 base commit、工作树状态与 formal subject commit；在 dirty worktree 下只能记录 `formal subject commit: NOT_AVAILABLE`，任务保持 `IN_PROGRESS`。尚无任务实例的规划行不代表任务可派发或证据已产生；创建相应任务 JSON 时必须重新校验并同步。
+已创建任务实例的证据索引与任务包 JSON `evidence` 字段必须双向一一对应；任一缺失或多余均视为该任务包未完成。M01 四份旧文本证据仅做安全脱敏并保留其中原 `subject commit` 作为历史记录，不把脱敏后的文件冒充该 commit 的原始 bytes，也不再作为当前验收依据；工作树脱敏不等于历史 Token 已撤销，也不等于 Git 历史已清理。M01-H 五条正式证据均记录 base commit、工作树状态与 formal subject commit `4139d94e71440b565bd1424c035bd4ce5bdd0086`；最终 Evidence/状态提交是其后继，不替换实现锚点。尚无任务实例的规划行不代表任务可派发或证据已产生；创建相应任务 JSON 时必须重新校验并同步。
 
 ## 4. P0-Prep 的 Git 前置例外
 

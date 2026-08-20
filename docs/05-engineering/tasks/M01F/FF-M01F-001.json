@@ -59,7 +59,7 @@
   ],
   "facts": [
     "当前仓库尚无 frameflow-web 业务代码",
-    "FF-M01H-001 当前为 IN_PROGRESS，因此本任务必须保持 NOT_READY",
+    "FF-M01H-001 已为 DONE；本任务仍需锁定派发日受支持的精确版本并取得授权，因此保持 NOT_READY",
     "后端是每次 HTTP attempt 的 X-Request-Id 权威生成方"
   ],
   "decisions": [

@@ -1,8 +1,8 @@
 FrameFlow M01-H clean verify evidence
-base commit:    621e82fb2d048959f55b15bbdd726c9af12015f0
-worktree:       DIRTY/UNCOMMITTED
-formal subject commit: NOT_AVAILABLE
-generated at:  2026-08-20T02:30:02Z
+base commit:    4139d94e71440b565bd1424c035bd4ce5bdd0086
+worktree:       CLEAN
+formal subject commit: 4139d94e71440b565bd1424c035bd4ce5bdd0086
+generated at:  2026-08-20T03:37:29Z
 command:       ./mvnw -B clean verify
 
 [INFO] Scanning for projects...
@@ -129,32 +129,32 @@ command:       ./mvnw -B clean verify
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
 [INFO] Running com.frameflow.identity.MyTeamsTest
-10:30:07.444 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.frameflow.identity.MyTeamsTest]: MyTeamsTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-10:30:07.546 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.MyTeamsTest
-10:30:07.614 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
-10:30:07.616 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
-10:30:07.628 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.20.6
-10:30:07.745 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
-10:30:07.905 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
-10:30:07.906 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-10:30:07.922 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+11:37:37.592 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.frameflow.identity.MyTeamsTest]: MyTeamsTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+11:37:37.699 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.MyTeamsTest
+11:37:37.780 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+11:37:37.782 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+11:37:37.801 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.20.6
+11:37:37.931 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+11:37:38.116 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+11:37:38.117 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+11:37:38.133 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.6.1
   API Version: 1.55
   Operating System: Docker Desktop
   Total Memory: 7936 MB
   Labels:
     com.docker.desktop.address=unix://<USER_HOME>/Library/Containers/com.docker.docker/Data/docker-cli.sock
-10:30:07.988 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Creating container for image: testcontainers/ryuk:0.11.0
-10:30:08.121 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
-10:30:08.203 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 is starting: fb83390cfc7a7416c3d8ecec152c03e5e05bdb7803d5ca3f576f3a1d3dfe2224
-10:30:08.395 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 started in PT0.406962S
-10:30:08.401 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
-10:30:08.401 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
-10:30:08.402 [main] INFO org.testcontainers.DockerClientFactory -- ?? Docker server version should be at least 1.6.0
-10:30:08.402 [main] INFO tc.postgres:16-alpine -- Creating container for image: postgres:16-alpine
-10:30:08.448 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine is starting: cffbafc5e74a94aa0893f12a894c7d1d57616d66f4ccd52953b215d1c89092af
-10:30:09.419 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine started in PT1.017042S
-10:30:09.420 [main] INFO tc.postgres:16-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:54808/frameflow_m01_test?loggerLevel=OFF)
+11:37:38.196 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Creating container for image: testcontainers/ryuk:0.11.0
+11:37:38.331 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+11:37:38.733 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 is starting: f86e301fb406b47713a7877fd1076f0accf65dd12ed500ece663a4ffceb71d80
+11:37:39.145 [main] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 started in PT0.949194S
+11:37:39.151 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+11:37:39.152 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+11:37:39.152 [main] INFO org.testcontainers.DockerClientFactory -- ?? Docker server version should be at least 1.6.0
+11:37:39.152 [main] INFO tc.postgres:16-alpine -- Creating container for image: postgres:16-alpine
+11:37:39.308 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine is starting: 85cf5af5d4662f527b07ccba3cb94616b51bd5f0a613900722e7d51ae87a4a0e
+11:37:40.549 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine started in PT1.396455S
+11:37:40.549 [main] INFO tc.postgres:16-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:63436/frameflow_m01_test?loggerLevel=OFF)
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -165,112 +165,112 @@ command:       ./mvnw -B clean verify
 
  :: Spring Boot ::                (v3.4.5)
 
-2026-08-20T10:30:09.952+08:00  INFO 89150 --- [frameflow] [           main] com.frameflow.identity.MyTeamsTest       : Starting MyTeamsTest using Java 17.0.18 with PID 89150 (started by lijunpeng in <WORKSPACE>/frameflow-app)
-2026-08-20T10:30:09.953+08:00  INFO 89150 --- [frameflow] [           main] com.frameflow.identity.MyTeamsTest       : No active profile set, falling back to 1 default profile: "default"
-2026-08-20T10:30:10.927+08:00  INFO 89150 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
-2026-08-20T10:30:10.938+08:00  INFO 89150 --- [frameflow] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-08-20T10:30:10.939+08:00  INFO 89150 --- [frameflow] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
-2026-08-20T10:30:10.975+08:00  INFO 89150 --- [frameflow] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-08-20T10:30:10.976+08:00  INFO 89150 --- [frameflow] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1014 ms
-2026-08-20T10:30:11.182+08:00  INFO 89150 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-08-20T10:30:11.295+08:00  INFO 89150 --- [frameflow] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@56b48163
-2026-08-20T10:30:11.296+08:00  INFO 89150 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-08-20T10:30:11.315+08:00  INFO 89150 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:54808/frameflow_m01_test?loggerLevel=OFF (PostgreSQL 16.14)
-2026-08-20T10:30:11.358+08:00  INFO 89150 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
-2026-08-20T10:30:11.361+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.027s)
-2026-08-20T10:30:11.382+08:00  INFO 89150 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
-2026-08-20T10:30:11.459+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
-2026-08-20T10:30:11.467+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - baseline"
-2026-08-20T10:30:11.492+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - identity"
-2026-08-20T10:30:11.528+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "3 - table and column comments"
-2026-08-20T10:30:11.566+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 3 migrations to schema "public", now at version v3 (execution time 00:00.056s)
+2026-08-20T11:37:41.103+08:00  INFO 63588 --- [frameflow] [           main] com.frameflow.identity.MyTeamsTest       : Starting MyTeamsTest using Java 17.0.18 with PID 63588 (started by lijunpeng in <WORKSPACE>/frameflow-app)
+2026-08-20T11:37:41.103+08:00  INFO 63588 --- [frameflow] [           main] com.frameflow.identity.MyTeamsTest       : No active profile set, falling back to 1 default profile: "default"
+2026-08-20T11:37:42.355+08:00  INFO 63588 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-08-20T11:37:42.367+08:00  INFO 63588 --- [frameflow] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-20T11:37:42.367+08:00  INFO 63588 --- [frameflow] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-08-20T11:37:42.404+08:00  INFO 63588 --- [frameflow] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-20T11:37:42.405+08:00  INFO 63588 --- [frameflow] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1290 ms
+2026-08-20T11:37:42.657+08:00  INFO 63588 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-20T11:37:42.759+08:00  INFO 63588 --- [frameflow] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@55d8f6bb
+2026-08-20T11:37:42.760+08:00  INFO 63588 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-20T11:37:42.776+08:00  INFO 63588 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:63436/frameflow_m01_test?loggerLevel=OFF (PostgreSQL 16.14)
+2026-08-20T11:37:42.801+08:00  INFO 63588 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-08-20T11:37:42.804+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.011s)
+2026-08-20T11:37:42.815+08:00  INFO 63588 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-08-20T11:37:42.865+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-08-20T11:37:42.870+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - baseline"
+2026-08-20T11:37:42.890+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - identity"
+2026-08-20T11:37:42.918+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "3 - table and column comments"
+2026-08-20T11:37:42.946+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 3 migrations to schema "public", now at version v3 (execution time 00:00.044s)
  _ _   |_  _ _|_. ___ _ |    _
 | | |\/|_)(_| | |_\  |_)||_|_\
      /               |
                         3.5.12
-2026-08-20T10:30:11.982+08:00  INFO 89150 --- [frameflow] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-08-20T10:30:12.093+08:00  INFO 89150 --- [frameflow] [           main] m.e.s.MybatisPlusApplicationContextAware : Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@ab24484
-2026-08-20T10:30:12.290+08:00  INFO 89150 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 54818 (http) with context path '/'
-2026-08-20T10:30:12.302+08:00  INFO 89150 --- [frameflow] [           main] com.frameflow.identity.MyTeamsTest       : Started MyTeamsTest in 2.796 seconds (process running for 5.311)
+2026-08-20T11:37:43.331+08:00  INFO 63588 --- [frameflow] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-08-20T11:37:43.420+08:00  INFO 63588 --- [frameflow] [           main] m.e.s.MybatisPlusApplicationContextAware : Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@6963b88c
+2026-08-20T11:37:43.622+08:00  INFO 63588 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 63444 (http) with context path '/'
+2026-08-20T11:37:43.634+08:00  INFO 63588 --- [frameflow] [           main] com.frameflow.identity.MyTeamsTest       : Started MyTeamsTest in 2.975 seconds (process running for 6.539)
 OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-2026-08-20T10:30:12.801+08:00  INFO 89150 --- [frameflow] [1-auto-1-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-08-20T10:30:12.801+08:00  INFO 89150 --- [frameflow] [1-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-08-20T10:30:12.802+08:00  INFO 89150 --- [frameflow] [1-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.100 s -- in com.frameflow.identity.MyTeamsTest
+2026-08-20T11:37:44.178+08:00  INFO 63588 --- [frameflow] [1-auto-1-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-20T11:37:44.178+08:00  INFO 63588 --- [frameflow] [1-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-20T11:37:44.179+08:00  INFO 63588 --- [frameflow] [1-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.288 s -- in com.frameflow.identity.MyTeamsTest
 [INFO] Running com.frameflow.identity.JwtStrictValidationTest
-2026-08-20T10:30:13.498+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.JwtStrictValidationTest]: JwtStrictValidationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:13.500+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.JwtStrictValidationTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.232 s -- in com.frameflow.identity.JwtStrictValidationTest
+2026-08-20T11:37:44.830+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.JwtStrictValidationTest]: JwtStrictValidationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:44.832+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.JwtStrictValidationTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.221 s -- in com.frameflow.identity.JwtStrictValidationTest
 [INFO] Running com.frameflow.identity.AuthContractTest
-2026-08-20T10:30:13.730+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.AuthContractTest]: AuthContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:13.732+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.AuthContractTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.374 s -- in com.frameflow.identity.AuthContractTest
+2026-08-20T11:37:45.051+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.AuthContractTest]: AuthContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:45.053+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.AuthContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.398 s -- in com.frameflow.identity.AuthContractTest
 [INFO] Running com.frameflow.identity.UnauthenticatedTest
-2026-08-20T10:30:14.106+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.UnauthenticatedTest]: UnauthenticatedTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:14.108+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.UnauthenticatedTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in com.frameflow.identity.UnauthenticatedTest
+2026-08-20T11:37:45.449+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.UnauthenticatedTest]: UnauthenticatedTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:45.451+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.UnauthenticatedTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in com.frameflow.identity.UnauthenticatedTest
 [INFO] Running com.frameflow.identity.ConcurrencyConflictTest
-2026-08-20T10:30:14.132+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.ConcurrencyConflictTest]: ConcurrencyConflictTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:14.136+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.ConcurrencyConflictTest
-[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.740 s -- in com.frameflow.identity.ConcurrencyConflictTest
+2026-08-20T11:37:45.470+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.ConcurrencyConflictTest]: ConcurrencyConflictTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:45.472+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.ConcurrencyConflictTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.558 s -- in com.frameflow.identity.ConcurrencyConflictTest
 [INFO] Running com.frameflow.identity.V2SchemaBoundaryTest
-2026-08-20T10:30:14.874+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.V2SchemaBoundaryTest]: V2SchemaBoundaryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:14.876+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.V2SchemaBoundaryTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in com.frameflow.identity.V2SchemaBoundaryTest
+2026-08-20T11:37:46.028+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.V2SchemaBoundaryTest]: V2SchemaBoundaryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:46.030+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.V2SchemaBoundaryTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.frameflow.identity.V2SchemaBoundaryTest
 [INFO] Running com.frameflow.identity.CrossTeamAccessTest
-2026-08-20T10:30:14.894+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.CrossTeamAccessTest]: CrossTeamAccessTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:14.896+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.CrossTeamAccessTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.548 s -- in com.frameflow.identity.CrossTeamAccessTest
+2026-08-20T11:37:46.041+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.CrossTeamAccessTest]: CrossTeamAccessTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:46.043+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.CrossTeamAccessTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.478 s -- in com.frameflow.identity.CrossTeamAccessTest
 [INFO] Running com.frameflow.identity.JwtKeyRotationTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.154 s -- in com.frameflow.identity.JwtKeyRotationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.085 s -- in com.frameflow.identity.JwtKeyRotationTest
 [INFO] Running com.frameflow.identity.MigrationTest
-2026-08-20T10:30:15.599+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.MigrationTest]: MigrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:15.601+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.MigrationTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in com.frameflow.identity.MigrationTest
+2026-08-20T11:37:46.605+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.MigrationTest]: MigrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:46.607+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.MigrationTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.frameflow.identity.MigrationTest
 [INFO] Running com.frameflow.identity.IdempotencyTest
-2026-08-20T10:30:15.619+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.IdempotencyTest]: IdempotencyTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:15.621+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.IdempotencyTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.797 s -- in com.frameflow.identity.IdempotencyTest
+2026-08-20T11:37:46.621+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.IdempotencyTest]: IdempotencyTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:46.622+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.IdempotencyTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.371 s -- in com.frameflow.identity.IdempotencyTest
 [INFO] Running com.frameflow.identity.TeamContractTest
-2026-08-20T10:30:16.419+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.TeamContractTest]: TeamContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:16.421+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.TeamContractTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.573 s -- in com.frameflow.identity.TeamContractTest
+2026-08-20T11:37:46.993+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.TeamContractTest]: TeamContractTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:46.994+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.TeamContractTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.350 s -- in com.frameflow.identity.TeamContractTest
 [INFO] Running com.frameflow.identity.PermissionTest
-2026-08-20T10:30:16.993+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.PermissionTest]: PermissionTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:16.995+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.PermissionTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.738 s -- in com.frameflow.identity.PermissionTest
+2026-08-20T11:37:47.343+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.PermissionTest]: PermissionTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:47.345+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.PermissionTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.509 s -- in com.frameflow.identity.PermissionTest
 [INFO] Running com.frameflow.identity.OpenApiDiffTest
-2026-08-20T10:30:17.730+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.OpenApiDiffTest]: OpenApiDiffTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:17.732+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.OpenApiDiffTest
-2026-08-20T10:30:18.021+08:00  INFO 89150 --- [frameflow] [-auto-1-exec-10] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 275 ms
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.340 s -- in com.frameflow.identity.OpenApiDiffTest
+2026-08-20T11:37:47.852+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.OpenApiDiffTest]: OpenApiDiffTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:47.854+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.OpenApiDiffTest
+2026-08-20T11:37:48.047+08:00  INFO 63588 --- [frameflow] [1-auto-1-exec-9] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 187 ms
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.235 s -- in com.frameflow.identity.OpenApiDiffTest
 [INFO] Running com.frameflow.identity.ActiveUserPolicyIntegrationTest
-2026-08-20T10:30:18.072+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.ActiveUserPolicyIntegrationTest]: ActiveUserPolicyIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:18.074+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.ActiveUserPolicyIntegrationTest
-[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.616 s -- in com.frameflow.identity.ActiveUserPolicyIntegrationTest
+2026-08-20T11:37:48.089+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.ActiveUserPolicyIntegrationTest]: ActiveUserPolicyIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:48.090+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.ActiveUserPolicyIntegrationTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.604 s -- in com.frameflow.identity.ActiveUserPolicyIntegrationTest
 [INFO] Running com.frameflow.identity.PersistenceConflictTranslationTest
-[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.383 s -- in com.frameflow.identity.PersistenceConflictTranslationTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.325 s -- in com.frameflow.identity.PersistenceConflictTranslationTest
 [INFO] Running com.frameflow.identity.TokenSecurityTest
-2026-08-20T10:30:19.077+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.TokenSecurityTest]: TokenSecurityTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:19.083+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.TokenSecurityTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.272 s -- in com.frameflow.identity.TokenSecurityTest
+2026-08-20T11:37:49.028+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.TokenSecurityTest]: TokenSecurityTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:49.035+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.TokenSecurityTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.360 s -- in com.frameflow.identity.TokenSecurityTest
 [INFO] Running com.frameflow.identity.OpenApiNormalizerSensitivityTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.frameflow.identity.OpenApiNormalizerSensitivityTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.frameflow.identity.OpenApiNormalizerSensitivityTest
 [INFO] Running com.frameflow.identity.OwnerInvariantsTest
-2026-08-20T10:30:19.357+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.OwnerInvariantsTest]: OwnerInvariantsTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:19.361+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.OwnerInvariantsTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.543 s -- in com.frameflow.identity.OwnerInvariantsTest
+2026-08-20T11:37:49.395+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.OwnerInvariantsTest]: OwnerInvariantsTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:49.397+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.OwnerInvariantsTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.511 s -- in com.frameflow.identity.OwnerInvariantsTest
 [INFO] Running com.frameflow.identity.RefreshTokenTest
-2026-08-20T10:30:19.902+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.RefreshTokenTest]: RefreshTokenTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:19.905+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.RefreshTokenTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.352 s -- in com.frameflow.identity.RefreshTokenTest
+2026-08-20T11:37:49.906+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.identity.RefreshTokenTest]: RefreshTokenTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:49.909+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.identity.RefreshTokenTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.337 s -- in com.frameflow.identity.RefreshTokenTest
 [INFO] Running com.frameflow.FrameFlowApplicationIntegrationTest
-2026-08-20T10:30:20.259+08:00  INFO 89150 --- [frameflow] [           main] tc.postgres:16-alpine                    : Creating container for image: postgres:16-alpine
-2026-08-20T10:30:20.338+08:00  INFO 89150 --- [frameflow] [           main] tc.postgres:16-alpine                    : Container postgres:16-alpine is starting: 7e038cc17fee0b3e899a238d3e409bf15751cbf463f841c3bdc107aca88a115b
-2026-08-20T10:30:21.260+08:00  INFO 89150 --- [frameflow] [           main] tc.postgres:16-alpine                    : Container postgres:16-alpine started in PT1.000564S
-2026-08-20T10:30:21.260+08:00  INFO 89150 --- [frameflow] [           main] tc.postgres:16-alpine                    : Container is started (JDBC URL: jdbc:postgresql://localhost:54887/frameflow_test?loggerLevel=OFF)
-2026-08-20T10:30:21.263+08:00  INFO 89150 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.FrameFlowApplicationIntegrationTest]: FrameFlowApplicationIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-20T10:30:21.270+08:00  INFO 89150 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.FrameFlowApplicationIntegrationTest
+2026-08-20T11:37:50.247+08:00  INFO 63588 --- [frameflow] [           main] tc.postgres:16-alpine                    : Creating container for image: postgres:16-alpine
+2026-08-20T11:37:50.320+08:00  INFO 63588 --- [frameflow] [           main] tc.postgres:16-alpine                    : Container postgres:16-alpine is starting: 9a64869ad3734d4ba6eb62fdb3f11a9c302b07b0fc664037f4f05648a7f06c16
+2026-08-20T11:37:51.220+08:00  INFO 63588 --- [frameflow] [           main] tc.postgres:16-alpine                    : Container postgres:16-alpine started in PT0.973121S
+2026-08-20T11:37:51.221+08:00  INFO 63588 --- [frameflow] [           main] tc.postgres:16-alpine                    : Container is started (JDBC URL: jdbc:postgresql://localhost:63461/frameflow_test?loggerLevel=OFF)
+2026-08-20T11:37:51.224+08:00  INFO 63588 --- [frameflow] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.frameflow.FrameFlowApplicationIntegrationTest]: FrameFlowApplicationIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-20T11:37:51.234+08:00  INFO 63588 --- [frameflow] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.frameflow.FrameFlowApplication for test class com.frameflow.FrameFlowApplicationIntegrationTest
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -281,51 +281,51 @@ OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader clas
 
  :: Spring Boot ::                (v3.4.5)
 
-2026-08-20T10:30:21.294+08:00  INFO 89150 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : Starting FrameFlowApplicationIntegrationTest using Java 17.0.18 with PID 89150 (started by lijunpeng in <WORKSPACE>/frameflow-app)
-2026-08-20T10:30:21.294+08:00  INFO 89150 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : No active profile set, falling back to 1 default profile: "default"
-2026-08-20T10:30:21.580+08:00  INFO 89150 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
-2026-08-20T10:30:21.580+08:00  INFO 89150 --- [frameflow] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-08-20T10:30:21.580+08:00  INFO 89150 --- [frameflow] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
-2026-08-20T10:30:21.592+08:00  INFO 89150 --- [frameflow] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
-2026-08-20T10:30:21.592+08:00  INFO 89150 --- [frameflow] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 297 ms
-2026-08-20T10:30:21.659+08:00  INFO 89150 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
-2026-08-20T10:30:21.682+08:00  INFO 89150 --- [frameflow] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@5f966dee
-2026-08-20T10:30:21.683+08:00  INFO 89150 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
-2026-08-20T10:30:21.684+08:00  INFO 89150 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:54887/frameflow_test?loggerLevel=OFF (PostgreSQL 16.14)
-2026-08-20T10:30:21.697+08:00  INFO 89150 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
-2026-08-20T10:30:21.698+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.004s)
-2026-08-20T10:30:21.706+08:00  INFO 89150 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
-2026-08-20T10:30:21.735+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
-2026-08-20T10:30:21.739+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - baseline"
-2026-08-20T10:30:21.754+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - identity"
-2026-08-20T10:30:21.788+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "3 - table and column comments"
-2026-08-20T10:30:21.813+08:00  INFO 89150 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 3 migrations to schema "public", now at version v3 (execution time 00:00.050s)
+2026-08-20T11:37:51.259+08:00  INFO 63588 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : Starting FrameFlowApplicationIntegrationTest using Java 17.0.18 with PID 63588 (started by lijunpeng in <WORKSPACE>/frameflow-app)
+2026-08-20T11:37:51.259+08:00  INFO 63588 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : No active profile set, falling back to 1 default profile: "default"
+2026-08-20T11:37:51.494+08:00  INFO 63588 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-08-20T11:37:51.495+08:00  INFO 63588 --- [frameflow] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-20T11:37:51.495+08:00  INFO 63588 --- [frameflow] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-08-20T11:37:51.503+08:00  INFO 63588 --- [frameflow] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-08-20T11:37:51.503+08:00  INFO 63588 --- [frameflow] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 243 ms
+2026-08-20T11:37:51.554+08:00  INFO 63588 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2026-08-20T11:37:51.580+08:00  INFO 63588 --- [frameflow] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@452d71e5
+2026-08-20T11:37:51.581+08:00  INFO 63588 --- [frameflow] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2026-08-20T11:37:51.582+08:00  INFO 63588 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:63461/frameflow_test?loggerLevel=OFF (PostgreSQL 16.14)
+2026-08-20T11:37:51.590+08:00  INFO 63588 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-08-20T11:37:51.590+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.003s)
+2026-08-20T11:37:51.597+08:00  INFO 63588 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-08-20T11:37:51.623+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-08-20T11:37:51.626+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - baseline"
+2026-08-20T11:37:51.638+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - identity"
+2026-08-20T11:37:51.662+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "3 - table and column comments"
+2026-08-20T11:37:51.682+08:00  INFO 63588 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 3 migrations to schema "public", now at version v3 (execution time 00:00.036s)
  _ _   |_  _ _|_. ___ _ |    _
 | | |\/|_)(_| | |_\  |_)||_|_\
      /               |
                         3.5.12
-2026-08-20T10:30:21.940+08:00  INFO 89150 --- [frameflow] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-08-20T10:30:21.973+08:00  INFO 89150 --- [frameflow] [           main] m.e.s.MybatisPlusApplicationContextAware : Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@5bc3c4e5
-2026-08-20T10:30:22.014+08:00  INFO 89150 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 54897 (http) with context path '/'
-2026-08-20T10:30:22.020+08:00  INFO 89150 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : Started FrameFlowApplicationIntegrationTest in 0.748 seconds (process running for 15.03)
-2026-08-20T10:30:22.029+08:00  INFO 89150 --- [frameflow] [1-auto-2-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-08-20T10:30:22.029+08:00  INFO 89150 --- [frameflow] [1-auto-2-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-08-20T10:30:22.030+08:00  INFO 89150 --- [frameflow] [1-auto-2-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.996 s -- in com.frameflow.FrameFlowApplicationIntegrationTest
+2026-08-20T11:37:51.796+08:00  INFO 63588 --- [frameflow] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-08-20T11:37:51.828+08:00  INFO 63588 --- [frameflow] [           main] m.e.s.MybatisPlusApplicationContextAware : Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@186149f9
+2026-08-20T11:37:51.860+08:00  INFO 63588 --- [frameflow] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 63467 (http) with context path '/'
+2026-08-20T11:37:51.866+08:00  INFO 63588 --- [frameflow] [           main] c.f.FrameFlowApplicationIntegrationTest  : Started FrameFlowApplicationIntegrationTest in 0.629 seconds (process running for 14.772)
+2026-08-20T11:37:51.874+08:00  INFO 63588 --- [frameflow] [1-auto-2-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-20T11:37:51.874+08:00  INFO 63588 --- [frameflow] [1-auto-2-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-20T11:37:51.875+08:00  INFO 63588 --- [frameflow] [1-auto-2-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.878 s -- in com.frameflow.FrameFlowApplicationIntegrationTest
 [INFO] Running com.frameflow.architecture.ModuleArchitectureTest
-2026-08-20T10:30:22.269+08:00  INFO 89150 --- [frameflow] [           main] com.tngtech.archunit.core.PluginLoader   : Detected Java version 17.0.18
-[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.163 s -- in com.frameflow.architecture.ModuleArchitectureTest
+2026-08-20T11:37:52.133+08:00  INFO 63588 --- [frameflow] [           main] com.tngtech.archunit.core.PluginLoader   : Detected Java version 17.0.18
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.106 s -- in com.frameflow.architecture.ModuleArchitectureTest
 [INFO] Running com.frameflow.probe.ProbeControllerTest
-2026-08-20T10:30:23.461+08:00  INFO 89150 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
-2026-08-20T10:30:23.461+08:00  INFO 89150 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
-2026-08-20T10:30:23.462+08:00  INFO 89150 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
-2026-08-20T10:30:23.484+08:00  INFO 89150 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
-2026-08-20T10:30:23.484+08:00  INFO 89150 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
-2026-08-20T10:30:23.484+08:00  INFO 89150 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
-2026-08-20T10:30:23.489+08:00  INFO 89150 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
-2026-08-20T10:30:23.489+08:00  INFO 89150 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
-2026-08-20T10:30:23.489+08:00  INFO 89150 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.072 s -- in com.frameflow.probe.ProbeControllerTest
+2026-08-20T11:37:53.272+08:00  INFO 63588 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-20T11:37:53.272+08:00  INFO 63588 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-20T11:37:53.272+08:00  INFO 63588 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-20T11:37:53.291+08:00  INFO 63588 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-20T11:37:53.291+08:00  INFO 63588 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-20T11:37:53.291+08:00  INFO 63588 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-20T11:37:53.295+08:00  INFO 63588 --- [frameflow] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-20T11:37:53.295+08:00  INFO 63588 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-20T11:37:53.295+08:00  INFO 63588 --- [frameflow] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.066 s -- in com.frameflow.probe.ProbeControllerTest
 [INFO]
 [INFO] Results:
 [INFO]
@@ -336,53 +336,21 @@ OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader clas
 [INFO] Building jar: <WORKSPACE>/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar
 [INFO]
 [INFO] --- spring-boot:3.4.5:repackage (repackage) @ frameflow-app ---
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-buildpack-platform/3.4.5/spring-boot-buildpack-platform-3.4.5.pom
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-buildpack-platform/3.4.5/spring-boot-buildpack-platform-3.4.5.pom (3.2 kB at 1.4 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/client5/httpclient5/5.4.3/httpclient5-5.4.3.pom
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/client5/httpclient5/5.4.3/httpclient5-5.4.3.pom (6.1 kB at 26 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/client5/httpclient5-parent/5.4.3/httpclient5-parent-5.4.3.pom
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/client5/httpclient5-parent/5.4.3/httpclient5-parent-5.4.3.pom (16 kB at 58 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5/5.3.4/httpcore5-5.3.4.pom
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5/5.3.4/httpcore5-5.3.4.pom (3.9 kB at 14 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5-parent/5.3.4/httpcore5-parent-5.3.4.pom
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5-parent/5.3.4/httpcore5-parent-5.3.4.pom (14 kB at 12 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5-h2/5.3.4/httpcore5-h2-5.3.4.pom
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5-h2/5.3.4/httpcore5-h2-5.3.4.pom (3.6 kB at 16 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-loader-tools/3.4.5/spring-boot-loader-tools-3.4.5.pom
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-loader-tools/3.4.5/spring-boot-loader-tools-3.4.5.pom (2.2 kB at 4.3 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/micrometer/micrometer-observation/1.14.5/micrometer-observation-1.14.5.pom
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/micrometer/micrometer-observation/1.14.5/micrometer-observation-1.14.5.pom (3.8 kB at 7.7 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/micrometer/micrometer-commons/1.14.5/micrometer-commons-1.14.5.pom
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/micrometer/micrometer-commons/1.14.5/micrometer-commons-1.14.5.pom (3.4 kB at 15 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-buildpack-platform/3.4.5/spring-boot-buildpack-platform-3.4.5.jar
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-buildpack-platform/3.4.5/spring-boot-buildpack-platform-3.4.5.jar (300 kB at 229 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/client5/httpclient5/5.4.3/httpclient5-5.4.3.jar
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5/5.3.4/httpcore5-5.3.4.jar
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5-h2/5.3.4/httpcore5-h2-5.3.4.jar
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-loader-tools/3.4.5/spring-boot-loader-tools-3.4.5.jar
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/micrometer/micrometer-observation/1.14.5/micrometer-observation-1.14.5.jar
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5-h2/5.3.4/httpcore5-h2-5.3.4.jar (242 kB at 305 kB/s)
-[INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/micrometer/micrometer-commons/1.14.5/micrometer-commons-1.14.5.jar
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/micrometer/micrometer-commons/1.14.5/micrometer-commons-1.14.5.jar (48 kB at 28 kB/s)
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/micrometer/micrometer-observation/1.14.5/micrometer-observation-1.14.5.jar (75 kB at 34 kB/s)
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-loader-tools/3.4.5/spring-boot-loader-tools-3.4.5.jar (465 kB at 142 kB/s)
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/client5/httpclient5/5.4.3/httpclient5-5.4.3.jar (910 kB at 238 kB/s)
-[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/core5/httpcore5/5.3.4/httpcore5-5.3.4.jar (909 kB at 219 kB/s)
 [INFO] Replacing main artifact <WORKSPACE>/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
 [INFO] The original artifact has been renamed to <WORKSPACE>/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar.original
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary for FrameFlow 0.1.0-SNAPSHOT:
 [INFO]
-[INFO] FrameFlow .......................................... SUCCESS [  0.167 s]
-[INFO] FrameFlow Shared Kernel ............................ SUCCESS [  0.567 s]
-[INFO] FrameFlow Identity Module .......................... SUCCESS [  1.045 s]
-[INFO] FrameFlow Business Modules ......................... SUCCESS [  0.003 s]
-[INFO] FrameFlow Application .............................. SUCCESS [ 29.819 s]
+[INFO] FrameFlow .......................................... SUCCESS [  0.221 s]
+[INFO] FrameFlow Shared Kernel ............................ SUCCESS [  0.971 s]
+[INFO] FrameFlow Identity Module .......................... SUCCESS [  2.595 s]
+[INFO] FrameFlow Business Modules ......................... SUCCESS [  0.023 s]
+[INFO] FrameFlow Application .............................. SUCCESS [ 19.383 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  31.776 s
-[INFO] Finished at: 2026-08-20T10:30:35+08:00
+[INFO] Total time:  23.427 s
+[INFO] Finished at: 2026-08-20T11:37:54+08:00
 [INFO] ------------------------------------------------------------------------
 
 exit code:     0

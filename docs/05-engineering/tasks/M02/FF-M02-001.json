@@ -54,7 +54,7 @@
     "FF-M01H-001"
   ],
   "facts": [
-    "FF-M01-001 功能已合并，但 FF-M01H-001 仍为 IN_PROGRESS",
+    "FF-M01-001 与 FF-M01H-001 均已 DONE；本 Contract Gate 仍因关键 UNKNOWN 尚未获用户批准而保持 DRAFT",
     "当前 docs/04-api/openapi/frameflow-v1.yaml 只是 M01 权威契约，不具备 M02 完整 endpoint 与 schema",
     "当前工作树保留 V3__table_and_column_comments.sql；若它保留，后续 M02 迁移必须从 V4 开始",
     "M02 尚无获批准的完整数据字典、权限矩阵、API 与 Evidence 契约"

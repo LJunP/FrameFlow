@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "taskId": "FF-M01H-001",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "title": "M01 验收、安全与架构边界加固",
   "track": "product-mainline",
   "stage": "M01-H",

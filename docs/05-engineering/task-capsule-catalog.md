@@ -1,6 +1,6 @@
 # FrameFlow 任务包目录
 
-> 状态：`FF-M01-001=DONE`，功能已合并到 `main`；`FF-M01H-001=IN_PROGRESS`。当前收敛 M01-Hardening 与 M02 Contract Gate 草案，M02 业务代码尚未派发。
+> 状态：`FF-M01-001=DONE`、`FF-M01H-001=DONE`。当前入口是 M02 Contract Gate 草案；M02 业务代码尚未派发，M01-F 仍待精确版本与授权。
 > 任务状态：`DRAFT`/`NOT_READY`/`CONTRACT_READY`（均禁止派发）/`READY_FOR_DISPATCH`（前置与授权已满足，可派发）/`PLANNED`（仅规划，文件未创建）。
 
 ## 1. P0-Prep（FF-PP-001）：文档收敛门禁——PASSED
@@ -26,7 +26,7 @@
 | FF-PP-001 | P0-Prep | prep | DONE | 文档收敛门禁 | `tasks/PP/FF-PP-001.json` |
 | FF-P0-001 | P0 | product-mainline | DONE | Git、Maven 多模块、Spring Boot 3.4.5、PostgreSQL、Flyway、health/readiness | `tasks/P0/FF-P0-001.json` |
 | FF-M01-001 | M01 | product-mainline | DONE | 用户、团队、角色、JWT、RBAC（代码、测试与四条证据已完成；Receipt=RCPT-FF-M01-001-0001） | `tasks/M01/FF-M01-001.json` |
-| FF-M01H-001 | M01-H | product-mainline | IN_PROGRESS | M01 证据、安全、架构、并发/JWT/OpenAPI 加固 | `tasks/M01H/FF-M01H-001.json` |
+| FF-M01H-001 | M01-H | product-mainline | DONE | M01 证据、安全、架构、并发/JWT/OpenAPI 加固 | `tasks/M01H/FF-M01H-001.json` |
 | FF-M01F-001 | M01-F | product-mainline | NOT_READY | 本仓库 `frameflow-web/` 基座、BFF 认证与团队界面；依赖 M01H DONE | `tasks/M01F/FF-M01F-001.json` |
 | FF-M02-001 | M02 | product-mainline | DRAFT | 数据/API/权限/测试/Evidence Contract Gate；不写代码、不改 docs/04 | `tasks/M02/FF-M02-001.json` |
 | FF-M02-002 | M02 | product-mainline | NOT_READY | 客户、项目与项目成员基座；V3 若保留则迁移从 V4 开始 | `tasks/M02/FF-M02-002.json` |
@@ -70,6 +70,6 @@
 
 ## 4. 当前状态
 
-- 实际存在的任务文件及状态以上表和 generated 索引为准；M01H 仍在进行，M01F/M02/M04F/M08F 都不可派发。
+- 实际存在的任务文件及状态以上表和 generated 索引为准；M01H 已完成，M01F/M02/M04F/M08F 仍因各自契约、版本或前置条件不可派发。
 - M03/M04A/M04B/M05/M06/M07/M08 等仍为 PLANNED，派发前按同一 schema 创建并补齐下游 DRAFT 的直接前置引用。
 - 自动生成的索引见 `generated/task-capsule-index.md`。

@@ -2,9 +2,9 @@
   "receiptId": "RCPT-FF-M01H-001-0001",
   "taskId": "FF-M01H-001",
   "grantId": "GRANT-FF-M01H-001-0001",
-  "status": "PARTIAL",
+  "status": "COMPLETED",
   "startedAt": "2026-08-20T01:53:11Z",
-  "finishedAt": "2026-08-20T02:33:14Z",
+  "finishedAt": "2026-08-20T03:39:41Z",
   "changedPaths": [
     "README.md",
     "docs/00-governance/project-status.md",
@@ -125,7 +125,7 @@
     },
     {
       "testId": "TEST-FF-M01H-001-02",
-      "result": "SKIPPED",
+      "result": "PASS",
       "reportRef": "evidence/m01h/hardening-checks.txt"
     },
     {
@@ -169,7 +169,7 @@
     },
     {
       "acceptanceId": "AC-FF-M01H-001-02",
-      "result": "NOT_VERIFIED",
+      "result": "PASS",
       "evidenceIds": ["EV-FF-M01H-001-02"]
     },
     {
@@ -195,12 +195,12 @@
   ],
   "overBudget": false,
   "unknowns": [
-    "当前工作树仍为 DIRTY/UNCOMMITTED，formal subject commit=NOT_AVAILABLE；因此 Receipt 保持 PARTIAL，AC-02 不得标 PASS，Task 不得标 DONE。",
-    "V3__table_and_column_comments.sql 在 M01-H 开始前已是未跟踪用户改动，本 Receipt 不把该路径归因于 M01-H；本轮仅验证它可作为当前 V3 迁移运行。",
+    "五条正式 Evidence 均记录 formal subject commit 4139d94e71440b565bd1424c035bd4ce5bdd0086；最终 Evidence/状态提交是其可审计后继，不替换该实现锚点。",
+    "V3__table_and_column_comments.sql 是 M01-H 之前的用户改动，已按用户授权独立提交为 2aa295d915b88c7cc1c32f202d94859479f0bc3b；本 Receipt 不把该路径归因于 M01-H，但迁移 Evidence 已验证 V1/V2/V3。",
     "旧 Token 已从当前工作树 Evidence 脱敏，但 Git 历史未改写，历史 Token 是否已撤销仍未验证，需要独立安全授权。"
   ],
   "proposals": [
-    "用户授权建立干净提交后，针对该 commit 重新运行五条 Evidence 命令，并由调度器生成 COMPLETED Receipt 后再把 FF-M01H-001 标 DONE。",
+    "下一主线动作是完成 FF-M02-001 Contract Gate 的 UNKNOWN 决策与用户批准；在此之前不派发 M02 业务实现。",
     "另立安全任务决定是否撤销本地测试 Refresh Session、轮换本地密钥及清理远程 Git 历史；不得在本任务中默认为已处理。"
   ]
 }

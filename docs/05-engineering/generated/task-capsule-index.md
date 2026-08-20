@@ -1,6 +1,6 @@
 # 任务包索引（generated）
 
-> 本文件由 `docs/05-engineering/tasks/**/*.json` 生成；当前为按实际文件手动重建的可验证快照。`FF-M01-001=DONE`、`FF-M01H-001=IN_PROGRESS`；M02 Contract Gate 与新前端任务都不可派发。
+> 本文件由 `docs/05-engineering/tasks/**/*.json` 生成；当前为按实际文件手动重建的可验证快照。`FF-M01-001=DONE`、`FF-M01H-001=DONE`；M02 Contract Gate 与新前端任务仍不可派发。
 
 ## 实际存在且可校验的任务文件
 
@@ -10,7 +10,7 @@
 | FF-P0-001 | P0 | product-mainline | DONE | `tasks/P0/FF-P0-001.json` |
 | FF-M01-001 | M01 | product-mainline | DONE | `tasks/M01/FF-M01-001.json` |
 | FF-M01F-001 | M01-F | product-mainline | NOT_READY | `tasks/M01F/FF-M01F-001.json` |
-| FF-M01H-001 | M01-H | product-mainline | IN_PROGRESS | `tasks/M01H/FF-M01H-001.json` |
+| FF-M01H-001 | M01-H | product-mainline | DONE | `tasks/M01H/FF-M01H-001.json` |
 | FF-M02-001 | M02 | product-mainline | DRAFT | `tasks/M02/FF-M02-001.json` |
 | FF-M02-002 | M02 | product-mainline | NOT_READY | `tasks/M02/FF-M02-002.json` |
 | FF-M02-003 | M02 | product-mainline | NOT_READY | `tasks/M02/FF-M02-003.json` |

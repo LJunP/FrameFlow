@@ -1,6 +1,6 @@
 # 下次继续 FrameFlow 开发启动指南
 
-> 当前状态：P0-Prep、P0 和 M01 功能任务已完成；`FF-M01H-001=IN_PROGRESS`。本指南的当前入口是 M01-Hardening 与 M02 Contract Gate 草案收敛，不是重新执行 P0，也不是派发 M02 代码。
+> 当前状态：P0-Prep、P0、M01 功能与 M01-Hardening 均已完成；`FF-M01H-001=DONE`。本指南的当前入口是 M02 Contract Gate 草案，不是重新执行 M01-H，也不是派发 M02 代码。
 
 ## 1. 当前唯一工作区
 
@@ -40,25 +40,27 @@ FrameFlow 仓库根目录（启动时由调用方提供绝对路径，本文不�
 
 Stinky Cobbler 或其他研发控制面可以提供受限任务、只读核验、角色隔离和结构化证据，但不得成为无限期建设研发平台的理由；优先建立最小可审计流程。
 
-`FF-PP-001`、`FF-P0-001`、`FF-M01-001` 已标记 `DONE`。当前只继续已授权的 `FF-M01H-001`，并把 M02 Contract Gate 保持为 DRAFT；其数据、API、权限、测试与 Evidence 决策未批准前，不得写 M02 业务代码或修改 `docs/04-api/openapi/frameflow-v1.yaml`。
+`FF-PP-001`、`FF-P0-001`、`FF-M01-001`、`FF-M01H-001` 已标记 `DONE`。当前把 M02 Contract Gate 保持为 `DRAFT`；其数据、API、权限、测试与 Evidence 决策未获用户批准前，不得写 M02 业务代码或修改 `docs/04-api/openapi/frameflow-v1.yaml`。
 
-## 4. 当前任务
+## 4. 当前入口
 
-进入条件：以 `FF-M01H-001` 的现有 Capability Grant 与 writeSet 为界，不扩大到 M02 实现。
+`FF-M01H-001` 已有合法 `COMPLETED` Receipt 和五条正式 Evidence。当前只收敛 `FF-M02-001` Contract Gate 的决策输入；该任务仍为 `DRAFT`，不得冒充已获批准或已派发。
 
-当前产出：
+当前需要逐项决定：
 
-- M01 证据脱敏、Grant/Receipt/预算真实性与 commit 锚点校验；
-- Application Port/ArchUnit 边界、并发冲突、用户 ACTIVE 状态、JWT 轮换与 OpenAPI 功能差异验证；
-- M02 Contract Gate 草案、M01-F/M04-F/M08-F 与 M02-001～004 的 DRAFT/NOT_READY Task Capsule。
+- Client 与 Identity 的关联和数据保留；
+- TeamRole/ProjectRole 权限矩阵、API/schema、幂等与错误码；
+- Brief 单一 current、状态命令和并发冲突语义；
+- X-Correlation-Id、审计事件与基础站内通知规则；
+- Requirement/Test/Acceptance/Evidence 的最终闭环。
 
 不得实现 M02 业务、前端代码、Redis 或其他后续中间件。
 
-## 5. M01H 完成后
+## 5. M02 实现进入条件
 
 必须有：
 
-- `FF-M01H-001` 全部 Acceptance/Test/Evidence PASS 并有合法 Receipt；
+- `FF-M01H-001=DONE`（已满足）；
 - M02 Contract Gate 的 UNKNOWN 列表得到用户逐项批准；
 - 权威 OpenAPI 的 M02 变更另行受控完成；
 - 调度器再决定是否提升 `FF-M02-002`、`FF-M01F-001` 等任务状态。

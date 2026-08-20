@@ -1,6 +1,6 @@
 # FrameFlow 开发计划（P0-Prep + P0～M17）
 
-> 当前事实：P0 与 M01 功能已合并到 `main`，`FF-M01-001=DONE`；`FF-M01H-001=IN_PROGRESS`。现阶段是 **M01-Hardening + M02 Contract Gate 草案**，不是零开发状态，也不是 M02 实现已开始。
+> 当前事实：P0、M01 功能与 M01-Hardening 已完成，`FF-M01H-001=DONE`。现阶段是 **M02 Contract Gate 草案**；M02 实现尚未开始，M01-F 仍需锁定精确版本与派发授权。
 > 仓库模式：A（源码单仓库）——docs/ 与代码同库，本仓库承载全部业务代码。
 
 ## 1. 执行顺序
