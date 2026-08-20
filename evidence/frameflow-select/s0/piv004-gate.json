@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "gate": "PIVOT_BASELINE_ACCEPTED_LOCAL",
+  "task": "FF-PIV-004",
+  "checks": {
+    "cleanWorktreeOrExplainedPayload": "PASS",
+    "oneActiveProductDirection": "PASS (legacy docs archived to docs/archive/frameflow-collaboration)",
+    "legacyRecoveryTested": "PASS tag frameflow-collaboration-v0.2-legacy = cb4bfde",
+    "repositoryValidationMigrated": "PASS errors=0"
+  },
+  "verdict": "OWNER_PROXY_ACCEPTED_LOCAL"
+}
