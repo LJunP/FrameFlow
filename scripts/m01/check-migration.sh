@@ -7,7 +7,9 @@
 # 输出: ${FRAMEFLOW_M01_EVIDENCE_DIR:-evidence/m01}/migration.txt
 set -u
 
-. "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)/common.sh"
+FRAMEFLOW_M01_CALLER_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+. "$FRAMEFLOW_M01_CALLER_DIR/common.sh"
+unset FRAMEFLOW_M01_CALLER_DIR
 
 FAILURES=0
 CHECKS=0

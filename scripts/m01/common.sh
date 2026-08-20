@@ -1,9 +1,21 @@
 #!/bin/sh
 
 # Shared helpers for the M01 acceptance scripts. This file is sourced, not run.
+# The caller must pass its resolved script directory explicitly. Deriving it from
+# $0 inside a sourced file can point two levels above the repository and create
+# data/evidence directories outside FrameFlow.
 
-M01_SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ -z "${FRAMEFLOW_M01_CALLER_DIR:-}" ]; then
+    echo "common.sh must be sourced by an M01 entry script with FRAMEFLOW_M01_CALLER_DIR set" >&2
+    return 2 2>/dev/null || exit 2
+fi
+
+M01_SCRIPT_DIR=$(CDPATH= cd -- "$FRAMEFLOW_M01_CALLER_DIR" && pwd)
 FRAMEFLOW_ROOT=$(CDPATH= cd -- "$M01_SCRIPT_DIR/../.." && pwd)
+if [ ! -f "$FRAMEFLOW_ROOT/pom.xml" ] || [ ! -f "$FRAMEFLOW_ROOT/docker-compose.local.yml" ]; then
+    echo "Refusing to create M01 runtime directories: resolved FrameFlow root is invalid" >&2
+    return 2 2>/dev/null || exit 2
+fi
 COMPOSE_FILE="$FRAMEFLOW_ROOT/docker-compose.local.yml"
 case "${FRAMEFLOW_M01_EVIDENCE_DIR:-}" in
     "") EVIDENCE_DIR="$FRAMEFLOW_ROOT/evidence/m01" ;;
