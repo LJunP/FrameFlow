@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0.0",
+  "kind": "FINAL_TEST_SUMMARY",
+  "headCommit": "6aa56d5de3e1cf3a11abc5d542d3f06f18548918",
+  "capturedAtUtc": "2026-08-20T16:57:44Z",
+  "suites": {
+    "java": {
+      "command": "JAVA_HOME=$(/usr/libexec/java_home -v 17 2>/dev/null || echo $JAVA_HOME) ./mvnw -B clean verify -q",
+      "exitCode": 0,
+      "status": "PASS",
+      "testClasses": 25,
+      "tests": 35,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "note": "Full reactor build; 35 tests across 25 classes green (includes identity authN/Z contracts, migration, OpenAPI diff, probe, product flow, single-candidate E2E, batch engine, module architecture). Requires Docker (Testcontainers postgres:16-alpine)."
+    },
+    "python": {
+      "command": "cd frameflow-ai-worker && PYTHONPATH=src .venv/bin/python -m pytest -q",
+      "exitCode": 0,
+      "status": "PASS",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "note": "20 pytest cases green (detectors 5, duplicates 4, media 4, quality 4, semantic 3). venv = .venv (Python 3.11)."
+    },
+    "web": {
+      "command": "cd frameflow-web && npm run build",
+      "status": "NOT_APPLICABLE",
+      "exitCode": null,
+      "note": "S7 web frontend is not implemented in this S0-S6 local-MVP delivery: frameflow-web contains only package.json (no Next.js source, no node_modules). Recorded honestly as not-applicable/not-run; not a passing gate. See evidence/final/known-limitations.md."
+    }
+  },
+  "demoSmoke": {
+    "fixtures": {
+      "command": "cd frameflow-ai-worker && PYTHONPATH=src .venv/bin/python -m frameflow_ai.fixtures --output ../experiments/fixtures/generated",
+      "status": "PASS",
+      "cases": 10,
+      "note": "10 reproducible synthetic fixture cases generated (bundled static-ffmpeg)."
+    },
+    "eval": {
+      "command": "cd frameflow-ai-worker && PYTHONPATH=src .venv/bin/python -m frameflow_ai.eval --dataset ../experiments/fixtures/generated --profile ../experiments/fixtures/profile-ECOMMERCE_SHORT_AD_V1.json",
+      "status": "PASS",
+      "casesTotal": 10,
+      "tested": 10,
+      "matchedExpected": 10,
+      "failures": 0,
+      "note": "Synthetic eval 10/10 matched expected; fake semantic provider; local-only claim."
+    }
+  },
+  "result": "ALL_RUN_SUITES_PASS"
+}
