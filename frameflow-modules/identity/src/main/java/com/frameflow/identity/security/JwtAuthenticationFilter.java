@@ -44,7 +44,8 @@ public final class JwtAuthenticationFilter extends OncePerRequestFilter {
             Jwt jwt = decoder.decode(token);
             long userId = Long.parseLong(jwt.getSubject());
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    new CurrentUser(userId), token, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                    new com.frameflow.identity.api.IdentityPrincipal(userId), token,
+                    List.of(new SimpleGrantedAuthority("ROLE_USER")));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
         } catch (JwtException | IllegalArgumentException e) {

@@ -118,7 +118,7 @@ public class AuthController {
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = com.frameflow.identity.error.ErrorResponse.class)))
     })
     public User me(Authentication authentication) {
-        CurrentUser currentUser = (CurrentUser) authentication.getPrincipal();
+        com.frameflow.identity.api.IdentityPrincipal currentUser = (com.frameflow.identity.api.IdentityPrincipal) authentication.getPrincipal();
         return toDto(userService.me(currentUser.userId()));
     }
 

@@ -1,149 +1,26 @@
 openapi: 3.0.3
 info:
-  title: FrameFlow API v1
-  description: |
-    FrameFlow M01 身份与授权接口的唯一权威契约（契约优先，手写维护）。
-    - 授权模型见 docs/04-api/permission-matrix.md（团队角色 OWNER/OPERATOR/REVIEWER/VIEWER；CLIENT 为项目级角色，M02 起）
-    - Token 规则见 docs/04-api/token-contract.md（Access 15min / Refresh 30d / 轮换）
-    - 错误码见 docs/04-api/error-code-catalog.md；无权访问资源统一 404，操作权限不足 403
-    - 每个响应都必须返回 X-Request-Id；错误 body 的 requestId 与该 header 同值
-    - springdoc 生成的运行时文档只用于差异校验，不作为契约来源
+  title: FrameFlow Select API
   version: 1.0.0
-servers:
-  - url: http://localhost:8080/api/v1
-    description: 本地开发
-security:
-  - bearerAuth: []
+  description: FrameFlow Select 批量质检与 Top-K 优选平台。身份端点沿用 M01（/api/v1/auth、/api/v1/teams）；产品端点为手写 OpenAPI 权威契约，运行时以 springdoc 输出并经验证对齐。
 tags:
-  - name: auth
-    description: 注册、登录、Token 生命周期
-  - name: teams
-    description: 团队与成员管理（OWNER 管理操作）
-
+- name: teams
+  description: 团队与成员管理（OWNER 管理操作）
+- name: product
+  description: Analysis Run 与 Finding
+- name: product
+  description: Project 与 Quality Profile
+- name: product
+  description: Batch 与 Candidate
+- name: product
+  description: 聚类、排名与选择集
+- name: auth
+  description: 注册、登录、Token 生命周期
 paths:
-  /auth/register:
-    post:
-      tags: [auth]
-      summary: 用户注册
-      description: 规范化邮箱已注册时返回 409 `USER_EMAIL_CONFLICT`。
-      operationId: registerUser
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterRequest'
-      responses:
-        '201':
-          description: 注册成功，返回用户信息
-          headers:
-            X-Request-Id:
-              $ref: '#/components/headers/RequestId'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-
-  /auth/login:
-    post:
-      tags: [auth]
-      summary: 登录，返回 Token 对
-      operationId: login
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      responses:
-        '200':
-          description: 登录成功
-          headers:
-            X-Request-Id:
-              $ref: '#/components/headers/RequestId'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenPair'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /auth/refresh:
-    post:
-      tags: [auth]
-      summary: 刷新 Token（轮换，旧 Refresh Token 立即失效）
-      operationId: refreshToken
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshRequest'
-      responses:
-        '200':
-          description: 新 Token 对
-          headers:
-            X-Request-Id:
-              $ref: '#/components/headers/RequestId'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenPair'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /auth/logout:
-    post:
-      tags: [auth]
-      summary: 登出，撤销 Refresh Token
-      description: Refresh Token 是唯一凭据，不要求 Access Token；即使 Access Token 已过期，仍可撤销该设备 token family。
-      operationId: logout
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshRequest'
-      responses:
-        '204':
-          description: 登出成功
-          headers:
-            X-Request-Id:
-              $ref: '#/components/headers/RequestId'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /auth/me:
+  /api/v1/teams:
     get:
-      tags: [auth]
-      summary: 当前登录用户
-      operationId: currentUser
-      responses:
-        '200':
-          description: 当前用户信息
-          headers:
-            X-Request-Id:
-              $ref: '#/components/headers/RequestId'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /teams:
-    get:
-      tags: [teams]
+      tags:
+      - teams
       summary: 发现当前用户加入的有效团队
       description: 仅返回当前登录用户 status=ACTIVE 的团队成员关系，用于登录后的团队选择；不会返回其他用户或已移除的成员关系。
       operationId: listMyTeams
@@ -158,20 +35,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/TeamList'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: 未认证或 Token 无效/过期
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - bearerAuth: []
     post:
-      tags: [teams]
+      tags:
+      - teams
       summary: 创建团队（创建者自动成为 OWNER；需要 Idempotency-Key）
-      description: 任一 ACTIVE 已认证用户均可创建；团队与创建者 OWNER 关系在同一事务写入。幂等键正在处理返回 409 `IDEMPOTENCY_IN_PROGRESS`，相同键复用于不同 payload 返回 409 `IDEMPOTENCY_CONFLICT`。
+      description: 任一 ACTIVE 已认证用户均可创建；团队与创建者 OWNER 关系在同一事务写入。
       operationId: createTeam
       parameters:
-        - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
+      - name: Idempotency-Key
+        in: header
         required: true
+        schema:
+          type: string
+          format: uuid
+          maxLength: 128
+      requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateTeamRequest'
+        required: true
       responses:
         '201':
           description: 团队创建成功
@@ -183,41 +76,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/Team'
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '409':
-          $ref: '#/components/responses/Conflict'
-
-  /teams/{teamId}:
-    get:
-      tags: [teams]
-      summary: 查看团队（仅团队成员；非成员统一 404）
-      operationId: getTeam
-      parameters:
-        - $ref: '#/components/parameters/TeamId'
-      responses:
-        '200':
-          description: 团队信息
+          description: 参数校验失败或缺少 Idempotency-Key
           headers:
             X-Request-Id:
               $ref: '#/components/headers/RequestId'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Team'
+                $ref: '#/components/schemas/Error'
         '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /teams/{teamId}/members:
+          description: 未认证或 Token 无效/过期
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: IDEMPOTENCY_CONFLICT / IDEMPOTENCY_IN_PROGRESS
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - bearerAuth: []
+  /api/v1/teams/{teamId}/members:
     get:
-      tags: [teams]
+      tags:
+      - teams
       summary: 团队 ACTIVE 成员列表（仅团队成员）
       operationId: listTeamMembers
       parameters:
-        - $ref: '#/components/parameters/TeamId'
+      - name: teamId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
       responses:
         '200':
           description: 成员列表
@@ -229,23 +128,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/MemberList'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: 未认证或 Token 无效/过期
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: 团队不存在或无权访问
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - bearerAuth: []
     post:
-      tags: [teams]
+      tags:
+      - teams
       summary: 直接添加已注册成员为 ACTIVE（仅 OWNER；需要 Idempotency-Key）
-      description: 已是 ACTIVE 成员返回 409 `TEAM_MEMBER_ALREADY_EXISTS`；REMOVED 关系则复用原记录并恢复为 ACTIVE。幂等冲突使用 `IDEMPOTENCY_CONFLICT` / `IDEMPOTENCY_IN_PROGRESS`。M01 不创建 INVITED 记录。
+      description: 已是 ACTIVE 成员返回 409 TEAM_MEMBER_ALREADY_EXISTS；REMOVED 关系则复用原记录并恢复为 ACTIVE。M01 不创建 INVITED 记录。
       operationId: addTeamMember
       parameters:
-        - $ref: '#/components/parameters/TeamId'
-        - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
+      - name: teamId
+        in: path
         required: true
+        schema:
+          type: integer
+          format: int64
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          maxLength: 128
+      requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/AddMemberRequest'
+        required: true
       responses:
         '201':
           description: 成员已添加
@@ -257,31 +184,942 @@ paths:
               schema:
                 $ref: '#/components/schemas/TeamMember'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: 参数校验失败或缺少 Idempotency-Key
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: 未认证或 Token 无效/过期
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          description: 已认证但角色不足（非 OWNER）
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: 团队或目标用户不存在/无权访问
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
-          $ref: '#/components/responses/Conflict'
-
-  /teams/{teamId}/members/{userId}:
+          description: TEAM_MEMBER_ALREADY_EXISTS / 幂等冲突
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - bearerAuth: []
+  /api/v1/selection-sets/{selectionSetId}/lock:
+    post:
+      tags:
+      - product
+      summary: 锁定选择集（不可变）
+      operationId: lockSelectionSet
+      parameters:
+      - name: selectionSetId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: X-Team-Id
+        in: header
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SelectionSet'
+      security:
+      - bearerAuth: []
+  /api/v1/quality-profile-versions/{versionId}/publish:
+    post:
+      tags:
+      - product
+      summary: 发布模板版本（不可变，仅 OWNER）
+      operationId: publishProfileVersion
+      parameters:
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/QualityProfileVersion'
+      security:
+      - bearerAuth: []
+  /api/v1/projects:
+    get:
+      tags:
+      - product
+      summary: 团队项目列表
+      operationId: listProjects
+      parameters:
+      - name: X-Team-Id
+        in: header
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - product
+      summary: 创建项目（OWNER/OPERATOR）
+      operationId: createProject
+      parameters:
+      - name: X-Team-Id
+        in: header
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int64
+      security:
+      - bearerAuth: []
+  /api/v1/projects/{projectId}/quality-profiles:
+    get:
+      tags:
+      - product
+      summary: 项目质量模板列表
+      operationId: listQualityProfiles
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QualityProfile'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - product
+      summary: 创建质量模板草稿（OWNER/OPERATOR）
+      operationId: createQualityProfile
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProfileRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int64
+      security:
+      - bearerAuth: []
+  /api/v1/projects/{projectId}/quality-profiles/{profileId}/versions:
+    post:
+      tags:
+      - product
+      summary: 保存质量模板版本草稿
+      operationId: createProfileVersion
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: profileId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProfileVersionRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/QualityProfileVersion'
+      security:
+      - bearerAuth: []
+  /api/v1/projects/{projectId}/batches:
+    get:
+      tags:
+      - product
+      summary: 项目批次列表
+      operationId: listBatches
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Batch'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - product
+      summary: 创建批次（OWNER/OPERATOR）
+      operationId: createBatch
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBatchRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int64
+      security:
+      - bearerAuth: []
+  /api/v1/internal/analysis-runs/{runId}/results:
+    post:
+      tags:
+      - product
+      summary: Worker 结果摄取（幂等）
+      operationId: ingestAnalysisResult
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestResultRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+      security:
+      - bearerAuth: []
+  /api/v1/candidates/{candidateId}/upload-session:
+    post:
+      tags:
+      - product
+      summary: 创建上传会话
+      operationId: createUploadSession
+      parameters:
+      - name: candidateId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties: {}
+      security:
+      - bearerAuth: []
+  /api/v1/candidates/{candidateId}/upload-complete:
+    post:
+      tags:
+      - product
+      summary: 确认上传完成（校验大小/摘要）
+      operationId: completeUpload
+      parameters:
+      - name: candidateId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteUploadRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Candidate'
+      security:
+      - bearerAuth: []
+  /api/v1/batches/{batchId}/similarity-clusters:
+    get:
+      tags:
+      - product
+      summary: 批次聚类列表
+      operationId: listSimilarityClusters
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimilarityCluster'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - product
+      summary: 计算候选相似度聚类
+      operationId: createSimilarityClusters
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClusterRequest'
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimilarityCluster'
+      security:
+      - bearerAuth: []
+  /api/v1/batches/{batchId}/selection-sets:
+    get:
+      tags:
+      - product
+      summary: 批次选择集列表
+      operationId: listSelectionSets
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SelectionSet'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - product
+      summary: 创建选择集（Top-K）
+      operationId: createSelectionSet
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSelectionRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SelectionSet'
+      security:
+      - bearerAuth: []
+  /api/v1/batches/{batchId}/ranking-snapshots:
+    get:
+      tags:
+      - product
+      summary: 批次排名快照列表
+      operationId: listRankingSnapshots
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: {}
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - product
+      summary: 生成排名快照
+      operationId: createRankingSnapshot
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/RankingSnapshot'
+      security:
+      - bearerAuth: []
+  /api/v1/batches/{batchId}/candidates:
+    get:
+      tags:
+      - product
+      summary: 批次候选列表
+      operationId: listCandidates
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Candidate'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - product
+      summary: 批量添加候选（OWNER/OPERATOR）
+      operationId: addCandidates
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCandidatesRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+      security:
+      - bearerAuth: []
+  /api/v1/batches/{batchId}/analysis-runs:
+    get:
+      tags:
+      - product
+      summary: 批次分析运行列表
+      operationId: listAnalysisRuns
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnalysisRun'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - product
+      summary: 启动分析（OWNER/OPERATOR；返回 202 + run id）
+      operationId: startAnalysis
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartAnalysisRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties: {}
+      security:
+      - bearerAuth: []
+  /api/v1/auth/register:
+    post:
+      tags:
+      - auth
+      summary: 用户注册
+      description: 规范化邮箱已注册时返回 409 USER_EMAIL_CONFLICT。
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      responses:
+        '201':
+          description: 注册成功，返回用户信息
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: 参数校验失败
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 邮箱已被注册
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/auth/refresh:
+    post:
+      tags:
+      - auth
+      summary: 刷新 Token（轮换，旧 Refresh Token 立即失效）
+      operationId: refreshToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+        required: true
+      responses:
+        '200':
+          description: 新 Token 对
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401':
+          description: Refresh Token 无效/过期/重放
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/auth/logout:
+    post:
+      tags:
+      - auth
+      summary: 登出，撤销 Refresh Token
+      description: Refresh Token 是唯一凭据，不要求 Access Token；即使 Access Token 已过期，仍可撤销该设备 token family。
+      operationId: logout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+        required: true
+      responses:
+        '204':
+          description: 登出成功
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        '401':
+          description: Refresh Token 无效/过期/重放
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - auth
+      summary: 登录，返回 Token 对
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: 登录成功
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '400':
+          description: 参数校验失败
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 邮箱或密码错误
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/analysis-runs/{runId}/cancel:
+    post:
+      tags:
+      - product
+      summary: 取消分析运行
+      operationId: cancelAnalysisRun
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+      security:
+      - bearerAuth: []
+  /api/v1/teams/{teamId}/members/{userId}:
+    delete:
+      tags:
+      - teams
+      summary: 移除成员（仅 OWNER；不能移除自己或最后一名 OWNER）
+      operationId: removeTeamMember
+      parameters:
+      - name: teamId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: 成员已移除
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        '401':
+          description: 未认证或 Token 无效/过期
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 已认证但角色不足（非 OWNER）
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 团队或成员不存在/无权访问
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: TEAM_SELF_REMOVAL_FORBIDDEN / TEAM_LAST_OWNER_CONFLICT
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - bearerAuth: []
     patch:
-      tags: [teams]
+      tags:
+      - teams
       summary: 修改成员角色（仅 OWNER；不能把最后一名 OWNER 降级）
-      description: 操作会使团队失去最后一名 ACTIVE OWNER 时返回 409 `TEAM_LAST_OWNER_CONFLICT`。
       operationId: updateMemberRole
       parameters:
-        - $ref: '#/components/parameters/TeamId'
-        - $ref: '#/components/parameters/UserId'
-      requestBody:
+      - name: teamId
+        in: path
         required: true
+        schema:
+          type: integer
+          format: int64
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateMemberRoleRequest'
+        required: true
       responses:
         '200':
           description: 角色已更新
@@ -293,228 +1131,324 @@ paths:
               schema:
                 $ref: '#/components/schemas/TeamMember'
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-    delete:
-      tags: [teams]
-      summary: 移除成员（仅 OWNER；不能移除自己或最后一名 OWNER）
-      description: 移除自己返回 409 `TEAM_SELF_REMOVAL_FORBIDDEN`；移除最后一名 ACTIVE OWNER 返回 409 `TEAM_LAST_OWNER_CONFLICT`。
-      operationId: removeTeamMember
-      parameters:
-        - $ref: '#/components/parameters/TeamId'
-        - $ref: '#/components/parameters/UserId'
-      responses:
-        '204':
-          description: 成员已移除
+          description: 参数校验失败
           headers:
             X-Request-Id:
               $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: 未认证或 Token 无效/过期
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          description: 已认证但角色不足（非 OWNER）
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: 团队或成员不存在/无权访问
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
-          $ref: '#/components/responses/Conflict'
-
+          description: TEAM_LAST_OWNER_CONFLICT 等
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - bearerAuth: []
+  /api/v1/teams/{teamId}:
+    get:
+      tags:
+      - teams
+      summary: 查看团队（仅团队成员；非成员统一 404）
+      operationId: getTeam
+      parameters:
+      - name: teamId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: 团队信息
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '401':
+          description: 未认证或 Token 无效/过期
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 团队不存在或无权访问
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - bearerAuth: []
+  /api/v1/selection-sets/{selectionSetId}/export:
+    get:
+      tags:
+      - product
+      summary: 导出选择集（CSV/JSON）
+      operationId: exportSelectionSet
+      parameters:
+      - name: selectionSetId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: X-Team-Id
+        in: header
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties: {}
+      security:
+      - bearerAuth: []
+  /api/v1/ranking-snapshots/{snapshotId}:
+    get:
+      tags:
+      - product
+      summary: 排名快照（含分值构成）
+      operationId: getRankingSnapshot
+      parameters:
+      - name: snapshotId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RankingEntry'
+      security:
+      - bearerAuth: []
+  /api/v1/projects/{projectId}:
+    get:
+      tags:
+      - product
+      summary: 获取项目
+      operationId: getProject
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Project'
+      security:
+      - bearerAuth: []
+  /api/v1/candidates/{candidateId}/findings:
+    get:
+      tags:
+      - product
+      summary: 候选 Findings 列表（时间码证据）
+      operationId: listCandidateFindings
+      parameters:
+      - name: candidateId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Finding'
+      security:
+      - bearerAuth: []
+  /api/v1/batches/{batchId}:
+    get:
+      tags:
+      - product
+      summary: 获取批次
+      operationId: getBatch
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Batch'
+      security:
+      - bearerAuth: []
+  /api/v1/auth/me:
+    get:
+      tags:
+      - auth
+      summary: 当前登录用户
+      operationId: currentUser
+      responses:
+        '200':
+          description: 当前用户信息
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: 未认证或 Token 无效/过期
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - bearerAuth: []
+  /api/v1/analysis-runs/{runId}:
+    get:
+      tags:
+      - product
+      summary: 获取分析运行
+      operationId: getAnalysisRun
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnalysisRun'
+      security:
+      - bearerAuth: []
+  /api/v1/analysis-runs/{runId}/findings:
+    get:
+      tags:
+      - product
+      summary: 运行 Findings
+      operationId: listRunFindings
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Finding'
+      security:
+      - bearerAuth: []
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  parameters:
-    TeamId:
-      name: teamId
-      in: path
-      required: true
-      schema:
-        type: integer
-        format: int64
-      description: 团队 ID
-    UserId:
-      name: userId
-      in: path
-      required: true
-      schema:
-        type: integer
-        format: int64
-      description: 用户 ID
-    IdempotencyKey:
-      name: Idempotency-Key
-      in: header
-      required: true
-      schema:
-        type: string
-        format: uuid
-        maxLength: 128
-      description: 写操作幂等键（见 docs/04-api/idempotency-contract.md）
-
-  headers:
-    RequestId:
-      description: 本次 HTTP 尝试的请求关联 ID；错误响应 body 的 requestId 必须与本 header 相同
-      required: true
-      schema:
-        type: string
-        format: uuid
-
-  responses:
-    BadRequest:
-      description: 参数校验失败
-      headers:
-        X-Request-Id:
-          $ref: '#/components/headers/RequestId'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unauthorized:
-      description: 未认证或 Token 无效/过期
-      headers:
-        X-Request-Id:
-          $ref: '#/components/headers/RequestId'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Forbidden:
-      description: 已认证但角色/权限不足（操作级）
-      headers:
-        X-Request-Id:
-          $ref: '#/components/headers/RequestId'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: 资源不存在或无权访问（统一 404 防枚举）
-      headers:
-        X-Request-Id:
-          $ref: '#/components/headers/RequestId'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Conflict:
-      description: 状态或幂等冲突；具体稳定错误码见 error-code-catalog.md
-      headers:
-        X-Request-Id:
-          $ref: '#/components/headers/RequestId'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-
   schemas:
-    Error:
-      type: object
-      required: [code, message, requestId]
-      properties:
-        code:
-          type: string
-          description: 稳定错误码，见 error-code-catalog.md
-          example: PROJECT_NOT_FOUND
-        message:
-          type: string
-          example: 项目不存在或无权访问
-        requestId:
-          type: string
-          format: uuid
-          description: 必须与响应 X-Request-Id header 完全相同
-        traceId:
-          type: string
-          description: 可观测环境可选
-    RegisterRequest:
-      type: object
-      required: [email, password, displayName]
-      properties:
-        email:
-          type: string
-          format: email
-          maxLength: 255
-        password:
-          type: string
-          format: password
-          minLength: 8
-          maxLength: 72
-        displayName:
-          type: string
-          minLength: 1
-          maxLength: 100
-    LoginRequest:
-      type: object
-      required: [email, password]
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
-    RefreshRequest:
-      type: object
-      required: [refreshToken]
-      properties:
-        refreshToken:
-          type: string
-          minLength: 43
-          maxLength: 43
-          description: 32 字节安全随机值的 Base64URL 无 padding 编码
     CreateTeamRequest:
       type: object
-      required: [name]
       properties:
         name:
           type: string
-          minLength: 1
+          description: 团队名称
           maxLength: 100
-    AddMemberRequest:
-      type: object
-      required: [email, role]
-      properties:
-        email:
-          type: string
-          format: email
-          description: 已注册目标用户邮箱；M01 直接创建或恢复 ACTIVE 成员关系，不发送邀请
-        role:
-          $ref: '#/components/schemas/TeamRole'
-    UpdateMemberRoleRequest:
-      type: object
-      required: [role]
-      properties:
-        role:
-          $ref: '#/components/schemas/TeamRole'
-    User:
-      type: object
-      required: [id, email, displayName, status]
-      properties:
-        id:
-          type: integer
-          format: int64
-        email:
-          type: string
-          format: email
-        displayName:
-          type: string
-        status:
-          type: string
-          enum: [ACTIVE, DISABLED, PENDING]
-        lastLoginAt:
-          type: string
-          format: date-time
-          nullable: true
+          minLength: 1
+      required:
+      - name
     Team:
       type: object
-      required: [id, name, createdAt]
       properties:
         id:
           type: integer
@@ -524,9 +1458,51 @@ components:
         createdAt:
           type: string
           format: date-time
+      required:
+      - createdAt
+      - id
+      - name
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 稳定错误码
+          example: AUTH_REQUIRED
+        message:
+          type: string
+          description: 人类可读的错误说明
+        requestId:
+          type: string
+          format: uuid
+          description: 必须与响应 X-Request-Id header 完全相同
+        traceId:
+          type: string
+          description: 可观测环境可选
+      required:
+      - code
+      - message
+      - requestId
+    AddMemberRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: 已注册目标用户邮箱；M01 直接创建或恢复 ACTIVE 成员关系，不发送邀请
+        role:
+          type: string
+          description: 初始团队角色
+          enum:
+          - OWNER
+          - OPERATOR
+          - REVIEWER
+          - VIEWER
+      required:
+      - email
+      - role
     TeamMember:
       type: object
-      required: [id, teamId, userId, email, role, status]
       properties:
         id:
           type: integer
@@ -541,22 +1517,419 @@ components:
           type: string
           format: email
         role:
-          $ref: '#/components/schemas/TeamRole'
+          type: string
+          description: 团队角色（CLIENT 是项目级角色，M02 起，不在团队角色枚举内）
+          enum:
+          - OWNER
+          - OPERATOR
+          - REVIEWER
+          - VIEWER
         status:
           type: string
-          enum: [ACTIVE]
-          description: M01 成员 API 只返回 ACTIVE 关系；REMOVED 是数据库软删除态，INVITED 待未来邀请流程引入
-    MemberList:
+          enum:
+          - ACTIVE
+      required:
+      - email
+      - id
+      - role
+      - status
+      - teamId
+      - userId
+    SelectionSet:
       type: object
-      required: [items]
+      properties:
+        id:
+          type: integer
+          format: int64
+        batchId:
+          type: integer
+          format: int64
+        lockedBy:
+          type: integer
+          format: int64
+        createdBy:
+          type: integer
+          format: int64
+        name:
+          type: string
+        status:
+          type: string
+        theme:
+          type: string
+        topK:
+          type: integer
+          format: int32
+        lockedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    QualityProfileVersion:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        profileId:
+          type: integer
+          format: int64
+        version:
+          type: integer
+          format: int32
+        status:
+          type: string
+        payload:
+          type: string
+        payloadDigest:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+    CreateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    CreateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        templateType:
+          type: string
+    CreateProfileVersionRequest:
+      type: object
+      properties:
+        payload:
+          type: string
+    CreateBatchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        promptText:
+          type: string
+        profileVersionId:
+          type: integer
+          format: int64
+        briefId:
+          type: integer
+          format: int64
+    FindingDto:
+      type: object
+      properties:
+        ruleId:
+          type: string
+        ruleVersion:
+          type: integer
+          format: int32
+        detectorId:
+          type: string
+        detectorVersion:
+          type: string
+        dimension:
+          type: string
+        findingType:
+          type: string
+        verdict:
+          type: string
+        severity:
+          type: string
+        confidence:
+          type: number
+          format: double
+        automationAction:
+          type: string
+        startMs:
+          type: integer
+          format: int32
+        endMs:
+          type: integer
+          format: int32
+        summary:
+          type: string
+        evidence:
+          type: string
+        origin:
+          type: string
+    IngestResultRequest:
+      type: object
+      properties:
+        commandId:
+          type: string
+        status:
+          type: string
+        decision:
+          type: string
+        qualityVector:
+          type: string
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/FindingDto'
+    CompleteUploadRequest:
+      type: object
+      properties:
+        sessionId:
+          type: integer
+          format: int64
+        sizeBytes:
+          type: integer
+          format: int64
+        contentDigest:
+          type: string
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        teamId:
+          type: integer
+          format: int64
+        batchId:
+          type: integer
+          format: int64
+        parentCandidateId:
+          type: integer
+          format: int64
+        createdBy:
+          type: integer
+          format: int64
+        candidateKey:
+          type: string
+        status:
+          type: string
+        mediaType:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ClusterRequest:
+      type: object
+      properties:
+        threshold:
+          type: number
+          format: double
+    SimilarityCluster:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        batchId:
+          type: integer
+          format: int64
+        representativeCandidateId:
+          type: integer
+          format: int64
+        clusterKey:
+          type: string
+        algorithmVersion:
+          type: string
+        threshold:
+          type: number
+          format: double
+        createdAt:
+          type: string
+          format: date-time
+    CreateSelectionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        topK:
+          type: integer
+          format: int32
+    RankingSnapshot:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        batchId:
+          type: integer
+          format: int64
+        createdBy:
+          type: integer
+          format: int64
+        snapshotVersion:
+          type: integer
+          format: int32
+        algorithmVersion:
+          type: string
+        weights:
+          type: string
+        featureSchemaVersion:
+          type: string
+        lockedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    AddCandidatesRequest:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            type: string
+        mediaTypes:
+          type: array
+          items:
+            type: string
+    StartAnalysisRequest:
+      type: object
+      properties:
+        candidateId:
+          type: integer
+          format: int64
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: 邮箱（小写规范化）
+          maxLength: 255
+          minLength: 0
+        password:
+          type: string
+          format: password
+          description: 密码（BCrypt 存储，永不出现在响应）
+          maxLength: 72
+          minLength: 8
+        displayName:
+          type: string
+          description: 显示名称
+          maxLength: 100
+          minLength: 1
+      required:
+      - displayName
+      - email
+      - password
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - DISABLED
+          - PENDING
+        lastLoginAt:
+          type: string
+          format: date-time
+      required:
+      - displayName
+      - email
+      - id
+      - status
+    RefreshRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: 32 字节安全随机值的 Base64URL 无 padding 编码
+          maxLength: 43
+          minLength: 43
+      required:
+      - refreshToken
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: RS256 JWT，TTL 15 分钟
+        refreshToken:
+          type: string
+          description: 32 字节安全随机的不透明 Base64URL 字符串；轮换且 TTL 30 天
+          maxLength: 43
+          minLength: 43
+        expiresIn:
+          type: integer
+          format: int64
+          description: Access Token 有效期（秒）
+          example: 900
+        tokenType:
+          type: string
+          enum:
+          - Bearer
+      required:
+      - accessToken
+      - expiresIn
+      - refreshToken
+      - tokenType
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: 邮箱（登录前先去除首尾空白并转小写）
+        password:
+          type: string
+          format: password
+          description: 密码
+      required:
+      - email
+      - password
+    UpdateMemberRoleRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          description: 新团队角色
+          enum:
+          - OWNER
+          - OPERATOR
+          - REVIEWER
+          - VIEWER
+      required:
+      - role
+    ProbeResponse:
+      type: object
+      properties:
+        status:
+          type: string
+    TeamList:
+      type: object
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/TeamMember'
+            $ref: '#/components/schemas/TeamMembershipSummary'
+      required:
+      - items
     TeamMembershipSummary:
       type: object
-      required: [teamId, name, role, status, createdAt]
       properties:
         teamId:
           type: integer
@@ -564,43 +1937,250 @@ components:
         name:
           type: string
         role:
-          $ref: '#/components/schemas/TeamRole'
+          type: string
+          description: 团队角色（CLIENT 是项目级角色，M02 起，不在团队角色枚举内）
+          enum:
+          - OWNER
+          - OPERATOR
+          - REVIEWER
+          - VIEWER
         status:
           type: string
-          enum: [ACTIVE]
-          description: 团队发现端点只返回当前用户的有效成员关系
+          enum:
+          - ACTIVE
         createdAt:
           type: string
           format: date-time
           description: 团队创建时间
-    TeamList:
+      required:
+      - createdAt
+      - name
+      - role
+      - status
+      - teamId
+    MemberList:
       type: object
-      required: [items]
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/TeamMembershipSummary'
-    TokenPair:
+            $ref: '#/components/schemas/TeamMember'
+      required:
+      - items
+    RankingEntry:
       type: object
-      required: [accessToken, refreshToken, expiresIn, tokenType]
       properties:
-        accessToken:
-          type: string
-          description: RS256 JWT，TTL 15 分钟
-        refreshToken:
-          type: string
-          minLength: 43
-          maxLength: 43
-          description: 32 字节安全随机的不透明 Base64URL 字符串；轮换且 TTL 30 天
-        expiresIn:
+        rankingSnapshotId:
           type: integer
-          description: Access Token 有效期（秒）
-          example: 900
-        tokenType:
+          format: int64
+        candidateId:
+          type: integer
+          format: int64
+        rank:
+          type: integer
+          format: int32
+        baseScore:
+          type: number
+          format: double
+        finalScore:
+          type: number
+          format: double
+        breakdown:
           type: string
-          enum: [Bearer]
-    TeamRole:
-      type: string
-      enum: [OWNER, OPERATOR, REVIEWER, VIEWER]
-      description: 团队角色（CLIENT 是项目级角色，M02 起，不在团队角色枚举内）
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        teamId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        archivedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    QualityProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        teamId:
+          type: integer
+          format: int64
+        projectId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        templateType:
+          type: string
+        status:
+          type: string
+        createdBy:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Batch:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        teamId:
+          type: integer
+          format: int64
+        projectId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        status:
+          type: string
+        promptText:
+          type: string
+        profileVersionId:
+          type: integer
+          format: int64
+        briefId:
+          type: integer
+          format: int64
+        capacityLimit:
+          type: integer
+          format: int32
+        failureCount:
+          type: integer
+          format: int32
+        createdBy:
+          type: integer
+          format: int64
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Finding:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        analysisRunId:
+          type: integer
+          format: int64
+        candidateId:
+          type: integer
+          format: int64
+        ruleId:
+          type: string
+        detectorId:
+          type: string
+        detectorVersion:
+          type: string
+        dimension:
+          type: string
+        findingType:
+          type: string
+        verdict:
+          type: string
+        severity:
+          type: string
+        automationAction:
+          type: string
+        summary:
+          type: string
+        confidence:
+          type: number
+          format: double
+        startMs:
+          type: integer
+          format: int32
+        endMs:
+          type: integer
+          format: int32
+        evidence:
+          type: string
+        origin:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    AnalysisRun:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        teamId:
+          type: integer
+          format: int64
+        batchId:
+          type: integer
+          format: int64
+        candidateVersionId:
+          type: integer
+          format: int64
+        createdBy:
+          type: integer
+          format: int64
+        status:
+          type: string
+        commandId:
+          type: string
+        resultDigest:
+          type: string
+        decision:
+          type: string
+        qualityVector:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+  headers:
+    RequestId:
+      description: 服务器为本次 HTTP 请求生成的请求 ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

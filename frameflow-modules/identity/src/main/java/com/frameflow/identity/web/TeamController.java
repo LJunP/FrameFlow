@@ -209,7 +209,7 @@ public class TeamController {
     }
 
     private static long currentUserId(Authentication authentication) {
-        return ((CurrentUser) authentication.getPrincipal()).userId();
+        return ((com.frameflow.identity.api.IdentityPrincipal) authentication.getPrincipal()).userId();
     }
 
     private static Team toDto(TeamView team) {

@@ -13,5 +13,6 @@
     <name>FrameFlow Business Modules</name>
     <modules>
         <module>identity</module>
+        <module>product</module>
     </modules>
 </project>
