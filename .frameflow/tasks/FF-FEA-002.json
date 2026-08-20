@@ -1,0 +1,98 @@
+{
+  "taskId": "FF-FEA-002",
+  "stage": "S1",
+  "goal": "Build duplicate baseline (exact + perceptual), semantic provider SPI with a deterministic Fake provider (PASS/VIOLATE/UNKNOWN/ERROR) and a reproducible offline evaluation harness.",
+  "nonGoals": [
+    "Real provider integration",
+    "Clustering persistence in Java (S6)"
+  ],
+  "readSet": [
+    "docs/core/BOOK-03",
+    "docs/contracts/analysis-result.schema.json",
+    "docs/contracts/worker-result.schema.json"
+  ],
+  "writeSet": [
+    "frameflow-ai-worker/src/frameflow_ai/duplicates.py",
+    "frameflow-ai-worker/src/frameflow_ai/semantic.py",
+    "frameflow-ai-worker/src/frameflow_ai/eval.py",
+    "frameflow-ai-worker/tests/**",
+    "evidence/frameflow-select/s1/**",
+    ".frameflow/tasks/FF-FEA-002.json"
+  ],
+  "allowedCommands": [
+    "frameflow-ai-worker/.venv/bin/python",
+    "git add/commit",
+    "bash"
+  ],
+  "networkPolicy": "OFFICIAL_DEPENDENCIES_ONLY",
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "exact duplicates always cluster"
+    },
+    {
+      "id": "A2",
+      "criterion": "near duplicate threshold and false merge cases are reported"
+    },
+    {
+      "id": "A3",
+      "criterion": "fake provider supports pass violate unknown error"
+    },
+    {
+      "id": "A4",
+      "criterion": "semantic claims require evidence (bundled)"
+    },
+    {
+      "id": "A5",
+      "criterion": "evaluation records versions config cost and failures"
+    },
+    {
+      "id": "A6",
+      "criterion": "no real-world accuracy claim"
+    }
+  ],
+  "tests": [
+    {
+      "id": "T1",
+      "command": "pytest test_duplicates.py test_semantic.py test_quality.py"
+    },
+    {
+      "id": "T2",
+      "command": "eval CLI over generated dataset (10/10 matched)"
+    },
+    {
+      "id": "T3",
+      "command": "schema validation of eval report"
+    }
+  ],
+  "evidence": [
+    {
+      "acceptanceId": "A1",
+      "path": "evidence/frameflow-select/s1/s1-eval.json"
+    },
+    {
+      "acceptanceId": "A2",
+      "path": "evidence/frameflow-select/s1/s1-eval.json"
+    },
+    {
+      "acceptanceId": "A3",
+      "path": "frameflow-ai-worker/tests/test_semantic.py"
+    },
+    {
+      "acceptanceId": "A4",
+      "path": "frameflow-ai-worker/src/frameflow_ai/semantic.py"
+    },
+    {
+      "acceptanceId": "A5",
+      "path": "evidence/frameflow-select/s1/s1-eval.json"
+    },
+    {
+      "acceptanceId": "A6",
+      "path": "evidence/frameflow-select/s1/s1-eval.json"
+    }
+  ],
+  "rollback": "worker package segregated; no Java/product coupling introduced.",
+  "fallback": "ship exact hash plus perceptual hash and semantic contract tests while marking advanced metrics unverified.",
+  "attempt": 1,
+  "status": "ACCEPTED"
+}

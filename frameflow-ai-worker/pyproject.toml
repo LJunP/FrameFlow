@@ -1,0 +1,20 @@
+[project]
+name = "frameflow-ai-worker"
+version = "0.1.0"
+description = "FrameFlow Select AI worker: deterministic media QA, semantic provider SPI, duplicate clustering, evaluation"
+requires-python = ">=3.11"
+dependencies = [
+  "static-ffmpeg>=3.0",
+  "Pillow>=10.0",
+  "jsonschema>=4.20",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0", "pytest-cov"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

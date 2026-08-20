@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "ECOMMERCE_SHORT_AD_V1",
+  "templateType": "ECOMMERCE_SHORT_AD_V1",
+  "inputContract": {
+    "durationSeconds": {
+      "minimum": 5,
+      "maximum": 60
+    },
+    "aspectRatio": {
+      "expected": "9:16",
+      "tolerance": 0.02
+    },
+    "audioRequired": true,
+    "minResolution": {
+      "width": 320,
+      "height": 568
+    }
+  },
+  "automationPolicy": {
+    "defaultSemanticAction": "REVIEW",
+    "semanticAutoRejectEnabled": false,
+    "unknownResultAction": "REVIEW"
+  },
+  "rules": [
+    {
+      "ruleId": "FF-RULE-DURATION",
+      "version": 1,
+      "type": "HARD_CONSTRAINT",
+      "dimension": "technical_quality",
+      "severity": "BLOCKER",
+      "automationAction": "REJECT",
+      "evidenceRequirement": {
+        "type": "METADATA"
+      }
+    },
+    {
+      "ruleId": "FF-RULE-ASPECT",
+      "version": 1,
+      "type": "HARD_CONSTRAINT",
+      "dimension": "technical_quality",
+      "severity": "BLOCKER",
+      "automationAction": "REJECT",
+      "evidenceRequirement": {
+        "type": "METADATA"
+      }
+    },
+    {
+      "ruleId": "FF-RULE-RESOLUTION",
+      "version": 1,
+      "type": "HARD_CONSTRAINT",
+      "dimension": "technical_quality",
+      "severity": "BLOCKER",
+      "automationAction": "REJECT",
+      "evidenceRequirement": {
+        "type": "METADATA"
+      }
+    },
+    {
+      "ruleId": "FF-RULE-AUDIO",
+      "version": 1,
+      "type": "HARD_CONSTRAINT",
+      "dimension": "audio_subtitle_quality",
+      "severity": "BLOCKER",
+      "automationAction": "REJECT",
+      "evidenceRequirement": {
+        "type": "METADATA"
+      }
+    },
+    {
+      "ruleId": "FF-DET-BLACK",
+      "version": 1,
+      "type": "DETECTOR_THRESHOLD",
+      "dimension": "technical_quality",
+      "severity": "BLOCKER",
+      "automationAction": "REJECT",
+      "evidenceRequirement": {
+        "type": "INTERVAL"
+      }
+    },
+    {
+      "ruleId": "FF-DET-FREEZE",
+      "version": 1,
+      "type": "DETECTOR_THRESHOLD",
+      "dimension": "temporal_consistency",
+      "severity": "BLOCKER",
+      "automationAction": "REJECT",
+      "evidenceRequirement": {
+        "type": "INTERVAL"
+      }
+    },
+    {
+      "ruleId": "FF-DET-SILENCE",
+      "version": 1,
+      "type": "DETECTOR_THRESHOLD",
+      "dimension": "audio_subtitle_quality",
+      "severity": "BLOCKER",
+      "automationAction": "REJECT",
+      "evidenceRequirement": {
+        "type": "INTERVAL"
+      }
+    },
+    {
+      "ruleId": "FF-ASSERT-CTA",
+      "version": 1,
+      "type": "SEMANTIC_ASSERTION",
+      "dimension": "prompt_alignment",
+      "severity": "MAJOR",
+      "automationAction": "REVIEW",
+      "evidenceRequirement": {
+        "type": "OCR_OR_ASR"
+      }
+    },
+    {
+      "ruleId": "FF-ASSERT-PRODUCT-FIRST",
+      "version": 1,
+      "type": "SEMANTIC_ASSERTION",
+      "dimension": "product_visibility",
+      "severity": "MAJOR",
+      "automationAction": "REVIEW",
+      "evidenceRequirement": {
+        "type": "FRAME_RANGE"
+      }
+    }
+  ],
+  "ranking": {
+    "dimensions": {
+      "prompt_alignment": 0.25,
+      "product_visibility": 0.2,
+      "visual_stability": 0.15,
+      "temporal_consistency": 0.15,
+      "technical_quality": 0.1,
+      "brand_compliance": 0.1,
+      "audio_subtitle_quality": 0.05
+    },
+    "unknownDimensionPolicy": "RENORMALIZE_AVAILABLE_WEIGHTS"
+  }
+}

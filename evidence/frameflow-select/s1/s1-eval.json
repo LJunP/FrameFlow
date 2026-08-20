@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0.0",
+  "kind": "LOCAL_FEASIBILITY_EVALUATION",
+  "evaluatedAtUtc": "2026-08-20T14:10:25Z",
+  "dataset": "../experiments/fixtures/generated",
+  "casesTotal": 10,
+  "tested": 10,
+  "matchedExpected": 10,
+  "failures": [],
+  "unexpectedAnalysisErrors": [],
+  "notes": [
+    "SYNTHETIC_AND_LOCAL_ONLY: not a claim of real-world accuracy",
+    "deterministic_qa_only; semantic provider is the Fake provider"
+  ]
+}
