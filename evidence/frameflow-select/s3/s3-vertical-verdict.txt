@@ -1,0 +1,85 @@
+FRAMEFLOW SELECT — S3 VERTICAL SLICE (FF-VSL-003) INDEPENDENT GATE VERDICT
+============================================================================
+Gate: SINGLE_CANDIDATE_SLICE_ACCEPTED
+Verifier: independent detached-worktree verification (no source/test change)
+Date: 2026-08-21
+HEAD: ea7298351dcb730fa60752eb79bc57641544d13a
+Branch: frameflow-select/main
+
+----------------------------------------------------------------------------
+CHECK 1 — JVM vertical-slice test suite WITH python worker available
+----------------------------------------------------------------------------
+Command:
+  JAVA_HOME=... ./mvnw -B -pl frameflow-app -am test
+    -Dtest=SingleCandidateSliceE2ETest,ProductFlowIntegrationTest
+    -Dsurefire.failIfNoSpecifiedTests=false
+Executed in detached worktree .frameflow/runtime/worktrees/s3-verify
+(python worker wired via symlinked .venv, fixture + data symlinked)
+
+Result:
+  com.frameflow.product.SingleCandidateSliceE2ETest
+    Tests run: 1, Failures: 0, Errors: 0, Skipped: 0   <- RAN (NOT skipped)
+  com.frameflow.product.ProductFlowIntegrationTest
+    Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+  TOTALS: Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
+  BUILD SUCCESS
+
+STATUS: PASS
+
+----------------------------------------------------------------------------
+CHECK 2 — Corruption path covered by code review (code review)
+----------------------------------------------------------------------------
+AnalysisService.ingestResult() maps worker result status to candidate status:
+    if ("FAILED".equals(status)) {
+        batchRepos.updateCandidateStatus(candidateId, "ANALYSIS_ERROR");
+    } else {
+        batchRepos.updateCandidateStatus(candidateId, "ANALYZED");
+    }
+A worker FAILED result sets the candidate status to ANALYSIS_ERROR — a genuine
+analysis failure is recorded as ANALYSIS_ERROR and is NOT disguised as a
+rule violation / video-not-pass.
+
+STATUS: PASS
+
+----------------------------------------------------------------------------
+CHECK 3 — Python worker unit tests
+----------------------------------------------------------------------------
+Command:
+  cd frameflow-ai-worker && PYTHONPATH=src .venv/bin/python -m pytest -q
+Executed in the detached worktree.
+Result:
+  20 passed, 0 failed (exit code 0)   "20 passed" satisfied.
+
+STATUS: PASS
+
+----------------------------------------------------------------------------
+CHECK 4 — Restart semantics: analysis_runs + outbox Postgres-persisted,
+          result ingestion idempotent by commandId  (code review)
+----------------------------------------------------------------------------
+* Migration V7 (V7__analysis_and_outbox.sql, applied by Flyway) defines:
+    - analysis_runs      (id, team_id, batch_id, candidate_version_id, status,
+                           command_id, result_digest, decision JSONB,
+                           quality_vector JSONB, started_at, completed_at, ...)
+    - analysis_stage_jobs
+    - findings / finding_evidence
+    - outbox_records     (aggregate_type, aggregate_id, event_type, payload,
+                           status PENDING|PUBLISHED|FAILED, attempts, ...)
+  Both analysis_runs and outbox_records are PostgreSQL tables => business
+  state survives a process restart (not in-memory). Migration header states
+  "Python worker never owns these tables; PostgreSQL is the final business state."
+* Result ingestion idempotency by commandId:
+    - AnalysisController.ingestResult -> AnalysisService.ingestResult
+    - ingestResult guards COMMAND_MISMATCH (stored run.command_id must equal
+      submitted commandId)
+    - ingestResult returns early (no-op) when run is already COMPLETED /
+      COMPLETED_WITH_FINDINGS, so re-ingesting the same commandId after
+      completion is idempotent. run.command_id is persisted in analysis_runs.
+
+STATUS: PASS
+
+----------------------------------------------------------------------------
+OVERALL VERDICT: PASS
+----------------------------------------------------------------------------
+All four independent checks passed. The S3 vertical slice (FF-VSL-003) gate
+SINGLE_CANDIDATE_SLICE_ACCEPTED is ACCEPTED.
+Independent verifier performed no source/test/contract/migration modifications.
