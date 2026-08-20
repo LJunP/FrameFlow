@@ -54,6 +54,7 @@ __MACOSX/
 frameflow-ai-worker/.venv/
 frameflow-ai-worker/**/__pycache__/
 frameflow-ai-worker/*.egg-info/
+frameflow-ai-worker/**/*.egg-info/
 
 # Synthetic generated media (reproducible via generator; do not commit binaries)
 experiments/fixtures/generated/
