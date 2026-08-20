@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "project": "FrameFlow Select",
+  "status": "BOOTSTRAP_PENDING",
+  "activeStage": "S0",
+  "activeTask": "FF-PIV-001",
+  "lastAcceptedTask": null,
+  "lastGate": null,
+  "target": "LOCAL_MVP_COMPLETE",
+  "externalValidation": "EXTERNAL_VALIDATION_PENDING",
+  "attempts": {},
+  "decisions": [],
+  "blockers": [],
+  "updatedAt": null,
+  "acceptedTasks": [],
+  "stageGates": {},
+  "history": [],
+  "currentCommit": null
+}

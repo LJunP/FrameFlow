@@ -1,0 +1,291 @@
+{
+  "schemaVersion": "1.0.0",
+  "resultId": "res_01J5X8ABCD1234567890",
+  "commandId": "cmd_01J5X7ZYXW1234567890",
+  "idempotencyKey": "analysis:run_20260820_00042:stage_final:v1",
+  "teamId": "team_0001",
+  "projectId": "prj_summer_jacket_2026",
+  "batchId": "bat_20260820_a",
+  "candidateId": "cand_0042",
+  "candidateVersion": 1,
+  "analysisRunId": "run_20260820_00042",
+  "stageJobId": "job_20260820_0042_final",
+  "qualityProfile": {
+    "profileId": "qp_ecommerce_summer_jacket",
+    "version": 1,
+    "contentDigest": "sha256:5da4381c3e11d408d1ca43b2a6815c4eed0c1c0c6f0bf1ea93267c0e1511499e"
+  },
+  "sourceMedia": {
+    "objectRef": "teams/team_0001/projects/prj_summer_jacket_2026/batches/bat_20260820_a/candidates/cand_0042/v1/source.mp4",
+    "contentDigest": "sha256:ef84fc92737e3f3197510fb6ad04dd4fdc546ac8ed997d2aa429feaa6e9098c0",
+    "mediaType": "video/mp4"
+  },
+  "status": "COMPLETED_WITH_FINDINGS",
+  "decision": {
+    "value": "REVIEW",
+    "reasonCodes": [
+      "SEMANTIC_REQUIREMENT_UNCERTAIN",
+      "MAJOR_FINDING_PRESENT"
+    ],
+    "automatic": true,
+    "humanOverrideAllowed": true
+  },
+  "startedAt": "2026-08-20T11:00:02.125Z",
+  "completedAt": "2026-08-20T11:00:38.912Z",
+  "pipeline": {
+    "pipelineVersion": "video-qa-pipeline-0.3.0",
+    "preprocessingVersion": "media-derive-0.2.1",
+    "detectors": [
+      {
+        "detectorId": "ffprobe.media_facts",
+        "version": "1.0.0"
+      },
+      {
+        "detectorId": "ffmpeg.black_frame",
+        "version": "1.1.0"
+      },
+      {
+        "detectorId": "ffmpeg.freeze_detect",
+        "version": "1.0.2"
+      },
+      {
+        "detectorId": "asr.transcript",
+        "version": "0.4.0"
+      },
+      {
+        "detectorId": "multimodal.semantic_assertion",
+        "version": "0.3.0"
+      }
+    ],
+    "providerCalls": [
+      {
+        "provider": "example-multimodal-provider",
+        "model": "example-video-understanding-model-2026-07",
+        "providerRequestId": "provider_req_728193",
+        "promptVersion": "brief-assertion-v5",
+        "responseSchemaVersion": "semantic-assertion-result-1.0.0",
+        "inputTokens": 8142,
+        "outputTokens": 986,
+        "latencyMs": 12540,
+        "costUsd": 0.0712
+      }
+    ],
+    "toolVersions": {
+      "ffmpeg": "8.0",
+      "ffprobe": "8.0",
+      "opencv": "4.12.0"
+    }
+  },
+  "mediaFacts": {
+    "durationMs": 21840,
+    "container": "mov,mp4,m4a,3gp,3g2,mj2",
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "width": 1080,
+    "height": 1920,
+    "displayAspectRatio": "9:16",
+    "frameRate": 30.0,
+    "hasAudioTrack": true,
+    "audioSampleRateHz": 48000,
+    "decodeSucceeded": true
+  },
+  "artifacts": [
+    {
+      "artifactId": "art_storyboard_0042",
+      "type": "STORYBOARD",
+      "objectRef": "teams/team_0001/runs/run_20260820_00042/storyboard/storyboard.jpg",
+      "contentDigest": "sha256:25a26032206f2855752e6e0f861880a02ec63825d4231a336f73a2de966f9568"
+    },
+    {
+      "artifactId": "art_transcript_0042",
+      "type": "TRANSCRIPT_JSON",
+      "objectRef": "teams/team_0001/runs/run_20260820_00042/transcript/transcript.json",
+      "contentDigest": "sha256:5be99fd844c33d9a02bd55e1891e8c8609d6f676d99a2f459a01307d75d033cc"
+    }
+  ],
+  "findings": [
+    {
+      "findingId": "finding_0042_001",
+      "ruleId": "RULE-TECH-002",
+      "ruleVersion": 1,
+      "dimension": "Q4_TEMPORAL_AND_MOTION",
+      "findingType": "FREEZE_INTERVAL",
+      "verdict": "VIOLATED",
+      "severity": "MAJOR",
+      "confidence": 0.998,
+      "automationAction": "REVIEW",
+      "message": "在 00:07.200 至 00:08.640 检测到约 1.44 秒的冻结画面。",
+      "evidence": {
+        "timeRanges": [
+          {
+            "startMs": 7200,
+            "endMs": 8640
+          }
+        ],
+        "keyframes": [
+          {
+            "timestampMs": 7800,
+            "objectRef": "teams/team_0001/runs/run_20260820_00042/keyframes/000007800.jpg",
+            "contentDigest": "sha256:24f6a09d0dbbde86962167f97b4efcf06741b0c569159f1a59683496b938b766"
+          }
+        ],
+        "mediaFacts": {
+          "maximumDurationMs": 1440,
+          "freezeNoiseTolerance": 0.001
+        }
+      },
+      "origin": {
+        "kind": "DETERMINISTIC_DETECTOR",
+        "detectorId": "ffmpeg.freeze_detect",
+        "detectorVersion": "1.0.2"
+      }
+    },
+    {
+      "findingId": "finding_0042_002",
+      "ruleId": "RULE-BRIEF-001",
+      "ruleVersion": 1,
+      "dimension": "Q6_PROMPT_AND_BRIEF_ALIGNMENT",
+      "findingType": "PRODUCT_NOT_CLEAR_IN_OPENING",
+      "verdict": "UNKNOWN",
+      "severity": "MAJOR",
+      "confidence": 0.62,
+      "automationAction": "REVIEW",
+      "message": "前 3 秒出现疑似商品，但遮挡较重，无法确认是否达到“清楚出现商品”的要求。",
+      "sourceRequirement": {
+        "text": "前 3 秒必须清楚出现商品",
+        "profileId": "qp_ecommerce_summer_jacket",
+        "profileVersion": 1
+      },
+      "evidence": {
+        "timeRanges": [
+          {
+            "startMs": 0,
+            "endMs": 3000
+          }
+        ],
+        "keyframes": [
+          {
+            "timestampMs": 1600,
+            "objectRef": "teams/team_0001/runs/run_20260820_00042/keyframes/000001600.jpg",
+            "contentDigest": "sha256:6a98538baa3f11d53853654a11cd651591157af91587c94f158f2b3b04d7e61d"
+          }
+        ]
+      },
+      "origin": {
+        "kind": "MULTIMODAL_MODEL",
+        "provider": "example-multimodal-provider",
+        "model": "example-video-understanding-model-2026-07",
+        "promptVersion": "brief-assertion-v5",
+        "providerRequestId": "provider_req_728193"
+      }
+    },
+    {
+      "findingId": "finding_0042_003",
+      "ruleId": "RULE-BRIEF-003",
+      "ruleVersion": 1,
+      "dimension": "Q6_PROMPT_AND_BRIEF_ALIGNMENT",
+      "findingType": "SELLING_POINT_MISSING",
+      "verdict": "VIOLATED",
+      "severity": "MAJOR",
+      "confidence": 0.91,
+      "automationAction": "REVIEW",
+      "message": "检测到“轻薄”卖点，但未在语音、字幕或画面中找到“防晒”卖点的充分证据。",
+      "sourceRequirement": {
+        "text": "视频必须表达轻薄和防晒两个核心卖点",
+        "profileId": "qp_ecommerce_summer_jacket",
+        "profileVersion": 1
+      },
+      "evidence": {
+        "timeRanges": [
+          {
+            "startMs": 4200,
+            "endMs": 18900
+          }
+        ],
+        "transcriptSpans": [
+          {
+            "startMs": 5100,
+            "endMs": 7400,
+            "text": "轻薄透气，夏天穿着也没有负担"
+          }
+        ],
+        "searchedConcepts": [
+          "轻薄",
+          "防晒"
+        ],
+        "matchedConcepts": [
+          "轻薄"
+        ]
+      },
+      "origin": {
+        "kind": "MULTIMODAL_MODEL",
+        "provider": "example-multimodal-provider",
+        "model": "example-video-understanding-model-2026-07",
+        "promptVersion": "brief-assertion-v5",
+        "providerRequestId": "provider_req_728193"
+      }
+    }
+  ],
+  "qualityVector": {
+    "Q1_FILE_AND_SPEC": {
+      "score": 1.0,
+      "status": "AVAILABLE"
+    },
+    "Q2_VISUAL_TECHNICAL": {
+      "score": 0.92,
+      "status": "AVAILABLE"
+    },
+    "Q3_AI_STRUCTURAL_ARTIFACTS": {
+      "score": 0.86,
+      "status": "AVAILABLE"
+    },
+    "Q4_TEMPORAL_AND_MOTION": {
+      "score": 0.58,
+      "status": "AVAILABLE"
+    },
+    "Q5_AUDIO_SPEECH_SUBTITLE": {
+      "score": 0.88,
+      "status": "AVAILABLE"
+    },
+    "Q6_PROMPT_AND_BRIEF_ALIGNMENT": {
+      "score": 0.61,
+      "status": "AVAILABLE"
+    },
+    "Q7_BRAND_AND_PUBLISH_READINESS": {
+      "score": 0.83,
+      "status": "AVAILABLE"
+    },
+    "Q8_AESTHETIC_AND_CREATIVE_FIT": {
+      "score": 0.79,
+      "status": "AVAILABLE"
+    },
+    "Q9_DUPLICATION_AND_DIVERSITY": {
+      "score": 0.72,
+      "status": "AVAILABLE"
+    }
+  },
+  "rankingFeatures": {
+    "baseScore": 0.742,
+    "findingPenalty": 0.25,
+    "similarityClusterId": "cluster_07",
+    "similarityToClusterMedoid": 0.91,
+    "diversityPenalty": 0.08,
+    "finalScore": 0.412,
+    "rankingEligible": true
+  },
+  "usage": {
+    "wallClockMs": 36787,
+    "cpuTimeMs": 14720,
+    "derivedBytes": 18420341,
+    "providerCalls": 1,
+    "providerCostUsd": 0.0712,
+    "estimatedTotalCostUsd": 0.0835
+  },
+  "warnings": [
+    {
+      "code": "SEMANTIC_ASSERTION_UNKNOWN",
+      "message": "RULE-BRIEF-001 置信度不足，必须人工复核。"
+    }
+  ],
+  "resultDigest": "sha256:723943b883d320f4f1d94adaf48986171fdc10bc1e75bcbbf0a65fde8e01844a"
+}

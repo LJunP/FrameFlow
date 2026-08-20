@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frameflow.local/schemas/worker-command.schema.json",
+  "type": "object",
+  "required": ["schemaVersion", "commandId", "idempotencyKey", "analysisRunId", "teamId", "candidateVersion", "sourceMedia", "qualityProfile", "pipeline", "createdAt"],
+  "properties": {
+    "schemaVersion": {"type": "string"},
+    "commandId": {"type": "string"},
+    "idempotencyKey": {"type": "string"},
+    "analysisRunId": {"type": "string"},
+    "teamId": {"type": "string"},
+    "candidateVersion": {"type": "integer", "minimum": 1},
+    "sourceMedia": {"type": "object", "required": ["objectRef", "contentDigest"], "properties": {"objectRef": {"type": "string"}, "contentDigest": {"type": "string"}}},
+    "qualityProfile": {"type": "object", "required": ["profileId", "version", "contentDigest"]},
+    "pipeline": {"type": "object"},
+    "createdAt": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": true
+}

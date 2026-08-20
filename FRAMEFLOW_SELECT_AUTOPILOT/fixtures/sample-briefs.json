@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0.0",
+  "briefs": [
+    {
+      "id": "brief_white_jacket_001",
+      "name": "白色防晒衣竖屏广告",
+      "prompt": "15秒竖屏商品广告，前3秒清楚展示白色防晒衣，表达轻薄和防晒，结尾有立即购买CTA。",
+      "requiredConcepts": ["白色防晒衣", "轻薄", "防晒", "购买CTA"],
+      "forbiddenConcepts": ["竞品Logo"],
+      "durationSeconds": {"min": 10, "max": 25},
+      "aspectRatio": "9:16"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frameflow.local/schemas/worker-result.schema.json",
+  "allOf": [{"$ref": "analysis-result.schema.json"}]
+}

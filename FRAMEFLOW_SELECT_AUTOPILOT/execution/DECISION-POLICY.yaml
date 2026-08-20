@@ -1,0 +1,66 @@
+version: 1.0.0
+project: FrameFlow Select
+interaction_policy:
+  ask_user_for_normal_choices: false
+  continue_after_reversible_failure: true
+  hard_stop_only_for:
+    - irreversible_external_action
+    - non_replaceable_real_secret
+    - suspected_real_data_exposure
+    - unrecoverable_git_corruption
+    - no_viable_local_fallback
+execution:
+  active_stages: 1
+  active_primary_tasks: 1
+  max_attempts_per_strategy: 2
+  use_subagent_verifier_when_available: true
+  use_disposable_worktree_for_verification: true
+  commit_after_accepted_task: true
+  local_push_allowed: false
+  remote_operations_allowed: false
+product_defaults:
+  target_user: small_ai_ecommerce_video_team
+  template: ECOMMERCE_SHORT_AD_V1
+  video_duration_seconds: [5, 60]
+  batch_size_design_range: [20, 300]
+  auto_reject_semantic_findings: false
+  preserve_good_candidates_first: true
+  unknown_action: REVIEW
+technology_defaults:
+  backend: Java modular monolith
+  preserve_existing_spring_boot_until_product_mvp: true
+  prefer_jdk_21_if_available_and_tests_pass: true
+  database: PostgreSQL 16
+  object_storage: MinIO S3-compatible
+  queue: RabbitMQ
+  worker: Python 3.11+
+  media: FFmpeg and ffprobe
+  frontend: Next.js + React + TypeScript
+  browser_token_policy: BFF HttpOnly Cookie
+  optional_ai_provider: OpenAI-compatible multimodal adapter
+  required_test_provider: deterministic Fake Provider
+  prohibited_before_local_mvp:
+    - microservices
+    - kafka
+    - kubernetes
+    - istio
+    - redis_without_measured_need
+    - vector_database_cluster
+    - video_generation
+    - automatic_publishing
+fallbacks:
+  missing_api_key: use_fake_provider_and_continue
+  missing_real_media: generate_synthetic_fixture_dataset
+  missing_gpu: cpu_or_optional_remote_provider
+  unavailable_major_upgrade: keep_current_compatible_version
+  flaky_semantic_detector: downgrade_to_review_only
+  high_false_reject_rate: disable_auto_reject_for_rule
+  task_failure_after_two_attempts: narrow_to_minimum_vertical_result
+  dependency_unavailable: choose_existing_or_standard_library_alternative
+security:
+  never_read_workspace_external_secrets: true
+  never_commit_secrets_or_real_media: true
+  never_modify_applied_flyway: true
+  never_delete_git_directory: true
+  never_force_push: true
+  never_claim_legal_or_market_validation: true
