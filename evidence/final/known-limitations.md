@@ -5,16 +5,17 @@ over: the code, tests, contracts and thresholds are **unchanged and unweakened**
 
 ---
 
-## 1. Web frontend (S7) not implemented in this delivery
+## 1. Web frontend (S7) — implemented and building (desktop local)
 
-- `frameflow-web/` contains only `package.json`; there is **no Next.js source**
-  (no `app/`/pages, no `node_modules`, no `.next`), and it is not tracked in git.
-- Consequently the RUNBOOK step `cd frameflow-web && npm run build` is **not
-  runnable** until S7 is implemented. It is recorded in `evidence/final/test-summary.json`
-  as **NOT_APPLICABLE / not-run**, not as a passing gate.
-- Scope note: this delivery covers the **S0–S6** local scope (Java modular monolith +
-  Python worker + synthetic fixtures), exactly as scoped. S7 (web product experience)
-  is the next unimplemented stage.
+- `frameflow-web/` is a full Next.js App Router + React + TypeScript + Tailwind app
+  (pages: /, /login, /dashboard, /projects/[id], /batches/[batchId],
+  /batches/[batchId]/selection, /candidates/[id] with video review player), committed
+  on frameflow-select/main.
+- `cd frameflow-web && npm run build` **passes** (8 routes type-checked + compiled);
+  recorded in `evidence/final/test-summary.json` as PASS.
+- Limits: token handling uses client-side storage with a BFF/HttpOnly note in the web
+  README; it is a desktop-first local UI and has not been browser-E2E-tested against a
+  live backend in this delivery (the backend API contract is verified separately).
 
 ## 2. Semantic QA uses the deterministic Fake provider by default
 

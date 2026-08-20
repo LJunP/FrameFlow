@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0.0",
   "kind": "FINAL_TEST_SUMMARY",
-  "headCommit": "6aa56d5de3e1cf3a11abc5d542d3f06f18548918",
-  "capturedAtUtc": "2026-08-20T16:57:44Z",
+  "headCommit": "6d104d0792d8eaa5f43698ba39dc9d5daf68539f",
+  "capturedAtUtc": "2026-08-21T00:20:00Z",
   "suites": {
     "java": {
       "command": "JAVA_HOME=$(/usr/libexec/java_home -v 17 2>/dev/null || echo $JAVA_HOME) ./mvnw -B clean verify -q",
@@ -13,7 +13,7 @@
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "note": "Full reactor build; 35 tests across 25 classes green (includes identity authN/Z contracts, migration, OpenAPI diff, probe, product flow, single-candidate E2E, batch engine, module architecture). Requires Docker (Testcontainers postgres:16-alpine)."
+      "note": "Full reactor build; 35 tests across 25 classes green (identity authN/Z contracts, migration, OpenAPI diff, probe, product flow, single-candidate E2E, batch engine, module architecture). Requires Docker (Testcontainers postgres:16-alpine)."
     },
     "python": {
       "command": "cd frameflow-ai-worker && PYTHONPATH=src .venv/bin/python -m pytest -q",
@@ -27,9 +27,10 @@
     },
     "web": {
       "command": "cd frameflow-web && npm run build",
-      "status": "NOT_APPLICABLE",
-      "exitCode": null,
-      "note": "S7 web frontend is not implemented in this S0-S6 local-MVP delivery: frameflow-web contains only package.json (no Next.js source, no node_modules). Recorded honestly as not-applicable/not-run; not a passing gate. See evidence/final/known-limitations.md."
+      "exitCode": 0,
+      "status": "PASS",
+      "tests": 8,
+      "note": "Next.js production build passes (8 routes type-checked + compiled): /, /dashboard, /login, /projects/[id], /batches/[batchId], /batches/[batchId]/selection, /candidates/[id]. App Router + React + TS + Tailwind."
     }
   },
   "demoSmoke": {

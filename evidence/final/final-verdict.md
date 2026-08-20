@@ -60,8 +60,7 @@ SELECTION_ENGINE, SEMANTIC_QA, BATCH_ENGINE — all `OWNER_PROXY_ACCEPTED_LOCAL`
 - **Synthetic-only.** Every quality result derives from locally generated fixtures
   and the deterministic Fake semantic provider. This is **not** a claim of real-world
   accuracy, market fit, or production readiness.
-- **Web frontend (S7)** is not implemented in this delivery; `frameflow-web` has no
-  Next.js source. Recorded as not-applicable / not-run, not as a passing gate.
+- **Web frontend (S7)** is implemented as a Next.js App Router app under `frameflow-web/`; `npm run build` passes (8 routes type-checked). It is a local desktop-first UI; browser E2E against a live backend is not part of this delivery.
 - **No real provider metrics, no customer pilot, no legal/production certification.**
 - These are reflected in `evidence/final/known-limitations.md`.
 
