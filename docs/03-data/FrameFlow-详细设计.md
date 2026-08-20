@@ -13,7 +13,7 @@
 | Asset | Asset、AssetVersion、License | 版本不可变、授权和引用可追溯 | `asset-workflow-service` / PostgreSQL |
 | AI | AiTask、PromptTemplate、Suggestion | 输出仅建议，人工确认 | 业务事实归 `asset-workflow-service`；Worker 只拥有运行日志/job store |
 | Delivery | DeliveryPackage、DeliveryItem | 固定版本、确认幂等、不可覆盖 | `asset-workflow-service` / PostgreSQL |
-| Governance | AuditLog、OutboxEvent | 证据、审计、最终一致 | 事件消费者/所属服务；幂等记录归实际承载写操作的业务模块 |
+| Governance | AuditLog、Notification、OutboxEvent | MVP 审计、基础站内通知、技术证据 | 单体 `governance` 模块是 audit_logs/notifications 唯一所有者；幂等记录归实际业务模块 |
 
 ## 2. MVP 数据模型
 
@@ -52,6 +52,7 @@ suggestions
 delivery_packages
 delivery_items
 audit_logs
+notifications
 outbox_events
 idempotency_records
 ```
@@ -113,7 +114,8 @@ ai_tasks: provider/external_request_id 幂等约束（适用时）
 只有 OpenAPI 显式声明的高风险写操作必须携带 Idempotency-Key
 并发更新携带 version 或 If-Match
 统一错误码
-所有响应携带 X-Request-Id；错误 body 的 requestId 与 header 同值，traceId 可选
+后端为每次 HTTP attempt 生成 X-Request-Id，错误 body 的 requestId 与响应 header 同值；客户端传入的同名值不是权威来源
+需要跨多个请求串联一次业务意图时使用受校验的 X-Correlation-Id；是否写入权威 OpenAPI 仍属 M02 Contract Gate UNKNOWN
 权限在后端校验
 ```
 
@@ -157,7 +159,7 @@ AssetVersion created
 
 必须有 Confirm、重试、DLQ、幂等、人工重放、taskId/eventId 安全日志。AI 输出不能直接改变正式素材、任务或交付状态。
 
-## 8. Redis
+## 8. Redis（M05 可选 hardening/engineering-lab）
 
 建议 Key：
 
@@ -168,7 +170,7 @@ frameflow:idempotency:{scope}:{key}
 frameflow:ratelimit:{scope}:{subject}:{window}
 ```
 
-规则：Cache-Aside；数据库是事实来源；写成功后失效；TTL 防止永久脏数据；Redis 不可用时安全回源；不滥用分布式锁。M01 已由 PostgreSQL `idempotency_records` 提供请求幂等事实，M05 的 Redis key 只作加速；缓存丢失不得改变去重结果。
+规则：Cache-Aside；数据库是事实来源；写成功后失效；TTL 防止永久脏数据；Redis 不可用时安全回源；不滥用分布式锁。M01 已由 PostgreSQL `idempotency_records` 提供请求幂等事实，M05 Redis 只作加速/限流/降级实验；未执行 M05 不得阻塞 M08 backend gate 或 M08-F product MVP gate。
 
 ## 9. Outbox 与 Kafka（M11 后）
 
@@ -203,7 +205,7 @@ AI Worker 协作模型（定稿）：业务服务拥有 `ai_tasks` 与 `suggesti
 | Architecture | 模块依赖、禁止跨模块 Repository/Mapper |
 | Service | 权限、事务、幂等、错误分类 |
 | API | 认证、越权、校验、409 冲突、错误映射 |
-| Integration | PostgreSQL、Redis、MinIO、RabbitMQ；Kafka 引入后再覆盖 |
+| Integration | PostgreSQL、MinIO、RabbitMQ；Redis 仅在选择 M05 后覆盖，Kafka 引入后再覆盖 |
 | Contract | 服务 API、事件 schema、兼容字段和错误语义 |
 | E2E | 上传→分析→审核→交付 |
 | Platform | Kubernetes Probe、rollout/rollback、Istio 灰度/mTLS（进入阶段后） |
@@ -214,6 +216,7 @@ AI Worker 协作模型（定稿）：业务服务拥有 `ai_tasks` 与 `suggesti
 - 评论锚点是否含区域；
 - 文件预览与转码标准；
 - 客户外部访问链接、水印、下载限制；
-- 前端框架与 OpenAPI 代码生成方式；
 - 多租户、数据保留和删除策略；
 - Trace 后端最终选择 Jaeger 或 Tempo。
+
+> 前端方向已由 ADR-012 批准：React + TypeScript + Next.js App Router/BFF + Tailwind CSS + shadcn/ui + TanStack Query + openapi-typescript；精确版本在派发时锁定。代码放在本仓库 `frameflow-web/`，阶段为 M01-F/M04-F/M08-F。

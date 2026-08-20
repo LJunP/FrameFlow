@@ -3,6 +3,10 @@ package com.frameflow.identity.web;
 import com.frameflow.identity.application.AccessTokenService;
 import com.frameflow.identity.application.RefreshTokenService;
 import com.frameflow.identity.application.UserService;
+import com.frameflow.identity.application.model.AuthModels.LoginCommand;
+import com.frameflow.identity.application.model.AuthModels.RegisterCommand;
+import com.frameflow.identity.application.model.AuthModels.TokenPairView;
+import com.frameflow.identity.application.model.AuthModels.UserView;
 import com.frameflow.identity.security.CurrentUser;
 import com.frameflow.identity.web.dto.LoginRequest;
 import com.frameflow.identity.web.dto.RefreshRequest;
@@ -56,7 +60,9 @@ public class AuthController {
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = com.frameflow.identity.error.ErrorResponse.class)))
     })
     public ResponseEntity<User> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(request));
+        UserView user = userService.register(
+                new RegisterCommand(request.email(), request.password(), request.displayName()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDto(user));
     }
 
     @PostMapping("/login")
@@ -70,7 +76,7 @@ public class AuthController {
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = com.frameflow.identity.error.ErrorResponse.class)))
     })
     public TokenPair login(@Valid @RequestBody LoginRequest request) {
-        return userService.login(request);
+        return toDto(userService.login(new LoginCommand(request.email(), request.password())));
     }
 
     @PostMapping("/refresh")
@@ -113,6 +119,15 @@ public class AuthController {
     })
     public User me(Authentication authentication) {
         CurrentUser currentUser = (CurrentUser) authentication.getPrincipal();
-        return userService.me(currentUser.userId());
+        return toDto(userService.me(currentUser.userId()));
+    }
+
+    private static User toDto(UserView user) {
+        return new User(user.id(), user.email(), user.displayName(),
+                com.frameflow.identity.web.dto.UserStatus.valueOf(user.status()), user.lastLoginAt());
+    }
+
+    private static TokenPair toDto(TokenPairView pair) {
+        return new TokenPair(pair.accessToken(), pair.refreshToken(), pair.expiresInSeconds(), TokenType.Bearer);
     }
 }

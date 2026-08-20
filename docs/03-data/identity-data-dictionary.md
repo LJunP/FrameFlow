@@ -98,8 +98,8 @@ idempotency_records: unique(scope, idempotency_key)；idx(expires_at)；idx(stat
 ## 7. 生命周期与安全
 
 - 密码策略：BCrypt cost=10+；不允许明文存日志/响应/Token；
-- Refresh Token：32 字节安全随机不透明串，仅存 SHA-256 哈希；明文不得进入日志、Trace、指标或数据库；
-- 请求幂等：M01 以 PostgreSQL `idempotency_records` 为事实源；M05 Redis 只允许作为可丢失的加速层；
+- Refresh Token：32 字节安全随机不透明串，后端仅存 SHA-256 哈希；明文不得进入日志、Trace、指标或数据库。前端引入后由 Next BFF 放入 `Secure`/`HttpOnly`/`SameSite` Cookie，禁止 localStorage/sessionStorage/IndexedDB；
+- 请求幂等：M01 以 PostgreSQL `idempotency_records` 为事实源；可选 M05 Redis hardening 只允许作为可丢失的加速层，不阻塞 MVP；
 - 删除策略：软禁用（status=DISABLED）优先，物理删除需审批；
 - 审计字段：created_at/updated_at 由迁移定义，created_by 适用时记录；
 - 迁移策略：forward-only；开发库失败清库重建，不提供 down migration。

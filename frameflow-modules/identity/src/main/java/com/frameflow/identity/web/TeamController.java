@@ -3,13 +3,24 @@ package com.frameflow.identity.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frameflow.identity.application.IdempotencyExecution;
 import com.frameflow.identity.application.TeamService;
+import com.frameflow.identity.application.model.TeamModels.AddMemberCommand;
+import com.frameflow.identity.application.model.TeamModels.CreateTeamCommand;
+import com.frameflow.identity.application.model.TeamModels.MemberListView;
+import com.frameflow.identity.application.model.TeamModels.TeamListView;
+import com.frameflow.identity.application.model.TeamModels.TeamMemberView;
+import com.frameflow.identity.application.model.TeamModels.TeamMembershipView;
+import com.frameflow.identity.application.model.TeamModels.TeamView;
+import com.frameflow.identity.application.model.TeamModels.UpdateMemberRoleCommand;
 import com.frameflow.identity.security.CurrentUser;
 import com.frameflow.identity.web.dto.AddMemberRequest;
 import com.frameflow.identity.web.dto.CreateTeamRequest;
 import com.frameflow.identity.web.dto.MemberList;
+import com.frameflow.identity.web.dto.MemberStatus;
 import com.frameflow.identity.web.dto.Team;
 import com.frameflow.identity.web.dto.TeamList;
 import com.frameflow.identity.web.dto.TeamMember;
+import com.frameflow.identity.web.dto.TeamMembershipSummary;
+import com.frameflow.identity.web.dto.TeamRole;
 import com.frameflow.identity.web.dto.UpdateMemberRoleRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -61,7 +72,7 @@ public class TeamController {
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = com.frameflow.identity.error.ErrorResponse.class)))
     })
     public TeamList listMyTeams(Authentication authentication) {
-        return teamService.listMyTeams(currentUserId(authentication));
+        return toDto(teamService.listMyTeams(currentUserId(authentication)));
     }
 
     @PostMapping
@@ -84,12 +95,13 @@ public class TeamController {
             @RequestHeader(value = "Idempotency-Key", required = true) UUID idempotencyKey,
             @Valid @RequestBody CreateTeamRequest request) throws Exception {
         IdempotencyExecution<TeamService.CreateOutcome> execution =
-                teamService.createTeam(currentUserId(authentication), request, idempotencyKey);
+                teamService.createTeam(currentUserId(authentication),
+                        new CreateTeamCommand(request.name()), idempotencyKey);
         if (execution.isReplayed()) {
             Team team = objectMapper.readValue(execution.replayBody(), Team.class);
             return ResponseEntity.status(execution.replayStatus()).contentType(MediaType.APPLICATION_JSON).body(team);
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(execution.value().dto());
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDto(execution.value().view()));
     }
 
     @GetMapping("/{teamId}")
@@ -103,7 +115,7 @@ public class TeamController {
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = com.frameflow.identity.error.ErrorResponse.class)))
     })
     public Team getTeam(Authentication authentication, @PathVariable long teamId) {
-        return teamService.getTeam(currentUserId(authentication), teamId);
+        return toDto(teamService.getTeam(currentUserId(authentication), teamId));
     }
 
     @GetMapping("/{teamId}/members")
@@ -117,7 +129,7 @@ public class TeamController {
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = com.frameflow.identity.error.ErrorResponse.class)))
     })
     public MemberList listTeamMembers(Authentication authentication, @PathVariable long teamId) {
-        return teamService.listMembers(currentUserId(authentication), teamId);
+        return toDto(teamService.listMembers(currentUserId(authentication), teamId));
     }
 
     @PostMapping("/{teamId}/members")
@@ -145,12 +157,13 @@ public class TeamController {
             @RequestHeader(value = "Idempotency-Key", required = true) UUID idempotencyKey,
             @Valid @RequestBody AddMemberRequest request) throws Exception {
         IdempotencyExecution<TeamService.MemberOutcome> execution =
-                teamService.addMember(currentUserId(authentication), teamId, request, idempotencyKey);
+                teamService.addMember(currentUserId(authentication), teamId,
+                        new AddMemberCommand(request.email(), request.role().name()), idempotencyKey);
         if (execution.isReplayed()) {
             TeamMember member = objectMapper.readValue(execution.replayBody(), TeamMember.class);
             return ResponseEntity.status(execution.replayStatus()).contentType(MediaType.APPLICATION_JSON).body(member);
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(execution.value().dto());
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDto(execution.value().view()));
     }
 
     @PatchMapping("/{teamId}/members/{userId}")
@@ -172,7 +185,8 @@ public class TeamController {
     public TeamMember updateMemberRole(
             Authentication authentication, @PathVariable long teamId, @PathVariable long userId,
             @Valid @RequestBody UpdateMemberRoleRequest request) {
-        return teamService.updateRole(currentUserId(authentication), teamId, userId, request);
+        return toDto(teamService.updateRole(currentUserId(authentication), teamId, userId,
+                new UpdateMemberRoleCommand(request.role().name())));
     }
 
     @DeleteMapping("/{teamId}/members/{userId}")
@@ -196,5 +210,28 @@ public class TeamController {
 
     private static long currentUserId(Authentication authentication) {
         return ((CurrentUser) authentication.getPrincipal()).userId();
+    }
+
+    private static Team toDto(TeamView team) {
+        return new Team(team.id(), team.name(), team.createdAt());
+    }
+
+    private static TeamMember toDto(TeamMemberView member) {
+        return new TeamMember(member.id(), member.teamId(), member.userId(), member.email(),
+                TeamRole.valueOf(member.role()), MemberStatus.valueOf(member.status()));
+    }
+
+    private static MemberList toDto(MemberListView list) {
+        return new MemberList(list.items().stream().map(TeamController::toDto).toList());
+    }
+
+    private static TeamList toDto(TeamListView list) {
+        return new TeamList(list.items().stream().map(TeamController::toDto).toList());
+    }
+
+    private static TeamMembershipSummary toDto(TeamMembershipView membership) {
+        return new TeamMembershipSummary(membership.teamId(), membership.name(),
+                TeamRole.valueOf(membership.role()), MemberStatus.valueOf(membership.status()),
+                membership.createdAt());
     }
 }

@@ -1,9 +1,9 @@
 package com.frameflow.identity.application;
 
+import com.frameflow.identity.application.port.out.RefreshTokenSessionRepository;
 import com.frameflow.identity.config.JwtProperties;
 import com.frameflow.identity.domain.RefreshTokenSession;
 import com.frameflow.identity.error.ApiException;
-import com.frameflow.identity.infrastructure.persistence.RefreshTokenSessionMapper;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -23,15 +23,18 @@ import org.springframework.transaction.annotation.Transactional;
 @ConditionalOnWebApplication
 public class RefreshTokenService {
 
-    private final RefreshTokenSessionMapper sessionMapper;
+    private final RefreshTokenSessionRepository sessions;
     private final JwtProperties props;
     private final Clock clock;
+    private final ActiveUserPolicy activeUsers;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public RefreshTokenService(RefreshTokenSessionMapper sessionMapper, JwtProperties props, Clock clock) {
-        this.sessionMapper = sessionMapper;
+    public RefreshTokenService(RefreshTokenSessionRepository sessions, JwtProperties props, Clock clock,
+                               ActiveUserPolicy activeUsers) {
+        this.sessions = sessions;
         this.props = props;
         this.clock = clock;
+        this.activeUsers = activeUsers;
     }
 
     public record IssuedToken(String refreshToken, UUID familyId, long sessionId) {
@@ -50,24 +53,31 @@ public class RefreshTokenService {
         session.setTokenHash(hash(token));
         session.setStatus("ACTIVE");
         session.setExpiresAt(OffsetDateTime.now(clock).plus(props.getRefreshTokenTtl()));
-        sessionMapper.insert(session);
+        sessions.insert(session);
         return new IssuedToken(token, familyId, session.getId());
     }
 
     @Transactional(propagation = Propagation.REQUIRED, noRollbackFor = ApiException.class)
     public RefreshedToken refresh(String rawToken) {
         String hash = hash(rawToken);
-        RefreshTokenSession session = sessionMapper.findByHashForUpdate(hash);
+        RefreshTokenSession session = sessions.findByHashForUpdate(hash);
         if (session == null) {
             throw ApiException.unauthenticated("Refresh Token 无效");
         }
         OffsetDateTime now = OffsetDateTime.now(clock);
         if (!"ACTIVE".equals(session.getStatus())) {
-            sessionMapper.revokeActiveByFamily(session.getFamilyId());
+            sessions.revokeActiveByFamily(session.getFamilyId());
             throw ApiException.unauthenticated("Refresh Token 已被轮换或撤销（检测到重放），已撤销该 token family");
         }
         if (session.getExpiresAt() == null || !session.getExpiresAt().isAfter(now)) {
             throw ApiException.tokenExpired("Refresh Token 已过期");
+        }
+        try {
+            activeUsers.requireActive(session.getUserId());
+        } catch (ApiException ex) {
+            // A disabled account must not keep a refresh-capable session alive.
+            sessions.revokeActiveByFamily(session.getFamilyId());
+            throw ex;
         }
         String newToken = generateToken();
         RefreshTokenSession next = new RefreshTokenSession();
@@ -76,27 +86,27 @@ public class RefreshTokenService {
         next.setTokenHash(hash(newToken));
         next.setStatus("ACTIVE");
         next.setExpiresAt(now.plus(props.getRefreshTokenTtl()));
-        sessionMapper.insert(next);
-        sessionMapper.markRotated(session.getId(), next.getId());
+        sessions.insert(next);
+        sessions.markRotated(session.getId(), next.getId());
         return new RefreshedToken(newToken, session.getUserId());
     }
 
     @Transactional(propagation = Propagation.REQUIRED, noRollbackFor = ApiException.class)
     public void logout(String rawToken) {
         String hash = hash(rawToken);
-        RefreshTokenSession session = sessionMapper.findByHashForUpdate(hash);
+        RefreshTokenSession session = sessions.findByHashForUpdate(hash);
         if (session == null) {
             throw ApiException.unauthenticated("Refresh Token 无效");
         }
         OffsetDateTime now = OffsetDateTime.now(clock);
         if (!"ACTIVE".equals(session.getStatus())) {
-            sessionMapper.revokeActiveByFamily(session.getFamilyId());
+            sessions.revokeActiveByFamily(session.getFamilyId());
             throw ApiException.unauthenticated("Refresh Token 已被轮换或撤销（检测到重放），已撤销该 token family");
         }
         if (session.getExpiresAt() == null || !session.getExpiresAt().isAfter(now)) {
             throw ApiException.tokenExpired("Refresh Token 已过期");
         }
-        sessionMapper.revokeActiveByFamily(session.getFamilyId());
+        sessions.revokeActiveByFamily(session.getFamilyId());
     }
 
     private String generateToken() {

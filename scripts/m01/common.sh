@@ -5,7 +5,15 @@
 M01_SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 FRAMEFLOW_ROOT=$(CDPATH= cd -- "$M01_SCRIPT_DIR/../.." && pwd)
 COMPOSE_FILE="$FRAMEFLOW_ROOT/docker-compose.local.yml"
-EVIDENCE_DIR="$FRAMEFLOW_ROOT/evidence/m01"
+case "${FRAMEFLOW_M01_EVIDENCE_DIR:-}" in
+    "") EVIDENCE_DIR="$FRAMEFLOW_ROOT/evidence/m01" ;;
+    "evidence/m01"|"evidence/m01h") EVIDENCE_DIR="$FRAMEFLOW_ROOT/$FRAMEFLOW_M01_EVIDENCE_DIR" ;;
+    "$FRAMEFLOW_ROOT/evidence/m01"|"$FRAMEFLOW_ROOT/evidence/m01h") EVIDENCE_DIR="$FRAMEFLOW_M01_EVIDENCE_DIR" ;;
+    *)
+        echo "FRAMEFLOW_M01_EVIDENCE_DIR must be evidence/m01 or evidence/m01h" >&2
+        exit 2
+        ;;
+esac
 KEY_DIR="$FRAMEFLOW_ROOT/data/jwt"
 APP_HOST="127.0.0.1"
 APP_PORT="${FRAMEFLOW_EVIDENCE_PORT:-18081}"
@@ -14,6 +22,29 @@ APP_LOG=""
 PROBE_CODE=""
 PROBE_BODY=""
 JWT_KID="${FRAMEFLOW_JWT_KID:-local-m01-kid}"
+
+evidence_subject_status() {
+    git -C "$FRAMEFLOW_ROOT" status --porcelain=v1 --untracked-files=all -- . \
+        ':(exclude)evidence/m01h/**' \
+        ':(exclude)docs/05-engineering/tasks/M01H/FF-M01H-001.json' \
+        ':(exclude)docs/09-delivery/evidence-index.md' \
+        ':(exclude)docs/05-engineering/generated/task-capsule-index.md' \
+        ':(exclude)docs/05-engineering/task-capsule-catalog.md' \
+        ':(exclude)docs/05-engineering/development-plan-p0-m17.md' \
+        ':(exclude)docs/00-governance/project-status.md' \
+        ':(exclude)docs/00-governance/下次继续FrameFlow开发启动指南.md' \
+        ':(exclude)docs/00-governance/正式开发前检查清单.md' \
+        ':(exclude)README.md'
+}
+
+EVIDENCE_BASE_COMMIT=$(git -C "$FRAMEFLOW_ROOT" rev-parse HEAD)
+if [ -n "$(evidence_subject_status)" ]; then
+    EVIDENCE_WORKTREE_STATE="DIRTY/UNCOMMITTED"
+    EVIDENCE_FORMAL_SUBJECT_COMMIT="NOT_AVAILABLE"
+else
+    EVIDENCE_WORKTREE_STATE="CLEAN"
+    EVIDENCE_FORMAL_SUBJECT_COMMIT="$EVIDENCE_BASE_COMMIT"
+fi
 
 mkdir -p "$EVIDENCE_DIR" "$KEY_DIR"
 
@@ -120,7 +151,34 @@ subject_commit() {
 sanitize_file() {
     source_file=$1
     destination_file=$2
-    sed -e "s|$FRAMEFLOW_ROOT|<WORKSPACE>|g" \
+    sanitize_stream < "$source_file" > "$destination_file"
+}
+
+sanitize_stream() {
+    python3 -c '
+import re
+import sys
+
+text = sys.stdin.read()
+text = re.sub(
+    r"-----BEGIN (?:RSA )?PRIVATE KEY-----.*?-----END (?:RSA )?PRIVATE KEY-----",
+    "<REDACTED PRIVATE KEY>",
+    text,
+    flags=re.DOTALL,
+)
+text = re.sub(
+    r"eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}",
+    "<REDACTED>",
+    text,
+)
+text = re.sub(
+    r"(\"(?i:(?:access|refresh)[_-]?token)\"\s*:\s*\")[^\"]*(\")",
+    r"\1<REDACTED>\2",
+    text,
+)
+text = re.sub(r"(?i)\bBearer\s+\S+", "Bearer <REDACTED>", text)
+sys.stdout.write(text)
+' | sed -e "s|$FRAMEFLOW_ROOT|<WORKSPACE>|g" \
         -e "s|${HOME:-/nonexistent}|<USER_HOME>|g" \
-        "$source_file" > "$destination_file"
+        -e 's|/Users/[^/[:space:]]*|<USER_HOME>|g'
 }

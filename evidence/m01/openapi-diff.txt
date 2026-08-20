@@ -1,4 +1,7 @@
 FrameFlow M01 runtime OpenAPI <-> authoritative contract diff evidence
+evidence status: SUPERSEDED / SECURITY-REDACTED
+superseded by: FF-M01H-001 (new verification writes to evidence/m01h/openapi-diff.txt)
+redaction note: credential values and personal absolute paths were checked/redacted; the historical subject commit below is retained and was not re-anchored.
 subject commit: a88fd8220f4e81cd0f3f33da74a5fe4a4d60841c
 generated at:  2026-08-19T03:29:51Z
 contract:      docs/04-api/openapi/frameflow-v1.yaml (docs/04-api 权威契约，未修改)

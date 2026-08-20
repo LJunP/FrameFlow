@@ -16,7 +16,7 @@
 | `asset` | 素材、素材版本、授权、对象键 | 素材版本和授权 Port |
 | `ai` | AI 任务、Provider、Suggestion | 异步任务入口、Suggestion 确认 API |
 | `delivery` | 交付包、交付项、确认、锁定 | 交付应用 API |
-| `governance` | 审计、通知、技术证据 | 审计记录 Port、事件消费者 |
+| `governance` | MVP `audit_logs`、基础站内 `notifications`、技术证据 | AuditPort、NotificationPort、审计/通知查询 API；是这两张表的唯一 Mapper/迁移所有者 |
 
 ## 3. 依赖规则
 
@@ -45,6 +45,7 @@ Domain 依赖 Spring、MyBatis、Redis、RabbitMQ、MinIO SDK
 - 同步读取：优先使用模块公开的 Query/Application Port。
 - 跨模块写入：由拥有数据的模块执行，调用方只能提交命令。
 - 解耦通知：使用领域事件；事件只描述已发生事实，不暴露内部数据库结构。
+- 业务模块不得直接访问 `audit_logs`/`notifications`；关键变更通过 AuditPort 在明确的事务边界记录，基础站内通知通过 NotificationPort 或 post-commit 应用事件创建。
 - 第三方基础设施：通过 StoragePort、AiProviderPort、TaskPublisherPort 隔离。
 
 ## 5. 数据边界

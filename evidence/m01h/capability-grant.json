@@ -1,0 +1,99 @@
+{
+  "grantId": "GRANT-FF-M01H-001-0001",
+  "taskId": "FF-M01H-001",
+  "capabilityVersion": 1,
+  "issuedAt": "2026-08-20T01:53:11Z",
+  "expiresAt": "2026-08-21T01:53:11Z",
+  "identity": {
+    "agent": "Codex /root team",
+    "roleType": "implementer",
+    "specialty": "security",
+    "workspace": "."
+  },
+  "files": {
+    "read": [
+      "README.md",
+      "pom.xml",
+      "docs/**",
+      "frameflow-app/**",
+      "frameflow-modules/identity/**",
+      "frameflow-shared-kernel/**",
+      "scripts/**",
+      "evidence/m01/**",
+      "evidence/p0/**"
+    ],
+    "write": [
+      "README.md",
+      "pom.xml",
+      "frameflow-app/pom.xml",
+      "frameflow-app/src/**",
+      "frameflow-modules/identity/**",
+      "frameflow-shared-kernel/**",
+      "scripts/m01/**",
+      "scripts/m01h/**",
+      "evidence/m01/auth-flows.txt",
+      "evidence/m01/agent-receipt.json",
+      "evidence/m01/capability-grant.json",
+      "evidence/m01/migration.txt",
+      "evidence/m01/mvn-verify.txt",
+      "evidence/m01/openapi-diff.txt",
+      "evidence/m01h/mvn-verify.txt",
+      "evidence/m01h/hardening-checks.txt",
+      "evidence/m01h/auth-flows.txt",
+      "evidence/m01h/migration.txt",
+      "evidence/m01h/openapi-diff.txt",
+      "evidence/m01h/agent-receipt.json",
+      "docs/00-governance/**",
+      "docs/01-product/**",
+      "docs/02-architecture/**",
+      "docs/03-data/**",
+      "docs/05-engineering/development-plan-p0-m17.md",
+      "docs/05-engineering/frontend-development.md",
+      "docs/05-engineering/generated/**",
+      "docs/05-engineering/registries/**",
+      "docs/05-engineering/schemas/**",
+      "docs/05-engineering/task-capsule-catalog.md",
+      "docs/05-engineering/task-capsule-spec.md",
+      "docs/05-engineering/tasks/M01F/**",
+      "docs/05-engineering/tasks/M02/**",
+      "docs/05-engineering/tasks/M04F/**",
+      "docs/05-engineering/tasks/M08F/**",
+      "docs/06-testing/**",
+      "docs/09-delivery/evidence-index.md"
+    ]
+  },
+  "commands": [
+    { "pattern": "./mvnw -B clean verify", "policy": "exact" },
+    { "pattern": "./mvnw -B -pl frameflow-app -am test", "policy": "exact" },
+    { "pattern": "sh scripts/m01h/check-build.sh", "policy": "exact" },
+    { "pattern": "FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/auth-flows.sh", "policy": "exact" },
+    { "pattern": "FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-migration.sh", "policy": "exact" },
+    { "pattern": "FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-openapi-diff.sh", "policy": "exact" },
+    { "pattern": "sh scripts/m01h/check-hardening.sh", "policy": "exact" },
+    { "pattern": "docker compose -f docker-compose.local.yml config", "policy": "exact" },
+    { "pattern": "docker compose -f docker-compose.local.yml up -d --wait", "policy": "exact" },
+    { "pattern": "git status --short --branch", "policy": "exact" },
+    { "pattern": "git diff --check", "policy": "exact" }
+  ],
+  "network": {
+    "allowExternal": false,
+    "allowLocal": true,
+    "allowRegistry": true
+  },
+  "tools": [
+    "repo-read",
+    "repo-write",
+    "git-read",
+    "test-run",
+    "docker",
+    "docs-index",
+    "mcp-read"
+  ],
+  "approvals": [
+    {
+      "action": "m01-hardening-local-verification",
+      "approvalType": "local",
+      "status": "approved"
+    }
+  ]
+}

@@ -99,7 +99,7 @@
   ],
   "commandResults": [
     {
-      "command": "mvn -B clean verify",
+      "command": "./mvnw -B -s /tmp/ff-settings-file.xml -Dmaven.repo.local=/tmp/ff-m2 clean verify",
       "exitCode": 0,
       "stdoutRef": "evidence/m01/mvn-verify.txt"
     },
@@ -255,9 +255,10 @@
       ]
     }
   ],
-  "overBudget": false,
+  "overBudget": true,
   "unknowns": [
-    "本沙箱内 ~/.m2 与 repomvn 均只读，mvn verify 使用 file:// 本地源 + /tmp/ff-m2 临时仓库完成；本机正常配置下应等价于 mvn -B clean verify。",
+    "SUPERSEDED/SECURITY-REDACTED：这是历史 M01 Receipt 的事实更正副本；保留原始时间与结果，不创建新的 subject commit 锚点。",
+    "实际 Maven 命令为 ./mvnw -B -s /tmp/ff-settings-file.xml -Dmaven.repo.local=/tmp/ff-m2 clean verify，与原 Grant 中 exact 命令不一致；此处按原始 mvn-verify Evidence 记录事实，不倒推授权。",
     "startedAt 为根据工作区文件时间估算的草稿值，最终由调度器/执行环境校正。"
   ],
   "proposals": [

@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 2,
+  "taskId": "FF-M01H-001",
+  "status": "IN_PROGRESS",
+  "title": "M01 验收、安全与架构边界加固",
+  "track": "product-mainline",
+  "stage": "M01-H",
+  "roleType": "implementer",
+  "specialty": "security",
+  "goal": "修复 M01 证据泄密与治理失真，补齐模块边界、并发错误语义、用户状态、JWT 轮换和 OpenAPI 差异门禁，并收敛后续前端与 M02 路线。",
+  "readSet": [
+    "README.md",
+    "pom.xml",
+    "docs/**",
+    "frameflow-app/**",
+    "frameflow-modules/identity/**",
+    "frameflow-shared-kernel/**",
+    "scripts/**",
+    "evidence/m01/**",
+    "evidence/p0/**"
+  ],
+  "writeSet": [
+    "README.md",
+    "pom.xml",
+    "frameflow-app/pom.xml",
+    "frameflow-app/src/**",
+    "frameflow-modules/identity/**",
+    "frameflow-shared-kernel/**",
+    "scripts/m01/**",
+    "scripts/m01h/**",
+    "evidence/m01/auth-flows.txt",
+    "evidence/m01/agent-receipt.json",
+    "evidence/m01/capability-grant.json",
+    "evidence/m01/migration.txt",
+    "evidence/m01/mvn-verify.txt",
+    "evidence/m01/openapi-diff.txt",
+    "evidence/m01h/mvn-verify.txt",
+    "evidence/m01h/hardening-checks.txt",
+    "evidence/m01h/auth-flows.txt",
+    "evidence/m01h/migration.txt",
+    "evidence/m01h/openapi-diff.txt",
+    "evidence/m01h/agent-receipt.json",
+    "docs/00-governance/**",
+    "docs/01-product/**",
+    "docs/02-architecture/**",
+    "docs/03-data/**",
+    "docs/05-engineering/development-plan-p0-m17.md",
+    "docs/05-engineering/frontend-development.md",
+    "docs/05-engineering/generated/**",
+    "docs/05-engineering/registries/**",
+    "docs/05-engineering/schemas/**",
+    "docs/05-engineering/task-capsule-catalog.md",
+    "docs/05-engineering/task-capsule-spec.md",
+    "docs/05-engineering/tasks/M01F/**",
+    "docs/05-engineering/tasks/M02/**",
+    "docs/05-engineering/tasks/M04F/**",
+    "docs/05-engineering/tasks/M08F/**",
+    "docs/06-testing/**",
+    "docs/09-delivery/evidence-index.md"
+  ],
+  "allowedCommands": [
+    { "pattern": "./mvnw -B clean verify", "policy": "exact" },
+    { "pattern": "./mvnw -B -pl frameflow-app -am test", "policy": "exact" },
+    { "pattern": "sh scripts/m01h/check-build.sh", "policy": "exact" },
+    { "pattern": "FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/auth-flows.sh", "policy": "exact" },
+    { "pattern": "FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-migration.sh", "policy": "exact" },
+    { "pattern": "FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-openapi-diff.sh", "policy": "exact" },
+    { "pattern": "sh scripts/m01h/check-hardening.sh", "policy": "exact" },
+    { "pattern": "docker compose -f docker-compose.local.yml config", "policy": "exact" },
+    { "pattern": "docker compose -f docker-compose.local.yml up -d --wait", "policy": "exact" },
+    { "pattern": "git status --short --branch", "policy": "exact" },
+    { "pattern": "git diff --check", "policy": "exact" }
+  ],
+  "networkPolicy": {
+    "allowExternal": false,
+    "allowLocal": true,
+    "allowRegistry": true
+  },
+  "toolCapabilities": [
+    "repo-read",
+    "repo-write",
+    "git-read",
+    "test-run",
+    "docker",
+    "docs-index",
+    "mcp-read"
+  ],
+  "nonGoals": [
+    "不改写 Git 历史、不提交、不推送、不发布",
+    "不删除或重建本地数据库、JWT 密钥和 .zcode",
+    "不实现 M02 项目、Brief 或任何前端业务代码",
+    "不引入 Redis、消息队列、微服务、Kubernetes 或真实 AI Provider",
+    "不修改 docs/04-api 权威契约；实现继续对齐现有契约"
+  ],
+  "prerequisiteTaskIds": [
+    "FF-M01-001"
+  ],
+  "facts": [
+    "FF-M01-001 的功能代码已合并到 main，但其验收证据包含明文 Token、个人绝对路径和错误 commit 锚点",
+    "M01 Receipt 实际 changedPaths 为 90，超过原任务 maxFiles=80，但原 Receipt 错写 overBudget=false",
+    "当前工作树在本任务开始前已有 11 个修改文件和 3 个未跟踪文件，必须保留并纳入审查",
+    "M02 仍为 PLANNED；本任务只建立 Contract Gate 输入，不派发 M02 实现"
+  ],
+  "decisions": [
+    "旧 M01 Evidence 只做安全脱敏并标记 superseded，不把新结果冒充旧提交的原始输出",
+    "新 Evidence 必须在生成源头脱敏，禁止 Access/Refresh Token 和个人绝对路径进入跟踪内容",
+    "应用层通过 Port 使用持久化能力，MyBatis Mapper 保持 Infrastructure 细节",
+    "ArchUnit 作为 M01-H 及后续模块的机械边界门禁",
+    "MVP 前端保留在当前单仓库的 frameflow-web 路径，前端任务使用 MxxF 编号和 product-mainline 轨道",
+    "M02 必须先完成数据、API、权限、测试和 Evidence Contract Gate"
+  ],
+  "unknowns": [
+    "历史 M01 测试 Refresh Token 是否仍在当前本地数据库有效；本任务不执行破坏性数据库清理",
+    "远程仓库是否需要历史清理；本任务不改写历史或推送"
+  ],
+  "techBoundary": {
+    "allowed": [
+      "JDK 17",
+      "Spring Boot 3.4.5",
+      "Spring Security 6",
+      "MyBatis-Plus/XML",
+      "PostgreSQL",
+      "Flyway",
+      "JUnit 5",
+      "Testcontainers",
+      "ArchUnit"
+    ],
+    "forbidden": [
+      "Redis",
+      "消息队列",
+      "微服务",
+      "真实外部服务",
+      "前端业务实现"
+    ]
+  },
+  "businessRules": [
+    "Refresh Token 明文不得进入日志、Evidence、数据库、Trace 或指标标签",
+    "并发重复注册和并发重复添加成员必须稳定返回契约规定的 409，而不是 500",
+    "DISABLED 或 PENDING 用户不得刷新 Token、创建团队或被添加为 ACTIVE 成员",
+    "运行时 OpenAPI 差异门禁必须比较安全定义、参数、媒体类型和响应 Header 等功能字段"
+  ],
+  "acceptance": [
+    {
+      "acceptanceId": "AC-FF-M01H-001-01",
+      "criterion": "M01 旧证据已脱敏并标记 superseded；新脚本不会记录 Token 或个人绝对路径，仓库跟踪内容通过安全扫描",
+      "testIds": ["TEST-FF-M01H-001-01"],
+      "evidenceIds": ["EV-FF-M01H-001-02"]
+    },
+    {
+      "acceptanceId": "AC-FF-M01H-001-02",
+      "criterion": "Grant、Receipt、预算和 commit 锚点由机器事实生成并通过 Schema 与交叉引用校验",
+      "testIds": ["TEST-FF-M01H-001-02"],
+      "evidenceIds": ["EV-FF-M01H-001-02"]
+    },
+    {
+      "acceptanceId": "AC-FF-M01H-001-03",
+      "criterion": "应用层不直接依赖 MyBatis Mapper 或 web.dto，ArchUnit 能阻止模块边界回退",
+      "testIds": ["TEST-FF-M01H-001-03"],
+      "evidenceIds": ["EV-FF-M01H-001-01"]
+    },
+    {
+      "acceptanceId": "AC-FF-M01H-001-04",
+      "criterion": "并发唯一冲突、用户 ACTIVE 状态、JWT 密钥长度与轮换窗口按现有权威契约验证",
+      "testIds": ["TEST-FF-M01H-001-04", "TEST-FF-M01H-001-05"],
+      "evidenceIds": ["EV-FF-M01H-001-01", "EV-FF-M01H-001-03"]
+    },
+    {
+      "acceptanceId": "AC-FF-M01H-001-05",
+      "criterion": "OpenAPI 差异测试覆盖功能性 Header、security、参数约束和媒体类型",
+      "testIds": ["TEST-FF-M01H-001-06"],
+      "evidenceIds": ["EV-FF-M01H-001-01", "EV-FF-M01H-001-05"]
+    },
+    {
+      "acceptanceId": "AC-FF-M01H-001-06",
+      "criterion": "前端编号、单仓库边界、支持版本策略和 M02 Contract Gate 在路线、Catalog、索引与状态文档中一致",
+      "testIds": ["TEST-FF-M01H-001-07"],
+      "evidenceIds": ["EV-FF-M01H-001-02"]
+    }
+  ],
+  "evidence": [
+    {
+      "evidenceId": "EV-FF-M01H-001-01",
+      "command": "sh scripts/m01h/check-build.sh",
+      "expected": "BUILD SUCCESS；架构、并发、用户状态、JWT 和完整 OpenAPI 功能差异测试全部通过",
+      "outputRef": "evidence/m01h/mvn-verify.txt"
+    },
+    {
+      "evidenceId": "EV-FF-M01H-001-02",
+      "command": "sh scripts/m01h/check-hardening.sh",
+      "expected": "Token/路径扫描、Schema、任务引用、预算真实性、阶段编号和路线一致性全部通过",
+      "outputRef": "evidence/m01h/hardening-checks.txt"
+    },
+    {
+      "evidenceId": "EV-FF-M01H-001-03",
+      "command": "FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/auth-flows.sh",
+      "expected": "真实认证和团队流程通过；输出不包含 Access/Refresh Token 明文",
+      "outputRef": "evidence/m01h/auth-flows.txt"
+    },
+    {
+      "evidenceId": "EV-FF-M01H-001-04",
+      "command": "FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-migration.sh",
+      "expected": "V1 到当前迁移在隔离空库 forward-only 成功并可重复启动",
+      "outputRef": "evidence/m01h/migration.txt"
+    },
+    {
+      "evidenceId": "EV-FF-M01H-001-05",
+      "command": "FRAMEFLOW_M01_EVIDENCE_DIR=evidence/m01h sh scripts/m01/check-openapi-diff.sh",
+      "expected": "运行时 OpenAPI 与权威契约的功能字段无未批准差异",
+      "outputRef": "evidence/m01h/openapi-diff.txt"
+    }
+  ],
+  "requirementIds": [
+    "REQ-IAM-001"
+  ],
+  "testIds": [
+    "TEST-FF-M01H-001-01",
+    "TEST-FF-M01H-001-02",
+    "TEST-FF-M01H-001-03",
+    "TEST-FF-M01H-001-04",
+    "TEST-FF-M01H-001-05",
+    "TEST-FF-M01H-001-06",
+    "TEST-FF-M01H-001-07"
+  ],
+  "rollback": "保留用户既有 dirty worktree；不使用 reset、checkout 覆盖、历史改写或删除 .git；失败时保留 diff 和失败证据，由用户决定是否用独立提交与 git revert 回退。",
+  "approvalPoints": [
+    {
+      "action": "m01-hardening-local-verification",
+      "approvalType": "local",
+      "reason": "用户已明确要求按审查结论进行调整；只允许可恢复的本地代码、文档、测试和隔离数据库验证"
+    }
+  ],
+  "budget": {
+    "maxFiles": 160,
+    "maxCommands": 100,
+    "maxMinutes": 480
+  }
+}

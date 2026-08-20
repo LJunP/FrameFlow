@@ -23,8 +23,8 @@ AI 输出默认 suggestion
 ### 2.1 MVP 模块化单体
 
 ```text
-Web/API Client
-      ↓
+Browser → frameflow-web Next BFF（同源 HttpOnly Cookie）
+      ↓ REST
 FrameFlow Modular Monolith
  ├─ identity
  ├─ project
@@ -35,13 +35,13 @@ FrameFlow Modular Monolith
  └─ governance
       ↓
 PostgreSQL
-      ↓ M5～M8
-Redis + MinIO + RabbitMQ
+      ↓ M4-B / M6～M8
+MinIO + RabbitMQ（Redis 仅可选 hardening）
       ↓
 Fake/AI Analysis Worker
 ```
 
-P0～M4-A 只实现 Java/Spring Boot/PostgreSQL 基座和核心业务（本地 StoragePort）；MinIO 自 M4-B 首次引入，Redis、RabbitMQ 按 M5～M8 引入。MVP 不引入 MySQL、Kafka、Spring Cloud、Kubernetes 或 Istio。
+P0～M4-A 使用 Java/Spring Boot/PostgreSQL 和本地 StoragePort；MinIO 自 M4-B 首次引入，RabbitMQ 自 M6 引入。M05 Redis 是可选 hardening/engineering-lab，不阻塞 MVP。前端是本仓库 `frameflow-web/`，按 M01-F/M04-F/M08-F 门禁推进。
 
 ### 2.2 求职版微服务拓扑
 
@@ -87,7 +87,7 @@ Kubernetes 基础阶段使用 Service DNS、ConfigMap、Secret 和应用层 Resi
 | asset | 素材、版本、授权和对象键 | Asset、AssetVersion、License | asset-workflow-service |
 | ai | 分析任务、Provider、Suggestion | AiTask、Suggestion | Worker（业务事实归 asset-workflow-service） |
 | delivery | 交付包、固定版本、确认 | DeliveryPackage、DeliveryItem | asset-workflow-service |
-| governance | 审计和通知 | AuditLog、Notification | 事件消费者 |
+| governance | 审计和基础站内通知 | AuditLog、Notification | MVP 表所有者；M13 前不单独拆服务 |
 
 模块只能通过公开的 Application API、Port 或领域事件协作，不得直接引用其他模块 Repository、Mapper 或表。
 
@@ -109,7 +109,7 @@ Kubernetes 基础阶段使用 Service DNS、ConfigMap、Secret 和应用层 Resi
 |---|---|---|---|
 | PostgreSQL | P0 起 | MVP 唯一事务主库；项目、任务、素材元数据、审核、交付和审计 | 与 MySQL 双写 |
 | MySQL | M13 Identity | identity-service 的独立数据存储 | MVP 主库、跨库事务 |
-| Redis | M5 | Cache-Aside、PostgreSQL 请求幂等加速、限流、短期状态 | 作为业务或幂等事实唯一来源、滥用分布式锁 |
+| Redis | M05 可选 engineering-lab | Cache-Aside、PostgreSQL 幂等加速、限流和降级实验 | 作为业务/幂等事实源，或阻塞 M08/M08-F |
 | MinIO | M4/M5 | 原始文件、预览、缩略图、交付包 | 让应用中转大文件 |
 | RabbitMQ | M6 | 待执行任务、重试、DLQ、人工重放 | 代替领域事件事实 |
 | Kafka | M11 | 已发生领域事件、多消费者、回放和分析 | MVP 必需依赖 |
@@ -150,7 +150,9 @@ Outbox 表结构、Outbox 机制启用和 Kafka Publisher 上线是三个不同�
 - 所有资源通过组织/项目归属校验。
 - MinIO 使用短期预签名 URL，签发前校验权限。
 - 密钥只通过环境变量、Docker Secret 或 Kubernetes Secret 注入。
-- 关键状态变更、交付确认、AI 人工确认和管理员重放记录审计。
+- `governance` 是 MVP `audit_logs` 与基础站内 `notifications` 的唯一表所有者；业务模块通过 AuditPort/NotificationPort 或应用事件写入，不直连其 Mapper。
+- 关键状态变更、交付确认、AI 人工确认和管理员重放记录审计；基础通知只做站内持久化与已读状态，不包含自动外发邮件。
+- 后端为每次 HTTP attempt 生成 `X-Request-Id`；跨请求关联另用受校验的 `X-Correlation-Id`。Refresh Token 只由 Next BFF 保存在 HttpOnly Cookie，禁止进入浏览器可读存储。
 - 日志为结构化 JSON，包含 `requestId`、`traceId`、`spanId`、服务、环境和脱敏业务标识。
 - Actuator/Micrometer 提供 HTTP、JVM、连接池、缓存、消息和业务指标。
 - OpenTelemetry 负责跨服务 Trace；Prometheus/Grafana 负责指标；Fluent Bit/Elasticsearch/Kibana 负责日志检索。
@@ -168,9 +170,9 @@ Kubernetes 阶段不再把 Nacos 当作必要服务发现；应用重试与 Isti
 
 ## 9. 渐进式演进与门禁
 
-### P0～M8
+### P0～M08-F
 
-进入条件：文档事实源和 P0 门禁通过。退出证据：模块化单体可运行、MVP E2E、权限/事务/版本/消息测试。
+进入条件：文档事实源和 P0 门禁通过。M08 的退出证据只证明 backend gate；M08-F 通过本仓库前端、BFF 安全边界和全栈 E2E 后，才形成产品 MVP gate 并允许真实用户验证。
 
 ### M9～M12
 
@@ -201,12 +203,14 @@ Kubernetes 阶段不再把 Nacos 当作必要服务发现；应用重试与 Isti
 - ADR-009：服务数据所有权与禁止共享数据库。
 - ADR-010：API 与领域事件兼容策略。
 - ADR-011：运行环境服务发现、配置与入口策略。
+- ADR-012：前端技术选型（React + TypeScript + Next.js App Router/BFF + Tailwind CSS + shadcn/ui + TanStack Query + openapi-typescript）。
 
 ## 11. 待确认项
 
 - 真实 AI Provider、回调签名和成本字段；
 - 文件预览、转码和存储预算；
 - 外部交付链接、水印和下载限制；
-- 前端框架与 OpenAPI 代码生成方式；
 - 真实试用反馈和多租户深化；
 - OpenTelemetry Trace 后端最终选择 Jaeger 或 Tempo。
+
+> 前端方向已由 ADR-012 批准：技术版本在 Task 派发时选当时受支持稳定版并精确锁定；代码位于本仓库 `frameflow-web/`，阶段为 M01-F/M04-F/M08-F。详见 [前端开发规范](../05-engineering/frontend-development.md)。

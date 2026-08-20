@@ -8,9 +8,9 @@
 
 ## 当前真实状态
 
-- 当前仓库已完成 Git 基线并完成 **P0 工程基座**；**M01（用户/团队/认证）代码、测试与四条验收证据已完成并提交**（任务状态待调度器依据 Agent Receipt 回写 DONE）。
+- 当前仓库 `main` 已合并 **P0 工程基座**与 **M01（用户/团队/认证）功能实现**；`FF-M01-001=DONE`。M01 的安全、证据与架构边界加固任务 `FF-M01H-001` 仍为 **IN_PROGRESS**，因此不能把 M01-Hardening 写成已完成。
 - 仓库模式：**A（源码单仓库）**——P0-Prep 门禁通过后，代码、docs/、deploy/ 与 evidence/ 将全部在本仓库内开发。
-- P0-Prep 已于 2026-08-13 通过：五类机器门禁 37/37 项 PASS，原始结果在 `evidence/prep/`。P0 已获用户授权并完成 Git 基线，六条 P0 验收证据均已通过；P0 完成后停下，不自动进入 M01。
+- P0-Prep 已于 2026-08-13 通过：五类机器门禁 37/37 项 PASS，原始结果在 `evidence/prep/`。P0 与 M01 功能任务均已完成；当前工作入口是 **M01-Hardening + M02 Contract Gate 草案**，M02 尚未获得实现派发条件。
 - `.zcode/` 按用户要求作为已忽略的本地工具目录保留；它不是项目权威事实源、产品源码或验收证据，也不进入正式交付包。
 - 文档中的技术、测试、压测、Kubernetes、Istio 和 AI 能力，除非在 [`docs/09-delivery/evidence-index.md`](./docs/09-delivery/evidence-index.md) 有命令与原始结果，否则只能视为计划或设计。
 - 开发派发以 [`docs/05-engineering/tasks/`](./docs/05-engineering/tasks/) 下的结构化任务包（JSON）为准，由多 Agent 调度工具执行。
@@ -34,8 +34,13 @@ AI 输出只能作为 `Suggestion`，经过人工确认后才能写入正式业�
 ## 架构演进主线
 
 ```text
-P0～M4-A     模块化单体基础（本地 StoragePort）
-M4-B～M8     素材 MinIO + Redis/RabbitMQ/AI/审核交付
+P0～M01-H   工程基座、身份功能与加固
+M01-F        frameflow-web 前端基座与认证界面
+M02～M04-A  项目/Brief、任务、本地素材核心闭环
+M04-F        项目/任务/素材前端
+M04-B→M08 MinIO、RabbitMQ、AI、审核与后端交付门禁
+M08-F        产品 MVP 界面与端到端门禁；之后才进入真实用户验证
+M05          可选 Redis hardening（engineering-lab，不阻塞 MVP）
 M9～M12      DDD、Outbox/Kafka、集成测试、压测与 JVM 实验
 M13～M15     有边界的微服务与 Spring Cloud 服务治理
 M16          Docker/Helm/Kubernetes 发布、排障、扩缩容与回滚
@@ -52,10 +57,20 @@ MVP 先验证业务闭环，不提前为了技术名词拆分服务。微服务�
 - JDK 17 唯一基线（本机环境；Spring Boot 3.4.x、Maven 均与 Java 17 匹配）
 - Spring Security 6、JWT、BCrypt、RBAC
 - MyBatis-Plus + XML、Flyway、PostgreSQL
-- Redis、MinIO、RabbitMQ、Fake/可替换 AI Provider
+- MinIO、RabbitMQ、Fake/可替换 AI Provider；Redis 仅为可选 hardening/lab
 - JUnit 5、Mockito、MockMvc、Testcontainers、ArchUnit
 - OpenAPI/springdoc、Actuator、Micrometer、结构化日志
 - Docker、Docker Compose、Linux、Git、GitHub Actions
+
+### 前端（ADR-012）
+
+- TypeScript、React、Next.js（App Router/BFF）
+- Tailwind CSS、shadcn/ui
+- TanStack Query、Zustand
+- openapi-typescript（从后端 OpenAPI YAML 生成 TS 类型）
+- 版本不在路线文档中长期钉死；每个 Task 派发时选当时官方受支持的稳定版，并在 `package.json` 与 lockfile 精确锁定
+- 前端位于本仓库 `frameflow-web/`，不创建独立仓库；阶段为 `M01-F / M04-F / M08-F`
+- 浏览器只访问同源 Next BFF；Refresh Token 只允许存入 `Secure`/`HttpOnly`/`SameSite` Cookie，禁止进入 localStorage
 
 ### 微服务与平台化
 
@@ -130,6 +145,7 @@ asset-workflow-service PostgreSQL
 - [服务契约](./docs/04-api/service-contracts.md)
 - [消息目录（Command/Event/Result）](./docs/04-api/event-catalog.md)
 - [身份数据字典](./docs/03-data/identity-data-dictionary.md)
+- [M02 项目数据字典 Contract Gate 草案](./docs/03-data/project-data-dictionary.md)
 - [本地开发约定](./docs/05-engineering/local-development.md)
 - [微服务拆分计划](./docs/05-engineering/microservice-extraction-plan.md)
 - [测试策略](./docs/06-testing/test-strategy.md)
@@ -141,6 +157,8 @@ asset-workflow-service PostgreSQL
 - [故障响应](./docs/07-operations/incident-response.md)
 - [Kubernetes Runbook](./docs/07-operations/kubernetes-runbook.md)
 - [Istio Runbook](./docs/07-operations/istio-runbook.md)
+- [前端技术选型 ADR-012](./docs/02-architecture/adr/ADR-012-前端技术选型.md)
+- [前端开发规范](./docs/05-engineering/frontend-development.md)
 - [打包规范](./docs/00-governance/packaging-policy.md)
 - [证据索引](./docs/09-delivery/evidence-index.md)
 - [48 周学习与开发路线](./docs/08-learning/48-week-plan.md)
@@ -166,7 +184,7 @@ docker compose -f docker-compose.local.yml stop
 | 模式 | 目的 | 主要依赖 |
 |---|---|---|
 | `local-monolith` | 模块化单体业务开发 | PostgreSQL |
-| `local-worker` | 单体 + 异步分析闭环 | PostgreSQL、Redis、MinIO、RabbitMQ |
+| `local-worker` | 单体 + 异步分析闭环 | PostgreSQL、MinIO、RabbitMQ（Redis 可选） |
 | `local-microservices` | Spring Cloud 服务治理训练 | Gateway、Nacos、MySQL、PostgreSQL、Redis、RabbitMQ |
 | `local-k8s` | Kubernetes 发布、排障与回滚 | kind/minikube、Helm |
 | `local-istio` | 灰度、mTLS、授权和故障注入 | Kubernetes、Istio |

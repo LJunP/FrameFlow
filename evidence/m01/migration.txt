@@ -1,8 +1,11 @@
 FrameFlow M01 migration evidence (isolated empty database)
+evidence status: SUPERSEDED / SECURITY-REDACTED
+superseded by: FF-M01H-001 (new verification writes to evidence/m01h/migration.txt)
+redaction note: personal absolute paths were replaced in place; the historical subject commit below is retained and was not re-anchored.
 subject commit: a88fd8220f4e81cd0f3f33da74a5fe4a4d60841c
 generated at:  2026-08-19T03:03:22Z
 isolated db:   m01_mig_1787108602 (created and dropped by this script)
-boot jar:      /Users/lijunpeng/Desktop/open_source_project/FrameFlow/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar
+boot jar:      <WORKSPACE>/frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar
 
 PASS | 创建隔离空库 m01_mig_1787108602
 PASS | 第一次启动成功（隔离库迁移 V1+V2 后应用就绪）

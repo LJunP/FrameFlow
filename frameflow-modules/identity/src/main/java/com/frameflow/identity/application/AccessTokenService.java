@@ -36,7 +36,7 @@ public class AccessTokenService {
                 .id(UUID.randomUUID().toString())
                 .build();
         JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256)
-                .keyId(props.getKid())
+                .keyId(props.resolveSigningKid())
                 .type("JWT")
                 .build();
         return encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();

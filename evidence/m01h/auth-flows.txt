@@ -1,0 +1,106 @@
+FrameFlow M01 auth-flows evidence
+base commit:    621e82fb2d048959f55b15bbdd726c9af12015f0
+worktree:       DIRTY/UNCOMMITTED
+formal subject commit: NOT_AVAILABLE
+generated at:  2026-08-20T02:30:50Z
+security:      accessToken/refreshToken values are redacted before evidence write
+
+>>> POST /api/v1/auth/register
+    -> 201  X-Request-Id=19eb86c3-722e-46e0-bfec-5b151fcf5467
+    body={"id":7,"email":"flow-a-1787193054@example.com","displayName":"Flow A","status":"ACTIVE","lastLoginAt":null}
+PASS | 注册 A (HTTP 201)
+>>> POST /api/v1/auth/register
+    -> 201  X-Request-Id=ba3beb4d-e6cd-4c48-a329-1e64657019c7
+    body={"id":8,"email":"flow-b-1787193054@example.com","displayName":"Flow B","status":"ACTIVE","lastLoginAt":null}
+PASS | 注册 B (HTTP 201)
+>>> POST /api/v1/auth/register
+    -> 201  X-Request-Id=1a95e645-3d8e-4f36-a5fa-e8b4c131461b
+    body={"id":9,"email":"flow-c-1787193054@example.com","displayName":"Flow C","status":"ACTIVE","lastLoginAt":null}
+PASS | 注册 C (HTTP 201)
+>>> POST /api/v1/auth/register
+    -> 409  X-Request-Id=ee0d47cb-b052-493e-8356-6d996291ba9f
+    body={"code":"USER_EMAIL_CONFLICT","message":"该邮箱已被注册","requestId":"ee0d47cb-b052-493e-8356-6d996291ba9f","traceId":null}
+PASS | 重复注册 USER_EMAIL_CONFLICT (HTTP 409)
+>>> GET /api/v1/auth/me
+    -> 401  X-Request-Id=e1639395-14f9-4954-afba-996535a5e902
+    body={"code":"AUTH_REQUIRED","message":"????????","requestId":"e1639395-14f9-4954-afba-996535a5e902"}
+PASS | 未认证 /auth/me (HTTP 401)
+PASS | 未认证 401 requestId 一致 (requestId header==body)
+>>> POST /api/v1/auth/login
+    -> 401  X-Request-Id=13c46c28-ab37-4f18-ba6f-5b16bbaa6bf6
+    body={"code":"AUTH_REQUIRED","message":"邮箱或密码错误","requestId":"13c46c28-ab37-4f18-ba6f-5b16bbaa6bf6","traceId":null}
+PASS | 错误密码登录 (HTTP 401)
+>>> POST /api/v1/auth/login
+    -> 200  X-Request-Id=c67bfd37-c144-45c4-864d-0299e246a1f5
+    body={"accessToken":"<REDACTED>","refreshToken":"<REDACTED>","expiresIn":900,"tokenType":"Bearer"}
+PASS | A 登录 (HTTP 200)
+>>> POST /api/v1/auth/login
+    -> 200  X-Request-Id=1cce8334-7b62-4c17-a912-9efdd814af9c
+    body={"accessToken":"<REDACTED>","refreshToken":"<REDACTED>","expiresIn":900,"tokenType":"Bearer"}
+>>> POST /api/v1/auth/login
+    -> 200  X-Request-Id=36c750f6-9124-4e8a-9607-acc41c70066b
+    body={"accessToken":"<REDACTED>","refreshToken":"<REDACTED>","expiresIn":900,"tokenType":"Bearer"}
+>>> POST /api/v1/teams
+    -> 201  X-Request-Id=5c057ed6-162a-490e-bbf0-1914d88cb5d6
+    body={"id":3,"name":"flow-team-1787193055","createdAt":null}
+PASS | A 创建团队 (HTTP 201)
+>>> GET /api/v1/auth/me
+    -> 200  X-Request-Id=a227642f-fa88-46a9-bc31-ad09059cdf37
+    body={"id":8,"email":"flow-b-1787193054@example.com","displayName":"Flow B","status":"ACTIVE","lastLoginAt":"2026-08-20T02:30:55.478691Z"}
+>>> GET /api/v1/auth/me
+    -> 200  X-Request-Id=03c68344-a619-443d-9dd7-b4a708820ec8
+    body={"id":9,"email":"flow-c-1787193054@example.com","displayName":"Flow C","status":"ACTIVE","lastLoginAt":"2026-08-20T02:30:55.652153Z"}
+>>> POST /api/v1/teams/3/members
+    -> 201  X-Request-Id=453d2224-22c9-453f-9799-b8d459117dd0
+    body={"id":6,"teamId":3,"userId":8,"email":"flow-b-1787193054@example.com","role":"EDITOR","status":"ACTIVE"}
+PASS | A 添加 B (HTTP 201)
+>>> POST /api/v1/teams/3/members
+    -> 409  X-Request-Id=fa296c16-675f-40f3-b297-f99f58347077
+    body={"code":"TEAM_MEMBER_ALREADY_EXISTS","message":"该用户已经是此团队的 ACTIVE 成员","requestId":"fa296c16-675f-40f3-b297-f99f58347077","traceId":null}
+PASS | 重复 ACTIVE 成员 TEAM_MEMBER_ALREADY_EXISTS (HTTP 409)
+PASS | 重复成员 409 requestId 一致 (requestId header==body)
+>>> GET /api/v1/teams/3
+    -> 404  X-Request-Id=a4fcef1c-0440-470f-b6a2-003b7f349a8f
+    body={"code":"RESOURCE_NOT_FOUND","message":"团队不存在或无权访问","requestId":"a4fcef1c-0440-470f-b6a2-003b7f349a8f","traceId":null}
+PASS | 非成员访问团队 404 (HTTP 404)
+PASS | 404 requestId 一致 (requestId header==body)
+>>> POST /api/v1/teams/3/members
+    -> 403  X-Request-Id=374a38ab-d043-416b-ba1b-7bdacb35a79b
+    body={"code":"FORBIDDEN","message":"仅团队 OWNER 可以添加成员","requestId":"374a38ab-d043-416b-ba1b-7bdacb35a79b","traceId":null}
+PASS | 非 OWNER 添加成员 403 (HTTP 403)
+>>> PATCH /api/v1/teams/3/members/9
+    -> 403  X-Request-Id=63b93322-0ba6-4d9b-9754-d8ba1a5a49cb
+    body={"code":"FORBIDDEN","message":"仅团队 OWNER 可以修改成员角色","requestId":"63b93322-0ba6-4d9b-9754-d8ba1a5a49cb","traceId":null}
+PASS | 非 OWNER 修改角色 403 (HTTP 403)
+PASS | 403 requestId 一致 (requestId header==body)
+>>> GET /api/v1/auth/me
+    -> 200  X-Request-Id=2002b175-7bb7-4bf3-93f4-5ce024443759
+    body={"id":7,"email":"flow-a-1787193054@example.com","displayName":"Flow A","status":"ACTIVE","lastLoginAt":"2026-08-20T02:30:55.247698Z"}
+>>> DELETE /api/v1/teams/3/members/7
+    -> 409  X-Request-Id=1ed8309a-4fc3-4dec-8258-fe6c3ba87769
+    body={"code":"TEAM_SELF_REMOVAL_FORBIDDEN","message":"OWNER 不能通过成员删除接口移除自己","requestId":"1ed8309a-4fc3-4dec-8258-fe6c3ba87769","traceId":null}
+PASS | OWNER 自移除 TEAM_SELF_REMOVAL_FORBIDDEN (HTTP 409)
+PASS | 自移除 409 requestId 一致 (requestId header==body)
+>>> PATCH /api/v1/teams/3/members/7
+    -> 409  X-Request-Id=54767fe5-a6ac-4685-8ee1-8f1a11a3a211
+    body={"code":"TEAM_LAST_OWNER_CONFLICT","message":"团队必须至少保留一名 ACTIVE OWNER","requestId":"54767fe5-a6ac-4685-8ee1-8f1a11a3a211","traceId":null}
+PASS | 最后一名 OWNER 降级 TEAM_LAST_OWNER_CONFLICT (HTTP 409)
+>>> DELETE /api/v1/teams/3/members/8
+    -> 204  X-Request-Id=3ef3257f-004c-4f0a-a6c4-2b8d8c9b0deb
+    body=
+PASS | 移除普通成员 204 (HTTP 204)
+PASS | 204 响应带 X-Request-Id
+>>> POST /api/v1/auth/refresh
+    -> 200  X-Request-Id=b0045aa4-466e-4075-93e3-14b71f898ed0
+    body={"accessToken":"<REDACTED>","refreshToken":"<REDACTED>","expiresIn":900,"tokenType":"Bearer"}
+PASS | refresh 轮换 (HTTP 200)
+>>> POST /api/v1/auth/refresh
+    -> 401  X-Request-Id=4616f49d-96f6-495a-a974-ad31cf908130
+    body={"code":"AUTH_REQUIRED","message":"Refresh Token 已被轮换或撤销（检测到重放），已撤销该 token family","requestId":"4616f49d-96f6-495a-a974-ad31cf908130","traceId":null}
+PASS | refresh 重放撤销 (HTTP 401)
+>>> POST /api/v1/auth/refresh
+    -> 401  X-Request-Id=a3b94702-6e0c-4404-b955-96557ebd2b88
+    body={"code":"AUTH_REQUIRED","message":"Refresh Token 已被轮换或撤销（检测到重放），已撤销该 token family","requestId":"a3b94702-6e0c-4404-b955-96557ebd2b88","traceId":null}
+PASS | family 已撤销 (HTTP 401)
+
+RESULT: CHECKS=25 FAILURES=0

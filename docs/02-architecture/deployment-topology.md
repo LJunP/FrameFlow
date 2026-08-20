@@ -15,7 +15,7 @@ FrameFlow App → PostgreSQL
              ↘ Redis / MinIO / RabbitMQ → AI Worker
 ```
 
-用途：M4-B 起逐步加入 MinIO，M5～M8 形成 MVP 闭环。媒体文件直传 MinIO，业务服务只保存元数据和对象键。
+用途：M4-B 起加入 MinIO，M6～M8 形成 backend 闭环，M08-F 再形成产品 MVP Gate。媒体文件直传 MinIO，业务服务只保存元数据和对象键；Redis 只在可选 M05 hardening/engineering-lab 中加入，不是该拓扑的 MVP 必需依赖。
 
 ## 3. local-microservices
 

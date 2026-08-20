@@ -86,14 +86,7 @@
     {
       "action": "migration-v2",
       "approvalType": "local",
-      "status": "approved",
-      "condition": "执行前必须确认目标是 FrameFlow 本地隔离开发库（docker-compose.local.yml / Testcontainers）"
+      "status": "approved"
     }
-  ],
-  "subsetCheck": {
-    "writeWithinCapsuleWriteSet": true,
-    "readWithinCapsuleReadSet": true,
-    "commandsWithinCapsule": true,
-    "note": "Grant 为 FF-M01-001.json 权限的严格子集"
-  }
+  ]
 }

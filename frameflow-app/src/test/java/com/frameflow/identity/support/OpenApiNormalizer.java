@@ -1,40 +1,26 @@
 package com.frameflow.identity.support;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
- * Reduces a raw OpenAPI document (runtime springdoc JSON or authoritative YAML)
- * to a canonical comparable form: paths->operations->{operationId, security,
- * parameters, requestBody, responses} plus component schemas.
- *
- * <p>Representation differences that do not change the contract are normalized away:
- * <ul>
- *   <li>the runtime mounts the API under {@code /api/v1} (controllers use it as the
- *       base path) while the authoritative YAML declares it via {@code servers.url} and
- *       keeps path keys relative to it — the runtime prefix is stripped;</li>
- *   <li>infra paths outside the M01 API contract ({@code /health}, {@code /readiness})
- *       are excluded;</li>
- *   <li>operations without explicit security inherit the document-level
- *       {@code security} (the contract relies on the global bearerAuth requirement);</li>
- *   <li>{@code $ref} parameters/responses/schemas are resolved against the same
- *       document's components so inline vs referenced declarations are equal;</li>
- *   <li>{@code format} on {@code integer} schemas is ignored (JSON numbers are uniform;
- *       springdoc renders int32/int64 widths that the handwritten contract often leaves
- *       implicit).</li>
- * </ul>
- * Descriptions, examples, servers, info, tags, headers and global security entries are
- * intentionally not compared (X-Request-Id is applied by a filter in every response
- * regardless).
+ * Canonical semantic projection used to compare runtime springdoc output with the
+ * handwritten authority. It intentionally retains effective security, security
+ * schemes, every request/response media type, response headers, request-body
+ * requiredness, and validation constraints that change accepted input.
  */
 public final class OpenApiNormalizer {
 
-    /** Infra endpoints owned by the P0 foundation, outside the M01 API contract. */
     private static final List<String> INFRA_PATHS = List.of("/health", "/readiness");
+    private static final List<String> HTTP_METHODS =
+            List.of("get", "post", "patch", "put", "delete", "head", "options", "trace");
 
     private OpenApiNormalizer() {
     }
@@ -42,61 +28,53 @@ public final class OpenApiNormalizer {
     @SuppressWarnings("unchecked")
     public static Map<String, Object> normalize(Object raw) {
         Map<String, Object> doc = (Map<String, Object>) raw;
-        Map<String, Object> components = (Map<String, Object>) doc.get("components");
-        Map<String, Object> parameterDefs = components == null ? Map.of() : asMap(components.get("parameters"));
-        Map<String, Object> responseDefs = components == null ? Map.of() : asMap(components.get("responses"));
-        Map<String, Object> schemaDefs = components == null ? Map.of() : asMap(components.get("schemas"));
-        List<Object> globalSecurity = (List<Object>) doc.get("security");
+        Map<String, Object> components = asMap(doc.get("components"));
+        Map<String, Object> parameterDefs = asMap(components.get("parameters"));
+        Map<String, Object> responseDefs = asMap(components.get("responses"));
+        Map<String, Object> headerDefs = asMap(components.get("headers"));
+        Map<String, Object> schemaDefs = asMap(components.get("schemas"));
+        Map<String, Object> securitySchemeDefs = asMap(components.get("securitySchemes"));
+        List<Object> globalSecurity = doc.get("security") instanceof List<?> list
+                ? (List<Object>) list : List.of();
 
         Map<String, Object> out = new LinkedHashMap<>();
-        Map<String, Object> normalizedPaths = normalizePaths((Map<String, Object>) doc.get("paths"),
-                parameterDefs, responseDefs, globalSecurity);
-        out.put("paths", normalizedPaths);
+        out.put("securitySchemes", normalizeSecuritySchemes(securitySchemeDefs));
+        out.put("paths", normalizePaths(asMap(doc.get("paths")), parameterDefs, responseDefs,
+                headerDefs, schemaDefs, globalSecurity));
         out.put("schemas", normalizeSchemas(schemaDefs, schemaDefs,
-                referencedSchemas(doc, normalizedPaths, schemaDefs, responseDefs, parameterDefs)));
+                referencedSchemas(doc, schemaDefs, responseDefs, parameterDefs)));
         return out;
     }
 
-    /**
-     * Names of schemas transitively reachable from the surviving operations (request
-     * bodies and responses). Infra endpoints are filtered out first, so runtime-only
-     * schemas such as ProbeResponse never leak into the comparison.
-     */
-    private static java.util.Set<String> referencedSchemas(Map<String, Object> rawDoc,
-            Map<String, Object> normalizedPaths, Map<String, Object> schemaDefs,
-            Map<String, Object> responseDefs, Map<String, Object> parameterDefs) {
-        java.util.Set<String> referenced = new java.util.LinkedHashSet<>();
-        Map<String, Object> rawPaths = (Map<String, Object>) rawDoc.get("paths");
-        if (rawPaths != null) {
-            for (Map.Entry<String, Object> entry : rawPaths.entrySet()) {
-                if (INFRA_PATHS.contains(entry.getKey())) {
+    @SuppressWarnings("unchecked")
+    private static Set<String> referencedSchemas(Map<String, Object> rawDoc,
+            Map<String, Object> schemaDefs, Map<String, Object> responseDefs,
+            Map<String, Object> parameterDefs) {
+        Set<String> referenced = new LinkedHashSet<>();
+        Map<String, Object> rawPaths = asMap(rawDoc.get("paths"));
+        for (Map.Entry<String, Object> entry : rawPaths.entrySet()) {
+            if (INFRA_PATHS.contains(entry.getKey())) {
+                continue;
+            }
+            Map<String, Object> pathItem = asMap(entry.getValue());
+            for (String method : HTTP_METHODS) {
+                Map<String, Object> operation = asMap(pathItem.get(method));
+                if (operation.isEmpty()) {
                     continue;
                 }
-                Map<String, Object> ops = (Map<String, Object>) entry.getValue();
-                for (Object methodOp : ops.values()) {
-                    Map<String, Object> op = (Map<String, Object>) methodOp;
-                    Object body = op.get("requestBody");
-                    collectSchemaRefs(body, referenced);
-                    Object responses = op.get("responses");
-                    collectSchemaRefs(responses, referenced);
-                }
+                collectSchemaRefs(operation.get("parameters"), referenced);
+                collectSchemaRefs(operation.get("requestBody"), referenced);
+                collectSchemaRefs(operation.get("responses"), referenced);
             }
         }
-        // component response/parameter definitions may themselves reference schemas
-        // (e.g. components.responses.Unauthorized -> components.schemas.Error)
-        for (Object def : responseDefs.values()) {
-            collectSchemaRefs(def, referenced);
-        }
-        for (Object def : parameterDefs.values()) {
-            collectSchemaRefs(def, referenced);
-        }
-        // transitively expand component refs (e.g. MemberList.items -> TeamMember)
-        java.util.ArrayDeque<String> queue = new java.util.ArrayDeque<>(referenced);
+        responseDefs.values().forEach(def -> collectSchemaRefs(def, referenced));
+        parameterDefs.values().forEach(def -> collectSchemaRefs(def, referenced));
+
+        ArrayDeque<String> queue = new ArrayDeque<>(referenced);
         while (!queue.isEmpty()) {
-            String name = queue.poll();
-            Object def = schemaDefs.get(name);
-            java.util.Set<String> nested = new java.util.LinkedHashSet<>();
-            collectSchemaRefs(def, nested);
+            Object definition = schemaDefs.get(queue.remove());
+            Set<String> nested = new LinkedHashSet<>();
+            collectSchemaRefs(definition, nested);
             for (String next : nested) {
                 if (referenced.add(next)) {
                     queue.add(next);
@@ -106,286 +84,287 @@ public final class OpenApiNormalizer {
         return referenced;
     }
 
-    @SuppressWarnings("unchecked")
-    private static void collectSchemaRefs(Object node, java.util.Set<String> out) {
-        if (node == null) {
-            return;
-        }
+    private static void collectSchemaRefs(Object node, Set<String> out) {
         if (node instanceof Map<?, ?> map) {
             Object ref = map.get("$ref");
-            if (ref instanceof String refStr && refStr.startsWith("#/components/schemas/")) {
-                out.add(refStr.substring(refStr.lastIndexOf('/') + 1));
+            if (ref instanceof String value && value.startsWith("#/components/schemas/")) {
+                out.add(value.substring(value.lastIndexOf('/') + 1));
                 return;
             }
-            for (Object value : map.values()) {
-                collectSchemaRefs(value, out);
-            }
+            map.values().forEach(value -> collectSchemaRefs(value, out));
         } else if (node instanceof List<?> list) {
-            for (Object item : list) {
-                collectSchemaRefs(item, out);
-            }
+            list.forEach(value -> collectSchemaRefs(value, out));
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static Map<String, Object> asMap(Object value) {
         return value instanceof Map<?, ?> map ? (Map<String, Object>) map : Map.of();
     }
 
-    @SuppressWarnings("unchecked")
-    private static Object resolveRef(Object token, Map<String, Object> defs, Map<String, Object> visited) {
+    private static Object resolveRef(Object token, Map<String, Object> definitions) {
         if (!(token instanceof Map<?, ?> map) || !(map.get("$ref") instanceof String ref)) {
             return token;
         }
-        String name = ref.substring(ref.lastIndexOf('/') + 1);
-        if (visited.containsKey(name)) {
-            return visited.get(name);
-        }
-        Object resolved = defs.get(name);
-        if (resolved == null) {
-            return token;
-        }
-        visited.put(name, resolved);
-        return resolved;
+        return definitions.getOrDefault(ref.substring(ref.lastIndexOf('/') + 1), token);
     }
 
-    @SuppressWarnings("unchecked")
     private static Map<String, Object> normalizePaths(Map<String, Object> paths,
-            Map<String, Object> parameterDefs, Map<String, Object> responseDefs, List<Object> globalSecurity) {
+            Map<String, Object> parameterDefs, Map<String, Object> responseDefs,
+            Map<String, Object> headerDefs, Map<String, Object> schemaDefs,
+            List<Object> globalSecurity) {
         Map<String, Object> result = new TreeMap<>();
-        if (paths == null) {
-            return result;
-        }
         for (Map.Entry<String, Object> entry : paths.entrySet()) {
-            String path = entry.getKey();
-            if (INFRA_PATHS.contains(path)) {
+            if (INFRA_PATHS.contains(entry.getKey())) {
                 continue;
             }
-            String normalizedPath = path.startsWith("/api/v1") ? path.substring("/api/v1".length()) : path;
-            Map<String, Object> ops = (Map<String, Object>) entry.getValue();
-            Map<String, Object> normalizedOps = new TreeMap<>();
-            for (String method : new String[]{"get", "post", "patch", "put", "delete", "head", "options"}) {
-                if (!ops.containsKey(method)) {
-                    continue;
+            String path = entry.getKey().startsWith("/api/v1")
+                    ? entry.getKey().substring("/api/v1".length()) : entry.getKey();
+            Map<String, Object> pathItem = asMap(entry.getValue());
+            Map<String, Object> operations = new TreeMap<>();
+            for (String method : HTTP_METHODS) {
+                if (pathItem.containsKey(method)) {
+                    operations.put(method, normalizeOperation(asMap(pathItem.get(method)), parameterDefs,
+                            responseDefs, headerDefs, schemaDefs, globalSecurity));
                 }
-                normalizedOps.put(method, normalizeOperation((Map<String, Object>) ops.get(method),
-                        parameterDefs, responseDefs, globalSecurity));
             }
-            result.put(normalizedPath, normalizedOps);
+            result.put(path, operations);
         }
         return result;
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> normalizeOperation(Map<String, Object> op,
-            Map<String, Object> parameterDefs, Map<String, Object> responseDefs, List<Object> globalSecurity) {
+    private static Map<String, Object> normalizeOperation(Map<String, Object> operation,
+            Map<String, Object> parameterDefs, Map<String, Object> responseDefs,
+            Map<String, Object> headerDefs, Map<String, Object> schemaDefs,
+            List<Object> globalSecurity) {
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("operationId", op.get("operationId"));
-        Object security = op.get("security");
-        List<Object> effectiveSecurity = security == null
-                ? (globalSecurity == null ? List.of() : globalSecurity)
-                : (List<Object>) security;
+        out.put("operationId", operation.get("operationId"));
+        Object declaredSecurity = operation.get("security");
+        List<Object> effectiveSecurity = declaredSecurity instanceof List<?> list
+                ? (List<Object>) list : globalSecurity;
         out.put("security", normalizeSecurity(effectiveSecurity));
-        out.put("parameters", normalizeParameters((List<Object>) op.get("parameters"), parameterDefs));
-        Object body = op.get("requestBody");
-        out.put("requestBody", body == null ? null : schemaRefOf(contentOf((Map<String, Object>) body)));
-        out.put("responses", normalizeResponses((Map<String, Object>) op.get("responses"), responseDefs));
+        out.put("parameters", normalizeParameters(
+                operation.get("parameters") instanceof List<?> list ? (List<Object>) list : List.of(),
+                parameterDefs, schemaDefs));
+        out.put("requestBody", normalizeRequestBody(asMap(operation.get("requestBody")), schemaDefs));
+        out.put("responses", normalizeResponses(asMap(operation.get("responses")), responseDefs,
+                headerDefs, schemaDefs));
         return out;
     }
 
-    @SuppressWarnings("unchecked")
     private static Object normalizeSecurity(List<Object> security) {
-        List<String> result = new ArrayList<>();
         if (security == null || security.isEmpty()) {
-            return List.of("none");
+            return List.of();
         }
-        for (Object requirement : security) {
-            Map<String, Object> req = (Map<String, Object>) requirement;
-            List<String> schemes = new ArrayList<>(new TreeMap<>(req).keySet());
-            result.add(String.join(",", schemes));
-        }
-        result.sort(Comparator.naturalOrder());
-        return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Object normalizeParameters(List<Object> parameters, Map<String, Object> parameterDefs) {
         List<Map<String, Object>> result = new ArrayList<>();
-        if (parameters == null) {
-            return result;
+        for (Object requirement : security) {
+            Map<String, Object> normalized = new TreeMap<>();
+            asMap(requirement).forEach((scheme, scopes) -> {
+                List<Object> sortedScopes = scopes instanceof List<?> list
+                        ? new ArrayList<>(list) : new ArrayList<>();
+                sortedScopes.sort(Comparator.comparing(String::valueOf));
+                normalized.put(scheme, sortedScopes);
+            });
+            result.add(normalized);
         }
+        result.sort(Comparator.comparing(Object::toString));
+        return result;
+    }
+
+    private static Map<String, Object> normalizeSecuritySchemes(Map<String, Object> schemes) {
+        Map<String, Object> result = new TreeMap<>();
+        schemes.forEach((name, rawScheme) -> {
+            Map<String, Object> scheme = asMap(rawScheme);
+            Map<String, Object> normalized = new LinkedHashMap<>();
+            for (String key : List.of("type", "scheme", "bearerFormat", "in", "name", "openIdConnectUrl")) {
+                normalized.put(key, scheme.get(key));
+            }
+            result.put(name, normalized);
+        });
+        return result;
+    }
+
+    private static Object normalizeParameters(List<Object> parameters, Map<String, Object> parameterDefs,
+            Map<String, Object> schemaDefs) {
+        List<Map<String, Object>> result = new ArrayList<>();
         for (Object parameter : parameters) {
-            Map<String, Object> visited = new LinkedHashMap<>();
-            Map<String, Object> p = (Map<String, Object>) resolveRef(parameter, parameterDefs, visited);
-            Map<String, Object> schema = (Map<String, Object>) p.get("schema");
-            Map<String, Object> norm = new LinkedHashMap<>();
-            norm.put("name", p.get("name"));
-            norm.put("in", p.get("in"));
-            norm.put("required", p.get("required"));
-            norm.put("type", schema == null ? null : schema.get("type"));
-            norm.put("format", schema == null ? null : schema.get("format"));
-            norm.put("enum", schema == null ? null : schema.get("enum"));
-            result.add(norm);
+            Map<String, Object> resolved = asMap(resolveRef(parameter, parameterDefs));
+            Map<String, Object> normalized = new LinkedHashMap<>();
+            normalized.put("name", resolved.get("name"));
+            normalized.put("in", resolved.get("in"));
+            normalized.put("required", Boolean.TRUE.equals(resolved.get("required")));
+            normalized.put("schema", normalizeSchemaToken(resolved.get("schema"), schemaDefs));
+            result.add(normalized);
         }
-        result.sort(Comparator
-                .comparing((Map<String, Object> m) -> String.valueOf(m.get("name")))
-                .thenComparing(m -> String.valueOf(m.get("in"))));
+        result.sort(Comparator.comparing((Map<String, Object> map) -> String.valueOf(map.get("name")))
+                .thenComparing(map -> String.valueOf(map.get("in"))));
         return result;
     }
 
-    @SuppressWarnings("unchecked")
-    private static Object normalizeResponses(Map<String, Object> responses, Map<String, Object> responseDefs) {
+    private static Object normalizeRequestBody(Map<String, Object> requestBody, Map<String, Object> schemaDefs) {
+        if (requestBody.isEmpty()) {
+            return null;
+        }
+        Map<String, Object> normalized = new LinkedHashMap<>();
+        normalized.put("required", Boolean.TRUE.equals(requestBody.get("required")));
+        normalized.put("content", normalizeContent(asMap(requestBody.get("content")), schemaDefs));
+        return normalized;
+    }
+
+    private static Object normalizeResponses(Map<String, Object> responses,
+            Map<String, Object> responseDefs, Map<String, Object> headerDefs,
+            Map<String, Object> schemaDefs) {
         Map<String, Object> result = new TreeMap<>();
-        if (responses == null) {
-            return result;
-        }
-        for (Map.Entry<String, Object> entry : responses.entrySet()) {
-            Map<String, Object> visited = new LinkedHashMap<>();
-            Map<String, Object> response = (Map<String, Object>) resolveRef(entry.getValue(), responseDefs, visited);
-            result.put(entry.getKey(), schemaRefOf(contentOf(response)));
-        }
+        responses.forEach((status, rawResponse) -> {
+            Map<String, Object> response = asMap(resolveRef(rawResponse, responseDefs));
+            Map<String, Object> normalized = new LinkedHashMap<>();
+            normalized.put("headers", normalizeHeaders(asMap(response.get("headers")), headerDefs, schemaDefs));
+            normalized.put("content", normalizeContent(asMap(response.get("content")), schemaDefs));
+            result.put(status, normalized);
+        });
         return result;
     }
 
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> contentOf(Map<String, Object> holder) {
-        if (holder == null) {
-            return null;
-        }
-        Map<String, Object> content = (Map<String, Object>) holder.get("content");
-        if (content == null || content.isEmpty()) {
-            return null;
-        }
-        return (Map<String, Object>) content.values().iterator().next();
+    private static Object normalizeHeaders(Map<String, Object> headers, Map<String, Object> headerDefs,
+            Map<String, Object> schemaDefs) {
+        Map<String, Object> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        headers.forEach((name, rawHeader) -> {
+            Map<String, Object> header = asMap(resolveRef(rawHeader, headerDefs));
+            Map<String, Object> normalized = new LinkedHashMap<>();
+            normalized.put("required", Boolean.TRUE.equals(header.get("required")));
+            normalized.put("schema", normalizeSchemaToken(header.get("schema"), schemaDefs));
+            result.put(name, normalized);
+        });
+        return result;
     }
 
-    private static String schemaRefOf(Map<String, Object> content) {
-        if (content == null) {
-            return null;
-        }
-        Map<String, Object> schema = (Map<String, Object>) content.get("schema");
-        if (schema == null) {
-            return null;
-        }
-        String ref = (String) schema.get("$ref");
-        if (ref != null) {
-            return ref.substring(ref.lastIndexOf('/') + 1);
-        }
-        return null;
+    private static Object normalizeContent(Map<String, Object> content, Map<String, Object> schemaDefs) {
+        Map<String, Object> result = new TreeMap<>();
+        content.forEach((mediaType, rawMedia) -> result.put(mediaType,
+                normalizeSchemaToken(asMap(rawMedia).get("schema"), schemaDefs)));
+        return result;
     }
 
-    @SuppressWarnings("unchecked")
+    private static Object normalizeSchemaToken(Object rawSchema, Map<String, Object> schemaDefs) {
+        Map<String, Object> schema = asMap(rawSchema);
+        if (schema.isEmpty()) {
+            return null;
+        }
+        Object ref = schema.get("$ref");
+        if (ref instanceof String value) {
+            return Map.of("$ref", value.substring(value.lastIndexOf('/') + 1));
+        }
+        return normalizeSchema(schema, schemaDefs);
+    }
+
     private static Object normalizeSchemas(Map<String, Object> schemas, Map<String, Object> schemaDefs,
-            java.util.Set<String> referenced) {
+            Set<String> referenced) {
         Map<String, Object> result = new TreeMap<>();
-        if (schemas == null) {
-            return result;
-        }
-        for (Map.Entry<String, Object> entry : schemas.entrySet()) {
-            Map<String, Object> rawSchema = (Map<String, Object>) entry.getValue();
-            // A bare enum component (no properties/items) is representation: springdoc inlines
-            // enums while the handwritten contract declares a component. The enum values are
-            // still compared wherever the property references them, so drop the top-level entry.
-            boolean leafEnum = rawSchema.get("enum") instanceof List<?>
-                    && rawSchema.get("properties") == null && rawSchema.get("items") == null;
-            if (!referenced.isEmpty() && !referenced.contains(entry.getKey())) {
-                continue;
+        schemas.forEach((name, rawSchema) -> {
+            Map<String, Object> schema = asMap(rawSchema);
+            boolean leafEnum = schema.get("enum") instanceof List<?>
+                    && schema.get("properties") == null && schema.get("items") == null;
+            if ((!referenced.isEmpty() && !referenced.contains(name)) || leafEnum) {
+                return;
             }
-            if (leafEnum) {
-                continue;
-            }
-            result.put(entry.getKey(), normalizeSchema(rawSchema, schemaDefs));
-        }
+            result.put(name, normalizeSchema(schema, schemaDefs));
+        });
         return result;
     }
 
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> normalizeSchema(Map<String, Object> schema, Map<String, Object> schemaDefs) {
-        Map<String, Object> visited = new LinkedHashMap<>();
-        schema = (Map<String, Object>) resolveRef(schema, schemaDefs, visited);
+    private static Map<String, Object> normalizeSchema(Map<String, Object> original,
+            Map<String, Object> schemaDefs) {
+        Map<String, Object> schema = asMap(resolveRef(original, schemaDefs));
         Map<String, Object> out = new TreeMap<>();
         out.put("type", schema.get("type"));
-        String rawFormat = (String) schema.get("format");
-        // Integer widths are representation, not contract: JSON numbers carry no width.
-        out.put("format", "integer".equals(schema.get("type")) ? null : rawFormat);
-        // nullable and 0-length bounds carry no contract meaning in this comparison:
-        // springdoc renders @Schema(nullable=true) inconsistently, and minLength=0 is no constraint.
-        out.put("minLength", (schema.get("minLength") instanceof Number num && num.intValue() == 0) ? null : schema.get("minLength"));
+        String format = (String) schema.get("format");
+        // int32/int64 is a generator representation detail for JSON numbers; all
+        // string formats (email, uuid, date-time, password) remain contractual.
+        out.put("format", "integer".equals(schema.get("type")) ? null : format);
+        for (String key : List.of("minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
+                "multipleOf", "pattern", "minItems", "maxItems", "uniqueItems",
+                "minProperties", "maxProperties", "readOnly", "writeOnly")) {
+            out.put(key, schema.get(key));
+        }
+        Object minLength = schema.get("minLength");
+        out.put("minLength", minLength instanceof Number number && number.intValue() == 0 ? null : minLength);
         out.put("maxLength", schema.get("maxLength"));
+
         Object enumValue = schema.get("enum");
         if (enumValue instanceof List<?> list) {
             List<Object> sorted = new ArrayList<>(list);
             sorted.sort(Comparator.comparing(String::valueOf));
             out.put("enum", sorted);
         }
-        Object items = schema.get("items");
-        if (items != null) {
-            out.put("items", normalizeSchema((Map<String, Object>) resolveRef(items, schemaDefs, visited), schemaDefs));
+        if (schema.containsKey("items")) {
+            out.put("items", normalizeNestedSchemaToken(schema.get("items"), schemaDefs));
         }
-        Object properties = schema.get("properties");
-        if (properties instanceof Map<?, ?> props) {
-            Map<String, Object> normProps = new TreeMap<>();
-            for (Map.Entry<?, ?> prop : props.entrySet()) {
-                Object propSchema = prop.getValue();
-                if (propSchema instanceof Map<?, ?> propMap && propMap.containsKey("$ref")) {
-                    Map<String, Object> innerVisited = new LinkedHashMap<>();
-                    propSchema = resolveRef(propMap, schemaDefs, innerVisited);
-                }
-                normProps.put(String.valueOf(prop.getKey()),
-                        normalizeSchema((Map<String, Object>) propSchema, schemaDefs));
-            }
-            out.put("properties", normProps);
+        if (schema.get("properties") instanceof Map<?, ?> properties) {
+            Map<String, Object> normalizedProperties = new TreeMap<>();
+            properties.forEach((name, value) -> normalizedProperties.put(
+                    String.valueOf(name), normalizeNestedSchemaToken(value, schemaDefs)));
+            out.put("properties", normalizedProperties);
         }
-        Object required = schema.get("required");
-        if (required instanceof List<?> reqList) {
-            List<Object> sorted = new ArrayList<>(reqList);
+        if (schema.get("required") instanceof List<?> required) {
+            List<Object> sorted = new ArrayList<>(required);
             sorted.sort(Comparator.comparing(String::valueOf));
             out.put("required", sorted);
+        }
+        if (schema.containsKey("additionalProperties")) {
+            Object additional = schema.get("additionalProperties");
+            out.put("additionalProperties", additional instanceof Map<?, ?>
+                    ? normalizeNestedSchemaToken(additional, schemaDefs) : additional);
         }
         return out;
     }
 
+    private static Object normalizeNestedSchemaToken(Object rawSchema, Map<String, Object> schemaDefs) {
+        Map<String, Object> schema = asMap(rawSchema);
+        if (schema.isEmpty()) {
+            return null;
+        }
+        return normalizeSchema(asMap(resolveRef(schema, schemaDefs)), schemaDefs);
+    }
+
     /** First differing path between two normalized documents, or null when equal. */
-    @SuppressWarnings("unchecked")
     public static String firstDifference(Object expected, Object actual, String path) {
         if (expected == null || actual == null) {
-            if (expected == null && actual == null) {
-                return null;
-            }
-            return path + ": expected=" + expected + " got=" + actual;
+            return expected == null && actual == null ? null
+                    : path + ": expected=" + expected + " got=" + actual;
         }
-        if (expected instanceof Map<?, ?> expMap && actual instanceof Map<?, ?> actMap) {
-            java.util.Set<Object> expKeys = new java.util.TreeSet<>(expMap.keySet());
-            java.util.Set<Object> actKeys = new java.util.TreeSet<>(actMap.keySet());
-            if (!expKeys.equals(actKeys)) {
-                java.util.Set<Object> onlyExp = new java.util.TreeSet<>(expKeys);
-                onlyExp.removeAll(actKeys);
-                java.util.Set<Object> onlyAct = new java.util.TreeSet<>(actKeys);
-                onlyAct.removeAll(expKeys);
-                return path + ": key set differs (only expected=" + onlyExp + " only actual=" + onlyAct + ")";
+        if (expected instanceof Map<?, ?> expectedMap && actual instanceof Map<?, ?> actualMap) {
+            Set<Object> expectedKeys = new java.util.TreeSet<>(expectedMap.keySet());
+            Set<Object> actualKeys = new java.util.TreeSet<>(actualMap.keySet());
+            if (!expectedKeys.equals(actualKeys)) {
+                Set<Object> onlyExpected = new java.util.TreeSet<>(expectedKeys);
+                onlyExpected.removeAll(actualKeys);
+                Set<Object> onlyActual = new java.util.TreeSet<>(actualKeys);
+                onlyActual.removeAll(expectedKeys);
+                return path + ": key set differs (only expected=" + onlyExpected
+                        + " only actual=" + onlyActual + ")";
             }
-            for (Object key : expKeys) {
-                String sub = firstDifference(expMap.get(key), actMap.get(key), path + "." + key);
-                if (sub != null) {
-                    return sub;
+            for (Object key : expectedKeys) {
+                String difference = firstDifference(expectedMap.get(key), actualMap.get(key), path + "." + key);
+                if (difference != null) {
+                    return difference;
                 }
             }
             return null;
         }
-        if (expected instanceof List<?> expList && actual instanceof List<?> actList) {
-            if (expList.size() != actList.size()) {
-                return path + ": list size differs expected=" + expList.size() + " got=" + actList.size();
+        if (expected instanceof List<?> expectedList && actual instanceof List<?> actualList) {
+            if (expectedList.size() != actualList.size()) {
+                return path + ": list size differs expected=" + expectedList.size()
+                        + " got=" + actualList.size();
             }
-            for (int i = 0; i < expList.size(); i++) {
-                String sub = firstDifference(expList.get(i), actList.get(i), path + "[" + i + "]");
-                if (sub != null) {
-                    return sub;
+            for (int i = 0; i < expectedList.size(); i++) {
+                String difference = firstDifference(expectedList.get(i), actualList.get(i), path + "[" + i + "]");
+                if (difference != null) {
+                    return difference;
                 }
             }
             return null;
         }
-        if (!expected.equals(actual)) {
-            return path + ": expected=" + expected + " got=" + actual;
-        }
-        return null;
+        return expected.equals(actual) ? null : path + ": expected=" + expected + " got=" + actual;
     }
 }

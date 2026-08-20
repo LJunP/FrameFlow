@@ -14,6 +14,12 @@ docs/05-engineering/
 │   ├── PP/FF-PP-001.json           P0-Prep 文档收敛
 │   ├── P0/FF-P0-001.json
 │   ├── M01/FF-M01-001.json
+│   ├── M01H/FF-M01H-001.json
+│   ├── M01F/FF-M01F-001.json
+│   ├── M02/FF-M02-001.json       Contract Gate 草案
+│   ├── M02/FF-M02-002.json       M02 实现任务
+│   ├── M04F/FF-M04F-001.json
+│   ├── M08F/FF-M08F-001.json
 │   └── ...
 ├── registries/
 │   ├── requirements.json           Requirement ID 注册表
@@ -31,7 +37,7 @@ docs/05-engineering/
 ## 2. 编号体系（方案 A，定稿）
 
 ```text
-Task ID          FF-PP-001、FF-P0-001、FF-M01-001、FF-M04A-001、FF-M12C-001、FF-M16G-001
+Task ID          FF-PP-001、FF-P0-001、FF-M01-001、FF-M01H-001、FF-M01F-001、FF-M04A-001、FF-M04F-001、FF-M16G-001
 Requirement ID   REQ-<DOMAIN>-<SEQ>          例如 REQ-IAM-001
 Acceptance ID    AC-FF-M01-001-01
 Test ID          TEST-FF-M01-001-01
@@ -40,13 +46,13 @@ Capability Grant GRANT-<TASK>-<SEQ>
 Receipt          RCPT-<TASK>-<SEQ>
 ```
 
-M 后两位阶段编号（M01、M04A、M16G），便于排序和机器解析。
+M 后两位阶段编号（M01）可带一个紧跟的子阶段字母（M01H/M01F/M04A/M04F/M16G）；人类可读的 `stage` 使用 M01-H/M01-F/M04-A/M04-F/M16-G。不再使用 F1/F2/F3 或 FF-F1/FF-F2/FF-F3。
 
 ## 3. 关键字段语义（v2 新增）
 
 | 字段 | 语义 |
 |---|---|
-| `status` | `NOT_READY`（契约/前置/授权/环境未满足）→ `CONTRACT_READY`（API/契约已定稿但仍不可派发）→ `AVAILABLE`/`READY_FOR_DISPATCH`（可派发）→ `IN_PROGRESS` → `DONE` |
+| `status` | `DRAFT`（边界或依赖尚未定稿，禁止派发）→ `NOT_READY`（结构已可校验，但契约/前置/授权/环境未满足）→ `CONTRACT_READY`（契约已定稿但仍不可派发）→ `AVAILABLE`/`READY_FOR_DISPATCH` → `IN_PROGRESS` → `DONE` |
 | `readSet` / `writeSet` | 读写权限分离；实现者读取权威文档不需要获得修改权；writeSet 不含权威契约目录或当前 Task Capsule 自身 |
 | `allowedCommands` | 命令白名单，`exact` 或 `prefix` 策略；名单外命令默认拒绝 |
 | `networkPolicy` | 外部网络/本地/包仓库访问策略 |
@@ -70,6 +76,8 @@ budget 必须为正数；超预算必须上报
 ```
 
 `requirementIds` 必须存在于 `registries/requirements.json`，`testIds` 及验收映射中的 Test ID 必须存在于 `registries/test-cases.json`。验收引用的 Evidence ID 必须在同一任务包的 `evidence` 数组中存在；Evidence 输出必须位于 `writeSet`。
+
+`DRAFT` 也必须是合法 JSON 并通过 Schema/Registry/Evidence 映射；但它可以在 `unknowns` 中明示尚未创建的未来前置 Task。未来依赖不得先填入 `prerequisiteTaskIds` 造成悬空引用；必须在对应 Task Capsule 实际创建后补入，再允许将状态提升。
 
 ## 5. 角色与职责分离
 

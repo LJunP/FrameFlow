@@ -4,7 +4,7 @@
 # 启动真实应用，抓取 springdoc /v3/api-docs，用与 OpenApiDiffTest 完全相同的
 # OpenApiNormalizer（Java 类，测试作用域）规范化后与 docs/04-api/openapi/frameflow-v1.yaml
 # 比对，无未批准差异即 PASS。
-# 输出: evidence/m01/openapi-diff.txt
+# 输出: ${FRAMEFLOW_M01_EVIDENCE_DIR:-evidence/m01}/openapi-diff.txt
 set -u
 
 . "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)/common.sh"
@@ -18,7 +18,9 @@ ensure_jwt_keys
 
 {
     echo "FrameFlow M01 runtime OpenAPI <-> authoritative contract diff evidence"
-    echo "subject commit: $(subject_commit)"
+    echo "base commit:    $EVIDENCE_BASE_COMMIT"
+    echo "worktree:       $EVIDENCE_WORKTREE_STATE"
+    echo "formal subject commit: $EVIDENCE_FORMAL_SUBJECT_COMMIT"
     echo "generated at:  $(date -u +%Y-%m-%dT%H:%M:%SZ)"
     echo "contract:      docs/04-api/openapi/frameflow-v1.yaml (docs/04-api 权威契约，未修改)"
     echo ""
@@ -60,13 +62,16 @@ APP_CLASSES="$FRAMEFLOW_ROOT/frameflow-app/target/classes"
 CP="$TEST_CLASSES:$APP_CLASSES:$(cat "$CP_FILE")"
 CONTRACT="$FRAMEFLOW_ROOT/docs/04-api/openapi/frameflow-v1.yaml"
 
+COMPARATOR_LOG=$(mktemp "${TMPDIR:-/tmp}/frameflow-m01-openapi-comparator.XXXXXX")
 java -cp "$CP" com.frameflow.identity.support.OpenApiDiffRunner \
-    "$RUNTIME_JSON" "$CONTRACT" >> "$RESULT_FILE" 2>&1
+    "$RUNTIME_JSON" "$CONTRACT" > "$COMPARATOR_LOG" 2>&1
 JAVA_EXIT=$?
+sanitize_stream < "$COMPARATOR_LOG" >> "$RESULT_FILE"
+rm -f "$COMPARATOR_LOG"
 
 {
     echo ""
-    echo "runtime doc snapshot: $RUNTIME_JSON"
+    echo "runtime doc snapshot: transient file deleted after comparison"
     echo "comparator:          OpenApiDiffRunner + OpenApiNormalizer (test-scoped, same as TEST-FF-M01-001-08)"
 } >> "$RESULT_FILE"
 
@@ -77,5 +82,5 @@ if [ "$JAVA_EXIT" -eq 0 ]; then
     echo "check-openapi-diff: PASS (runtime OpenAPI 与手写权威契约无未批准差异)"
     exit 0
 fi
-echo "check-openapi-diff: FAIL (见 evidence/m01/openapi-diff.txt)" >&2
+echo "check-openapi-diff: FAIL (见 $RESULT_FILE)" >&2
 exit 1

@@ -3,7 +3,7 @@ package com.frameflow.identity.application;
 import com.frameflow.identity.domain.IdempotencyRecord;
 import com.frameflow.identity.error.ApiException;
 import com.frameflow.identity.error.ErrorCodes;
-import com.frameflow.identity.infrastructure.persistence.IdempotencyRecordMapper;
+import com.frameflow.identity.application.port.out.IdempotencyRecordRepository;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -29,11 +29,11 @@ public class IdempotencyService {
     private static final int WAIT_ROUNDS = 20;
     private static final long WAIT_MILLIS = 100;
 
-    private final IdempotencyRecordMapper recordMapper;
+    private final IdempotencyRecordRepository records;
     private final Clock clock;
 
-    public IdempotencyService(IdempotencyRecordMapper recordMapper, Clock clock) {
-        this.recordMapper = recordMapper;
+    public IdempotencyService(IdempotencyRecordRepository records, Clock clock) {
+        this.records = records;
         this.clock = clock;
     }
 
@@ -55,15 +55,15 @@ public class IdempotencyService {
         candidate.setRequestHash(requestHash);
         candidate.setExpiresAt(now.plusSeconds(RECORD_TTL_HOURS * 3600));
 
-        int inserted = recordMapper.insertIgnore(candidate);
+        int inserted = records.insertIgnore(candidate);
         if (inserted == 1) {
             T value = businessAction.get();
             StoredResponse stored = toStoredResponse.apply(value);
-            recordMapper.complete(candidate.getId(), stored.status(), stored.bodyJson());
+            records.complete(candidate.getId(), stored.status(), stored.bodyJson());
             return IdempotencyExecution.fresh(value);
         }
 
-        IdempotencyRecord existing = recordMapper.findByScopeAndKeyForUpdate(scope, key);
+        IdempotencyRecord existing = records.findByScopeAndKeyForUpdate(scope, key);
         if (existing == null) {
             if (expiryRetry < 1) {
                 return executeOnce(scope, key, requestHash, businessAction, toStoredResponse, expiryRetry + 1);
@@ -72,7 +72,7 @@ public class IdempotencyService {
         }
 
         if (existing.getExpiresAt() == null || existing.getExpiresAt().isBefore(now)) {
-            recordMapper.deleteByScopeAndKey(scope, key);
+            records.deleteByScopeAndKey(scope, key);
             return executeOnce(scope, key, requestHash, businessAction, toStoredResponse, expiryRetry + 1);
         }
 
@@ -91,7 +91,7 @@ public class IdempotencyService {
                 Thread.currentThread().interrupt();
                 break;
             }
-            IdempotencyRecord latest = recordMapper.findByScopeAndKey(scope, key);
+            IdempotencyRecord latest = records.findByScopeAndKey(scope, key);
             if (latest == null) {
                 if (expiryRetry < 1) {
                     return executeOnce(scope, key, requestHash, businessAction, toStoredResponse, expiryRetry + 1);

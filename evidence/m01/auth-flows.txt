@@ -1,4 +1,7 @@
 FrameFlow M01 auth-flows evidence
+evidence status: SUPERSEDED / SECURITY-REDACTED
+superseded by: FF-M01H-001 (new verification writes to evidence/m01h/auth-flows.txt)
+redaction note: credential values and personal absolute paths were replaced in place; the historical subject commit below is retained and was not re-anchored.
 subject commit: a88fd8220f4e81cd0f3f33da74a5fe4a4d60841c
 generated at:  2026-08-19T03:00:37Z
 
@@ -29,14 +32,14 @@ PASS | 未认证 401 requestId 一致 (requestId header==body)
 PASS | 错误密码登录 (HTTP 401)
 >>> POST /api/v1/auth/login
     -> 200  X-Request-Id=6db0a1c4-ba11-4450-b9d1-96348b5f37d3
-    body={"accessToken":"eyJraWQiOiJsb2NhbC1tMDEta2lkIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI0IiwiYXVkIjoiZnJhbWVmbG93LWFwaSIsImlzcyI6ImZyYW1lZmxvdyIsImV4cCI6MTc4NzEwOTM0MSwiaWF0IjoxNzg3MTA4NDQxLCJqdGkiOiIxYzYwYmIyMy1kZDZlLTQwMGMtOWUxZS1lM2YzOGFhYzNhNWMifQ.ZgaLP-2ovH2-Ex3xEiILYvMnEK-rVB6ebMcCf09enkCzvP7MxJ2IiP6Q4jhZvEQf287yBw_G6P1CDGSPa77xvVlZoacvOhB_AKvMt5JP0T259zi2bm-C6WJ9LC_zUf0yQYDRMQpNFEbBibqHlqSYQASitxJGNZUK97UD0vgLTS0soB7Zibwr7wibkPz7dkfpSHUwk-yD2UaEyqqawzsMHUxd7eZFPFRTwMscQDkxscB6VF0qSzwxKiRFl4cYxD1B4S9jGxXfzo9abfyGT_9FeHZDMlS8e5RCo_AbWX-3Xj_wUfLqrEE4t_KJ0e-OJf_MuG4me_OOj7GQkRubqnj-ig","refreshToken":"eaXKLEjaZJPQan4d7S0wfB_J-kc5lJ4hzqpeXpbGGFw","expiresIn":900,"tokenType":"Bearer"}
+    body={"accessToken":"<REDACTED>","refreshToken":"<REDACTED>","expiresIn":900,"tokenType":"Bearer"}
 PASS | A 登录 (HTTP 200)
 >>> POST /api/v1/auth/login
     -> 200  X-Request-Id=1a611c5a-fc7f-4408-9971-0a813e9463d7
-    body={"accessToken":"eyJraWQiOiJsb2NhbC1tMDEta2lkIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI1IiwiYXVkIjoiZnJhbWVmbG93LWFwaSIsImlzcyI6ImZyYW1lZmxvdyIsImV4cCI6MTc4NzEwOTM0MiwiaWF0IjoxNzg3MTA4NDQyLCJqdGkiOiI3ODZmMGNkYi0xYzQxLTQ5YWMtYTg3ZS1kZjc1YTE4M2E5MWEifQ.MqrgSjPtyjU1U3KCedZYxP4W8lvPbdMfEesFxdTHrEHMpV42kmeOKcTF7i2V7psl5UZ9bysjwEysklvCUD2Fwcjr3ysiNCC9iKtw9pHEq5pHVaHdP0XETObjN0Se48rMPAFZVZxKtBlGVw4xL_5wsQpln-umeGvW1j14uHc-PpfDzYJtHX8wF5rvGfhsR7bkU5_CQeUfzvsIa3vYKCdQEnMvLKEElAV1el7VdkJBnByyZmNZ2p2f01fQ9FSCRhH1eDpW8h0PELqB_K_6L_ZUEuYsz5Z1FUyk8TZP1wzsw7iPLxUTV-KA_R9C3Q82EN1qzjBhwkhqjl2Bn9Xi_7ZD-A","refreshToken":"KDxpXpKIDWgfGT_P76w91aJCrjZgtZDG3exGOW-ITt0","expiresIn":900,"tokenType":"Bearer"}
+    body={"accessToken":"<REDACTED>","refreshToken":"<REDACTED>","expiresIn":900,"tokenType":"Bearer"}
 >>> POST /api/v1/auth/login
     -> 200  X-Request-Id=e127aa19-8923-44ea-9b6e-852f22878a56
-    body={"accessToken":"eyJraWQiOiJsb2NhbC1tMDEta2lkIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI2IiwiYXVkIjoiZnJhbWVmbG93LWFwaSIsImlzcyI6ImZyYW1lZmxvdyIsImV4cCI6MTc4NzEwOTM0MiwiaWF0IjoxNzg3MTA4NDQyLCJqdGkiOiJjZTVmZmFkNy04ODAzLTQyNWUtOGFiMy0yMWJmNThhY2JmNjAifQ.G9KQPliW6VY52DGErKDaNXsq8i3xs7ezzX-DrXoaPL_0JoGA6GweiaqdZUz13lWhx92mgVpJn8EQiK1iW2xVQY4BURHU_vGD2JlvCEAehWzv1X5ECDbB0PEGO4jkJAGkW6k8-RntsMG2MV6bbSOkFkMPoeNurhQjfY8xqrIcylapJkN3CjS0nSSbs1EtJ76uJM2rmNzwUPcYnYAZm4zqtCMXq9wbmnVxbJmeNJpzKSvVZeqdTmSZcEguL8O02mtFbeQOLUQi7jolJJeCVL_aIkftBNN8J9jHhGDjYqBPabgFonZLcCI-1GEXtiMkR4ZdhT_f_wG4qoHEQQnOOnKo1w","refreshToken":"HkF26j5VUpbxXwOoIuc16bt4blsxzaLWLXgtEdztzSM","expiresIn":900,"tokenType":"Bearer"}
+    body={"accessToken":"<REDACTED>","refreshToken":"<REDACTED>","expiresIn":900,"tokenType":"Bearer"}
 >>> POST /api/v1/teams
     -> 201  X-Request-Id=3b65b7bf-5104-4221-914f-47917fcc57d0
     body={"id":2,"name":"flow-team-1787108442","createdAt":null}
@@ -89,7 +92,7 @@ PASS | 移除普通成员 204 (HTTP 204)
 PASS | 204 响应带 X-Request-Id
 >>> POST /api/v1/auth/refresh
     -> 200  X-Request-Id=76247db5-f227-4a8d-b902-d4f7fc5a22b6
-    body={"accessToken":"eyJraWQiOiJsb2NhbC1tMDEta2lkIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI0IiwiYXVkIjoiZnJhbWVmbG93LWFwaSIsImlzcyI6ImZyYW1lZmxvdyIsImV4cCI6MTc4NzEwOTM0MiwiaWF0IjoxNzg3MTA4NDQyLCJqdGkiOiIxZDdkNDA0YS02MmU5LTRhYjgtYWI3Yy02YWZiNzYxOGQ4OTIifQ.r3JIVU3bumXVOtQSgidxix3Uwg9z8QIL96QVDM0BkwF_39RrT2yQN2cv0f1UdNOo-kej9ZSZA7n6peusgzIngfcZ6wjt1pJGIJitvSez7gNLxd8_02YbRe_z78wgMbxLo9joIQmOS_UvRBixQu0Hq87kfccrC7RsxVRTesck9tqCCvH5YN_vVBh6tM8bzHliCmTANY04INBOMjxqPOF4MohgmexXaDe7cLZqPAhOpStQqsY5gOpCEkq9-xCQQMt0ijpX9t6YqWKZdaqq_-VxwrxvepH7Dbl0x0PpQypmgs1bg9IkbhUkVghRHcgvJRLqBa-73FA_ZuaAya60NtQTkg","refreshToken":"tAjk71PTaztrBe735-p650g5RYyB8YeZYgd21Ler7_Q","expiresIn":900,"tokenType":"Bearer"}
+    body={"accessToken":"<REDACTED>","refreshToken":"<REDACTED>","expiresIn":900,"tokenType":"Bearer"}
 PASS | refresh 轮换 (HTTP 200)
 >>> POST /api/v1/auth/refresh
     -> 401  X-Request-Id=531443a5-0042-4a11-9d93-d022c7fe95ac

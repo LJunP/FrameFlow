@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -47,7 +48,8 @@ public final class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
         } catch (JwtException | IllegalArgumentException e) {
-            boolean expired = e.getMessage() != null && e.getMessage().contains("expired");
+            boolean expired = e.getMessage() != null
+                    && e.getMessage().toLowerCase(Locale.ROOT).contains("expired");
             respond(response, request, expired ? ErrorCodes.TOKEN_EXPIRED : ErrorCodes.AUTH_REQUIRED,
                     expired ? "Access Token 已过期" : "未认证或凭据无效");
         }

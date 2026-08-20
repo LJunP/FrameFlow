@@ -1,6 +1,6 @@
 # 下次继续 FrameFlow 开发启动指南
 
-> 当前状态：P0-Prep 已于 2026-08-13 通过五类机器门禁（37/37 PASS），正式业务代码尚未开始。下一步是取得用户对 Git 初始化与 P0 执行的明确授权并完成环境预检；P0 可派发后，以 Git 初始化和基线提交作为首个受审批动作，再创建 Maven 模块化单体。
+> 当前状态：P0-Prep、P0 和 M01 功能任务已完成；`FF-M01H-001=IN_PROGRESS`。本指南的当前入口是 M01-Hardening 与 M02 Contract Gate 草案收敛，不是重新执行 P0，也不是派发 M02 代码。
 
 ## 1. 当前唯一工作区
 
@@ -17,9 +17,9 @@ FrameFlow 仓库根目录（启动时由调用方提供绝对路径，本文不�
 - JDK 17、Spring Boot 3.4.x、Maven（与 Java 17 匹配的版本组合）；
 - PostgreSQL 是 MVP 唯一事务主库；
 - MySQL 只在 M13 的 `identity-service` 使用，不做双写；
-- P0～M4-A 不引入 Redis、MinIO、RabbitMQ、Kafka、Spring Cloud、Kubernetes、Istio 或复杂前端；MinIO 自 M4-B 首次引入。
+- P0～M4-A 不引入 Redis、MinIO、RabbitMQ、Kafka、Spring Cloud、Kubernetes、Istio；MinIO 自 M4-B 首次引入。M05 Redis 为可选 hardening/engineering-lab，不阻塞 MVP。
 - P0 首期使用 Docker Compose；
-- 后端/API 优先，先用 API 工具或极简管理页；
+- 前端放在本仓库 `frameflow-web/`，阶段为 M01-F/M04-F/M08-F；采用 React + TypeScript + Next.js App Router/BFF + Tailwind CSS + shadcn/ui + TanStack Query + openapi-typescript，每个 Task 派发时锁定当时受支持的精确版本；
 - Fake Provider 优先，真实 Provider 后置；
 - Team/Project 是 MVP 资源隔离边界。
 
@@ -40,33 +40,28 @@ FrameFlow 仓库根目录（启动时由调用方提供绝对路径，本文不�
 
 Stinky Cobbler 或其他研发控制面可以提供受限任务、只读核验、角色隔离和结构化证据，但不得成为无限期建设研发平台的理由；优先建立最小可审计流程。
 
-`FF-PP-001` 已标记 `DONE`。下一步必须分别取得用户对 Git 初始化和执行 P0 的明确授权，并通过必要环境预检；随后调度器才把 P0 标记为 `READY_FOR_DISPATCH`。P0 派发后的首个受审批动作是初始化 Git、建立首个可追溯基线；不得未经对应授权先执行。
+`FF-PP-001`、`FF-P0-001`、`FF-M01-001` 已标记 `DONE`。当前只继续已授权的 `FF-M01H-001`，并把 M02 Contract Gate 保持为 DRAFT；其数据、API、权限、测试与 Evidence 决策未批准前，不得写 M02 业务代码或修改 `docs/04-api/openapi/frameflow-v1.yaml`。
 
-## 4. P0 任务
+## 4. 当前任务
 
-进入条件：P0-Prep 已判定 PASSED、用户已分别授权 Git 初始化与执行 P0、必要环境预检通过、`FF-P0-001` 已由调度器标记 `READY_FOR_DISPATCH` 并取得受限 Capability Grant。任务启动后先建立 Git 基线，再继续其他实现。
+进入条件：以 `FF-M01H-001` 的现有 Capability Grant 与 writeSet 为界，不扩大到 M02 实现。
 
-实现：
+当前产出：
 
-- Maven + Spring Boot 3.x 基座；
-- `/health`：进程存活，不依赖数据库；
-- `/readiness`：必要依赖可用才就绪；
-- PostgreSQL Docker Compose；
-- Flyway、`.env.example`、本地配置样例；
-- JUnit/MockMvc 健康检查测试；
-- README 启动、停止、测试、清理命令。
+- M01 证据脱敏、Grant/Receipt/预算真实性与 commit 锚点校验；
+- Application Port/ArchUnit 边界、并发冲突、用户 ACTIVE 状态、JWT 轮换与 OpenAPI 功能差异验证；
+- M02 Contract Gate 草案、M01-F/M04-F/M08-F 与 M02-001～004 的 DRAFT/NOT_READY Task Capsule。
 
-不得提前实现 M01 业务或引入后续中间件。
+不得实现 M02 业务、前端代码、Redis 或其他后续中间件。
 
-## 5. P0 完成后
+## 5. M01H 完成后
 
 必须有：
 
-- `mvn clean verify` 的真实输出；
-- Compose 配置和 PostgreSQL 健康检查结果；
-- health/readiness 在依赖可用与不可用时的测试；
-- README、project-status、evidence-index 更新；
-- 下一模块 M01 的进入条件。
+- `FF-M01H-001` 全部 Acceptance/Test/Evidence PASS 并有合法 Receipt；
+- M02 Contract Gate 的 UNKNOWN 列表得到用户逐项批准；
+- 权威 OpenAPI 的 M02 变更另行受控完成；
+- 调度器再决定是否提升 `FF-M02-002`、`FF-M01F-001` 等任务状态。
 
 ## 6. 每次会话结束回写
 

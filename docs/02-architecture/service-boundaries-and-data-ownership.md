@@ -49,9 +49,9 @@ AI Worker
 | users、teams、team_members、refresh_token_sessions | identity-service |
 | clients、projects、project_members、brief_versions、shot_tasks、task_comments | project-service |
 | assets、asset_versions、licenses、reviews、review_comments、delivery_packages、delivery_items、upload_sessions、ai_tasks、suggestions、ai_call_logs、prompt_templates | asset-workflow-service |
-| audit_logs | 各服务自有（事件消费者可读副本） |
+| audit_logs | MVP 单体内由 `governance` 模块唯一拥有；M13 拆分前必须另立 ADR 决定“业务服务本地审计事实 + 中央投影”边界 |
 | outbox_events、idempotency_records | 所属业务服务；M01 Identity 团队端点的幂等记录归 identity-service |
-| notifications | 消息消费者/通知服务（后置） |
+| notifications | MVP 由 `governance` 模块唯一拥有的基础站内通知；外发邮件/短信和独立通知服务后置 |
 | AI Worker 运行日志、job store | ai-worker（非业务表） |
 
 - 一个业务表只能有一个服务负责写入和迁移。
@@ -59,6 +59,7 @@ AI Worker
 - 跨服务读取通过 API、事件同步的读模型或明确的批处理导出。
 - 不做 MySQL/PostgreSQL 双写、跨库外键或跨数据库事务。
 - 每个服务拥有独立 Flyway 迁移目录和版本号。
+- M13 之前 `governance` 不是独立服务，而是模块化单体的受控模块；业务模块只能经 AuditPort/NotificationPort 或应用事件协作。
 
 ## 4. 跨服务协作（定稿措辞）
 
@@ -70,7 +71,7 @@ AI Worker
 | 创建素材 | **先远程授权/归属检查，再 Asset-Workflow 本地事务写入** | 不存在跨服务单一 ACID 事务；项目在校验后被归档/删除的竞态由项目版本、缓存失效和补偿处理 |
 | 素材版本创建后分析 | RabbitMQ command（analyze.asset-version.v1） | 至少一次投递，消费者幂等 |
 | 分析结果回传 | RabbitMQ result（asset-analysis.completed.v1）→ 业务服务幂等更新 | 最终一致，可重放 |
-| 审核通过后通知 | Kafka 领域事件（M11 后） | 最终一致 |
+| 审核通过后基础站内通知 | 单体 NotificationPort / post-commit 应用事件；M11 后可换为 Outbox/Kafka | MVP 不依赖 Kafka；通知失败不得伪造业务回滚 |
 | 交付确认 | Asset-Workflow 本地事务 | 业务幂等（永久唯一约束）、审计同事务 |
 
 ## 5. 迁移期间

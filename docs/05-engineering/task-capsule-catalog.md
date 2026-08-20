@@ -1,7 +1,7 @@
 # FrameFlow 任务包目录
 
-> 状态：**P0 工程基座已完成；M01 已完成开发与验收，Receipt 已生成，待调度器同步任务文件状态为 DONE**。本目录是任务包清单；机器可读定义见 `tasks/<阶段>/<taskId>.json`，格式见 `task-capsule-spec.md` 与 `schemas/`。
-> 任务状态：`NOT_READY`/`CONTRACT_READY`（禁止派发）/`READY_FOR_DISPATCH`（前置与授权已满足，可派发）/`PLANNED`（仅规划，文件未创建）。
+> 状态：`FF-M01-001=DONE`，功能已合并到 `main`；`FF-M01H-001=IN_PROGRESS`。当前收敛 M01-Hardening 与 M02 Contract Gate 草案，M02 业务代码尚未派发。
+> 任务状态：`DRAFT`/`NOT_READY`/`CONTRACT_READY`（均禁止派发）/`READY_FOR_DISPATCH`（前置与授权已满足，可派发）/`PLANNED`（仅规划，文件未创建）。
 
 ## 1. P0-Prep（FF-PP-001）：文档收敛门禁——PASSED
 
@@ -26,14 +26,21 @@
 | FF-PP-001 | P0-Prep | prep | DONE | 文档收敛门禁 | `tasks/PP/FF-PP-001.json` |
 | FF-P0-001 | P0 | product-mainline | DONE | Git、Maven 多模块、Spring Boot 3.4.5、PostgreSQL、Flyway、health/readiness | `tasks/P0/FF-P0-001.json` |
 | FF-M01-001 | M01 | product-mainline | DONE | 用户、团队、角色、JWT、RBAC（代码、测试与四条证据已完成；Receipt=RCPT-FF-M01-001-0001） | `tasks/M01/FF-M01-001.json` |
-| FF-M02-001 | M2 | product-mainline | PLANNED | 客户、项目、Brief 版本、状态机、事务 | `tasks/M2/FF-M02-001.json` |
-| FF-M03-001 | M3 | product-mainline | PLANNED | 任务、评论、乐观锁 | `tasks/M3/FF-M03-001.json` |
-| FF-M04A-001 | M4-A | product-mainline | PLANNED | 素材/版本、StoragePort、本地上传 | `tasks/M4A/FF-M04A-001.json` |
-| FF-M04B-001 | M4-B | product-mainline | PLANNED | MinIO Adapter、预签名 URL | `tasks/M4B/FF-M04B-001.json` |
-| FF-M05-001 | M5 | product-mainline | PLANNED | Redis 缓存、幂等、限流 | `tasks/M5/FF-M05-001.json` |
-| FF-M06-001 | M6 | product-mainline | PLANNED | RabbitMQ 可靠任务、重试、DLQ | `tasks/M6/FF-M06-001.json` |
-| FF-M07-001 | M7 | product-mainline | PLANNED | AI Provider Adapter、suggestion | `tasks/M7/FF-M07-001.json` |
-| FF-M08-001 | M8 | product-mainline | PLANNED | 审核、批注、交付锁定、E2E | `tasks/M8/FF-M08-001.json` |
+| FF-M01H-001 | M01-H | product-mainline | IN_PROGRESS | M01 证据、安全、架构、并发/JWT/OpenAPI 加固 | `tasks/M01H/FF-M01H-001.json` |
+| FF-M01F-001 | M01-F | product-mainline | NOT_READY | 本仓库 `frameflow-web/` 基座、BFF 认证与团队界面；依赖 M01H DONE | `tasks/M01F/FF-M01F-001.json` |
+| FF-M02-001 | M02 | product-mainline | DRAFT | 数据/API/权限/测试/Evidence Contract Gate；不写代码、不改 docs/04 | `tasks/M02/FF-M02-001.json` |
+| FF-M02-002 | M02 | product-mainline | NOT_READY | 客户、项目与项目成员基座；V3 若保留则迁移从 V4 开始 | `tasks/M02/FF-M02-002.json` |
+| FF-M02-003 | M02 | product-mainline | NOT_READY | Brief 不可变版本、单一 current、事务与项目状态机 | `tasks/M02/FF-M02-003.json` |
+| FF-M02-004 | M02 | product-mainline | NOT_READY | API 契约验证、审计/基础通知与 E2E 收口 | `tasks/M02/FF-M02-004.json` |
+| FF-M03-001 | M03 | product-mainline | PLANNED | 任务、评论、乐观锁 | `tasks/M03/FF-M03-001.json` |
+| FF-M04A-001 | M04-A | product-mainline | PLANNED | 素材/版本、StoragePort、本地上传 | `tasks/M04A/FF-M04A-001.json` |
+| FF-M04F-001 | M04-F | product-mainline | DRAFT | 项目/Brief、任务/评论、素材前端；须补入实际 M03/M04A 前置 | `tasks/M04F/FF-M04F-001.json` |
+| FF-M04B-001 | M04-B | product-mainline | PLANNED | MinIO Adapter、预签名 URL | `tasks/M04B/FF-M04B-001.json` |
+| FF-M05-001 | M05 | engineering-lab | PLANNED | 可选 Redis 缓存/幂等加速/限流/降级；不阻塞 MVP | `tasks/M05/FF-M05-001.json` |
+| FF-M06-001 | M06 | product-mainline | PLANNED | RabbitMQ 可靠任务、重试、DLQ | `tasks/M06/FF-M06-001.json` |
+| FF-M07-001 | M07 | product-mainline | PLANNED | AI Provider Adapter、suggestion | `tasks/M07/FF-M07-001.json` |
+| FF-M08-001 | M08 | product-mainline | PLANNED | 审核、批注、交付锁定与 backend gate | `tasks/M08/FF-M08-001.json` |
+| FF-M08F-001 | M08-F | product-mainline | DRAFT | 审核/通知/交付前端与 product MVP gate；须补入实际 M07/M08 前置 | `tasks/M08F/FF-M08F-001.json` |
 | FF-M09-001 | M9 | engineering-lab | PLANNED | DDD 领域重构 | `tasks/M9/FF-M09-001.json` |
 | FF-M10-001 | M10 | engineering-lab | PLANNED | PostgreSQL 深化（JSONB/GIN/EXPLAIN） | `tasks/M10/FF-M10-001.json` |
 | FF-M11-001 | M11 | engineering-lab | PLANNED | Kafka/Outbox 领域事件 | `tasks/M11/FF-M11-001.json` |
@@ -52,9 +59,9 @@
 
 ```text
 1. FF-PP-001 全部验收勾选并有证据后，P0-Prep 才 PASSED。
-2. product-mainline 任务按顺序派发，不可跳过；前置任务 DONE 才允许下一个。
-3. engineering-lab 任务按依赖拓扑选择执行，未选阶段不阻塞产品主线。
-4. NOT_READY 任务任何工具不得派发；PLANNED 不是可派发输入。
+2. product-mainline 任务按依赖拓扑派发。M01-F 依赖 M01H DONE；M04-F 依赖 M01-F 与 M02/M03/M04-A DONE；M08-F 依赖 M04-F 与 M07/M08 DONE。
+3. M08 是 backend gate，M08-F 是 product MVP gate；只有 M08-F 通过后才进入真实用户验证。M05 Redis 是可选 engineering-lab，不在任一 MVP 任务的必需前置中。
+4. DRAFT/NOT_READY 任务任何工具不得派发；PLANNED 不是可派发输入。DRAFT 对未建立的未来前置只能写入 unknowns，不得制造悬空 prerequisiteTaskIds。
 5. 每个任务派发前生成 Capability Grant，并验证它是 Task Capsule 权限子集；执行后回写 Agent Receipt。
 6. 执行者 writeSet 不得包含当前 Task Capsule；任务状态由调度器依据合法 Receipt、验收和证据回写。
 7. 任务完成后：验收全 PASS → 证据回写 evidence-index.md → 更新 project-status.md。
@@ -63,6 +70,6 @@
 
 ## 4. 当前状态
 
-- 已有规范任务文件：FF-PP-001（DONE）、FF-P0-001（DONE）、FF-M01-001（DONE，已生成 Receipt，待调度器同步任务文件）。
-- 其余为 PLANNED，派发前按同一 schema 创建。
+- 实际存在的任务文件及状态以上表和 generated 索引为准；M01H 仍在进行，M01F/M02/M04F/M08F 都不可派发。
+- M03/M04A/M04B/M05/M06/M07/M08 等仍为 PLANNED，派发前按同一 schema 创建并补齐下游 DRAFT 的直接前置引用。
 - 自动生成的索引见 `generated/task-capsule-index.md`。

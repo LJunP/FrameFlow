@@ -1,0 +1,35 @@
+FrameFlow M01 migration evidence (isolated empty database)
+base commit:    621e82fb2d048959f55b15bbdd726c9af12015f0
+worktree:       DIRTY/UNCOMMITTED
+formal subject commit: NOT_AVAILABLE
+generated at:  2026-08-20T02:31:07Z
+isolated db:   m01_mig_1787193067 (created and dropped by this script)
+boot jar:      frameflow-app/target/frameflow-app-0.1.0-SNAPSHOT.jar
+
+PASS | 创建隔离空库 m01_mig_1787193067
+PASS | 第一次启动成功（隔离库迁移 V1+V2+V3 后应用就绪）
+run1 flyway history: [1,2,3]
+PASS | V1+V2+V3 迁移成功（schema_history: 1,2,3）
+PASS | 第二次启动成功（重复迁移无变更）
+run2 flyway history rows: before=3 after=3
+PASS | 第二次执行无新迁移（rows=3）
+PASS | 包含 users/teams/team_members/refresh_token_sessions/idempotency_records
+PASS | 不包含 project_members（边界正确）
+
+--- run1 flyway log lines ---
+2026-08-20T10:31:09.666+08:00  INFO 92034 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:54329/m01_mig_1787193067 (PostgreSQL 16.14)
+2026-08-20T10:31:09.696+08:00  INFO 92034 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-08-20T10:31:09.698+08:00  INFO 92034 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.013s)
+2026-08-20T10:31:09.710+08:00  INFO 92034 --- [frameflow] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-08-20T10:31:09.767+08:00  INFO 92034 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-08-20T10:31:09.772+08:00  INFO 92034 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - baseline"
+2026-08-20T10:31:09.803+08:00  INFO 92034 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - identity"
+2026-08-20T10:31:09.851+08:00  INFO 92034 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "3 - table and column comments"
+2026-08-20T10:31:09.889+08:00  INFO 92034 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 3 migrations to schema "public", now at version v3 (execution time 00:00.072s)
+--- run2 flyway log lines ---
+2026-08-20T10:31:16.055+08:00  INFO 92088 --- [frameflow] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:54329/m01_mig_1787193067 (PostgreSQL 16.14)
+2026-08-20T10:31:16.098+08:00  INFO 92088 --- [frameflow] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.022s)
+2026-08-20T10:31:16.142+08:00  INFO 92088 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 3
+2026-08-20T10:31:16.144+08:00  INFO 92088 --- [frameflow] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+
+RESULT: CHECKS=7 FAILURES=0

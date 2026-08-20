@@ -40,7 +40,7 @@ AI 结果不可追溯 → suggestion、参数与人工确认
 客户、项目、Brief 与 Brief 版本
 分镜/制作任务、评论、乐观锁
 素材、不可变素材版本、上传与 MinIO 存储
-项目/权限缓存、通用幂等和限流
+以 PostgreSQL 为事实源的通用幂等；必要的缓存/限流可在 Redis hardening 实验中验证
 RabbitMQ 异步素材分析任务
 AI 摘要、分镜建议、标签 suggestion
 审核、时间点批注、返工、交付、版本锁定
@@ -59,6 +59,7 @@ MVP 的事务主库统一为 PostgreSQL。MVP 不引入 MySQL、Kafka、Spring C
 自动外发客户邮件
 MVP 全量微服务
 完整工作流低代码引擎
+复杂炫酷前端（当前只做管理后台级前端，不做视频剪辑器级交互前端）
 ```
 
 ## 4. 核心业务闭环
@@ -102,17 +103,55 @@ MVP 全量微服务
 
 ## 7. 分阶段产品与工程演进
 
-> 轨道划分（DECISION）：`product-mainline`（P0～M8）是产品主线，不可跳过，M8 后做真实用户验证；`engineering-lab`（M9～M17）是工程实验轨道，按学习和演示目标选择执行，不阻塞产品主线。技术引入必须由业务问题或明确的实验目标驱动。
+> 轨道划分（DECISION）：`product-mainline` 包含后端 P0～M08 与前端 M01-F/M04-F/M08-F；M08 只是 backend gate，M08-F 才是产品 MVP gate，真实用户验证在 M08-F 之后开始。`engineering-lab` 包含可选 M05 Redis hardening 与 M09～M17，未选的实验不阻塞产品主线。
 
 | 阶段 | 轨道 | 产品/工程目标 | 技术重点 | 不是当前阶段的内容 |
 |---|---|---|---|---|
-| P0～M4 | mainline | 可运行模块化单体和核心业务 | Java 17、Spring Boot 3.4.x、PostgreSQL、MyBatis-Plus、Flyway | Redis、消息、微服务、K8s |
-| M4-B～M8 | mainline | MVP 协作、素材、AI、审核、交付闭环 | MinIO（M4-B 首次）、Redis、RabbitMQ、Fake/Provider Adapter | Kafka、微服务、K8s |
+| P0～M01-H | product-mainline | 基座、身份功能与加固 | Java 17、Spring Boot、PostgreSQL、身份/安全门禁 | M02 业务实现 |
+| M01-F | product-mainline | `frameflow-web/` 基座、认证与团队界面 | React + TypeScript + Next.js BFF + Tailwind + shadcn/ui + TanStack Query | 项目/素材/审核页面 |
+| M02～M04-A | product-mainline | 项目/Brief、任务、本地素材核心业务 | PostgreSQL、MyBatis-Plus、Flyway、事务/版本 | MinIO、消息、微服务 |
+| M04-F | product-mainline | 项目/Brief、任务/评论、素材界面 | 依赖 M02/M03/M04-A 后端 Gate | 审核/交付闭环 |
+| M04-B、M06～M08 | product-mainline | MinIO、可靠异步、AI suggestion、审核/交付 backend gate | MinIO、RabbitMQ、Fake/Provider Adapter | Kafka、微服务、K8s |
+| M08-F | product-mainline | 审核/交付界面与全栈 E2E，形成产品 MVP gate | 依赖 M07/M08，覆盖审核、通知、审计与交付 | 绕过门禁的用户试用 |
+| M05 | engineering-lab（可选） | Redis 缓存/限流/幂等加速与降级实验 | PostgreSQL 始终是事实源 | 把 Redis 变成 MVP 前置 |
 | M9～M12 | lab | 领域规则和可靠性成熟 | DDD、Outbox/Kafka、Testcontainers、压测、JVM | 过早拆分服务 |
 | M13～M15 | lab | 服务独立部署和运行治理 | Gateway、Nacos（Compose）、Feign、Resilience4j、OTel、Prometheus/Grafana | 十几个微服务 |
 | M16 | lab | 本地云原生平台实践 | Docker、Helm、kind/minikube、Kubernetes、Nginx Ingress | 生产集群宣称 |
 | M16-G | lab | 受限服务网格实验 | Istio 灰度、mTLS、AuthorizationPolicy、故障注入 | 无业务目的的全量 Mesh |
 | M17 | lab | 求职交付 | 证据索引、架构演示、故障复盘、面试材料 | 编造生产经历 |
+
+### 7.1 前端阶段计划（DECISION）
+
+前端是本源码单仓库的 `frameflow-web/`，不建立独立仓库。浏览器通过同源 Next BFF 访问后端 `/api/v1/*`。
+
+| 阶段 | 轨道 | 前置 | 目标 | 关键内容 |
+|---|---|---|---|---|
+| M01-F | product-mainline | `FF-M01H-001=DONE` | 前端基座与认证界面 | BFF、登录/注册、团队管理、HttpOnly Cookie |
+| M04-F | product-mainline | M01-F + M02/M03/M04-A DONE | 核心业务界面 | 项目/Brief 版本、任务/评论、素材版本上传与浏览 |
+| M08-F | product-mainline | M04-F + M07/M08 DONE | 协作与交付界面，产品 MVP Gate | 审核流、时间码批注、基础通知、交付包、客户确认、全栈 E2E |
+
+前端技术选型（ADR-012）：
+
+```text
+语言：TypeScript
+框架：React
+元框架：Next.js（App Router + BFF）
+样式：Tailwind CSS
+组件：shadcn/ui
+HTTP：TanStack Query（缓存/重试/loading）
+状态管理：Zustand（轻量）
+类型生成：openapi-typescript（唯一选择，从后端 OpenAPI YAML 生成 TS 类型）
+版本：Task 派发时选当时官方受支持的稳定版，并在 Task、package.json 与 lockfile 中精确锁定
+```
+
+前端不做：
+
+```text
+浏览器内视频剪辑器
+实时协同编辑（如 Figma/在线文档级）
+移动端 App
+复杂炫酷动画/3D 渲染
+```
 
 ## 8. 微服务演进边界
 
@@ -158,10 +197,12 @@ Elasticsearch 不属于 MVP 事实库。平台阶段首先用于：
 → 交付版本被锁定、可追溯
 ```
 
+M08 只证明后端闭环；只有 M08-F 的 `frameflow-web/` 全栈 E2E、安全 Cookie 边界、审计/基础通知和可用性验收全部 PASS，才能宣称产品 MVP Gate 通过并开始真实用户验证。
+
 ### 求职工程验收
 
 - 有模块依赖测试和 DDD 领域测试；
-- 有 PostgreSQL/Redis/MinIO/RabbitMQ 的真实集成测试；
+- 有 PostgreSQL/MinIO/RabbitMQ 的真实集成测试；若选择 M05 Redis hardening，再追加 Redis 降级与一致性证据；
 - 有 Outbox/Kafka（若进入 M11）的事件和故障证据；
 - 有 k6 压测、JFR/jstack/GC 日志实验；
 - 有微服务数据所有权、超时、熔断、降级和跨服务 Trace；
@@ -178,4 +219,6 @@ Elasticsearch 不属于 MVP 事实库。平台阶段首先用于：
 - 首期采用本地 Docker Compose，后续使用 kind/minikube 练习 Kubernetes。
 - 文件先限制测试规格，不做 GPU/真实转码；交付链接短期有效。
 - MVP 按 Team/Project 隔离，不做复杂企业多租户。
-- 后端/API 优先，前端先用 API 工具或极简管理页。
+- 前端只放在本仓库 `frameflow-web/`，按 M01-F/M04-F/M08-F 推进；不做视频编辑器级前端。
+- Next BFF 保有 Refresh Token 的 HttpOnly Cookie 边界；Refresh Token 禁止 localStorage/sessionStorage/IndexedDB。后端为每次请求生成 `X-Request-Id`，跨请求业务关联单独使用 `X-Correlation-Id`。
+- `governance` 模块是 MVP `audit_logs` 和基础站内 `notifications` 的唯一表所有者；业务模块只能通过 Port/应用事件写入。

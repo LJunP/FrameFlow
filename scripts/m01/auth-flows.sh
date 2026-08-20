@@ -3,7 +3,7 @@
 # EV-FF-M01-001-02: 运行时安全/错误语义可复现证据。
 # 启动真实应用，逐项验证：401/403/404、最后 OWNER、自移除、重复 ACTIVE 成员、
 # 每次响应 X-Request-Id 与错误 body requestId 一致。
-# 输出: evidence/m01/auth-flows.txt
+# 输出: ${FRAMEFLOW_M01_EVIDENCE_DIR:-evidence/m01}/auth-flows.txt
 set -u
 
 . "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)/common.sh"
@@ -25,6 +25,43 @@ json_field() { # $1=json string  $2=field
     python3 -c "import json,sys;d=json.loads(sys.argv[1]);print(d.get(sys.argv[2],''))" "$1" "$2" 2>/dev/null
 }
 
+redact_response_body() {
+    python3 -c '
+import json
+import re
+import sys
+
+text = sys.stdin.read()
+jwt = re.compile(r"eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}")
+
+def redact(value):
+    if isinstance(value, dict):
+        return {
+            key: "<REDACTED>"
+            if re.sub(r"[-_]", "", key.lower()) in {"accesstoken", "refreshtoken"}
+            else redact(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [redact(item) for item in value]
+    if isinstance(value, str):
+        return jwt.sub("<REDACTED>", value)
+    return value
+
+try:
+    body = json.loads(text)
+except json.JSONDecodeError:
+    body = re.sub(
+        r"(\"(?i:(?:access|refresh)[_-]?token)\"\s*:\s*\")[^\"]*(\")",
+        r"\1<REDACTED>\2",
+        text,
+    )
+    sys.stdout.write(jwt.sub("<REDACTED>", body))
+else:
+    sys.stdout.write(json.dumps(redact(body), ensure_ascii=False, separators=(",", ":")))
+'
+}
+
 request() {
     method=$1; shift
     path=$1; shift
@@ -35,8 +72,9 @@ request() {
         "http://$APP_HOST:$APP_PORT$path" "$@")
     REQ_RID=$(grep -i '^X-Request-Id:' "$rid_file" | head -1 | tr -d '\r' | awk '{print $2}')
     REQ_BODY=$(tr -d '\r\n' < "$body_file")
+    RECORDED_BODY=$(printf '%s' "$REQ_BODY" | redact_response_body | sanitize_stream)
     printf '>>> %s %s\n    -> %s  X-Request-Id=%s\n    body=%s\n' \
-        "$method" "$path" "$REQ_CODE" "$REQ_RID" "$REQ_BODY" >> "$EVIDENCE_DIR/auth-flows.txt"
+        "$method" "$path" "$REQ_CODE" "$REQ_RID" "$RECORDED_BODY" >> "$EVIDENCE_DIR/auth-flows.txt"
     rm -f "$rid_file" "$body_file"
 }
 
@@ -62,8 +100,11 @@ ensure_jwt_keys
 
 {
     echo "FrameFlow M01 auth-flows evidence"
-    echo "subject commit: $(subject_commit)"
+    echo "base commit:    $EVIDENCE_BASE_COMMIT"
+    echo "worktree:       $EVIDENCE_WORKTREE_STATE"
+    echo "formal subject commit: $EVIDENCE_FORMAL_SUBJECT_COMMIT"
     echo "generated at:  $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "security:      accessToken/refreshToken values are redacted before evidence write"
     echo ""
 } > "$EVIDENCE_DIR/auth-flows.txt"
 
@@ -206,7 +247,7 @@ stop_application
 } >> "$EVIDENCE_DIR/auth-flows.txt"
 
 if [ "$FAILURES" -gt 0 ]; then
-    echo "auth-flows: $FAILURES check(s) failed (see evidence/m01/auth-flows.txt)" >&2
+    echo "auth-flows: $FAILURES check(s) failed (see $EVIDENCE_DIR/auth-flows.txt)" >&2
     exit 1
 fi
 echo "auth-flows: all $CHECKS checks passed"
