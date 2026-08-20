@@ -132,6 +132,11 @@ public class AnalysisRepositories {
         return f;
     }
 
+    public String commandOf(long runId) {
+        return jdbc.queryForObject("SELECT command_id FROM analysis_runs WHERE id = ?",
+                String.class, runId);
+    }
+
     public Long candidateIdOfRun(long runId) {
         return jdbc.queryForObject(
                 "SELECT cv.candidate_id FROM analysis_runs ar "
