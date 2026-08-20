@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "团队角色（CLIENT 是项目级角色，M02 起，不在团队角色枚举内）")
 public enum TeamRole {
     OWNER,
-    PRODUCER,
-    EDITOR,
+    OPERATOR,
+    REVIEWER,
     VIEWER
 }

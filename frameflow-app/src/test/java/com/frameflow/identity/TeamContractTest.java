@@ -53,12 +53,12 @@ class TeamContractTest extends IdentityIntegrationTestBase {
 
         // 添加已注册成员 201 TeamMember 结构
         ResponseEntity<String> add = postJson("/api/v1/teams/" + teamId + "/members",
-                Map.of("email", memberEmail, "role", "EDITOR"),
+                Map.of("email", memberEmail, "role", "REVIEWER"),
                 headersWithKey(ownerToken, java.util.UUID.randomUUID().toString()));
         assertThat(add.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Map added = json(add.getBody());
         assertThat(added).containsKeys("id", "teamId", "userId", "email", "role", "status");
-        assertThat(added.get("role")).isEqualTo("EDITOR");
+        assertThat(added.get("role")).isEqualTo("REVIEWER");
         assertThat(added.get("status")).isEqualTo("ACTIVE");
         long memberId = ((Number) added.get("userId")).longValue();
 

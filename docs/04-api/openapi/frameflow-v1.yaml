@@ -3,7 +3,7 @@ info:
   title: FrameFlow API v1
   description: |
     FrameFlow M01 身份与授权接口的唯一权威契约（契约优先，手写维护）。
-    - 授权模型见 docs/04-api/permission-matrix.md（团队角色 OWNER/PRODUCER/EDITOR/VIEWER；CLIENT 为项目级角色，M02 起）
+    - 授权模型见 docs/04-api/permission-matrix.md（团队角色 OWNER/OPERATOR/REVIEWER/VIEWER；CLIENT 为项目级角色，M02 起）
     - Token 规则见 docs/04-api/token-contract.md（Access 15min / Refresh 30d / 轮换）
     - 错误码见 docs/04-api/error-code-catalog.md；无权访问资源统一 404，操作权限不足 403
     - 每个响应都必须返回 X-Request-Id；错误 body 的 requestId 与该 header 同值
@@ -602,5 +602,5 @@ components:
           enum: [Bearer]
     TeamRole:
       type: string
-      enum: [OWNER, PRODUCER, EDITOR, VIEWER]
+      enum: [OWNER, OPERATOR, REVIEWER, VIEWER]
       description: 团队角色（CLIENT 是项目级角色，M02 起，不在团队角色枚举内）

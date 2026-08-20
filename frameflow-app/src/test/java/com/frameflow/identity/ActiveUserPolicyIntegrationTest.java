@@ -41,7 +41,7 @@ class ActiveUserPolicyIntegrationTest extends IdentityIntegrationTestBase {
         HttpHeaders addHeaders = bearerHeaders(access);
         addHeaders.set("Idempotency-Key", UUID.randomUUID().toString());
         assertUnauthorized(postJson("/api/v1/teams/" + teamId + "/members",
-                Map.of("email", targetEmail, "role", "EDITOR"), addHeaders));
+                Map.of("email", targetEmail, "role", "REVIEWER"), addHeaders));
     }
 
     @Test
@@ -61,7 +61,7 @@ class ActiveUserPolicyIntegrationTest extends IdentityIntegrationTestBase {
         HttpHeaders addHeaders = bearerHeaders(access);
         addHeaders.set("Idempotency-Key", UUID.randomUUID().toString());
         ResponseEntity<String> response = postJson("/api/v1/teams/" + teamId + "/members",
-                Map.of("email", targetEmail, "role", "EDITOR"), addHeaders);
+                Map.of("email", targetEmail, "role", "REVIEWER"), addHeaders);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(json(response.getBody()).get("code")).isEqualTo("RESOURCE_NOT_FOUND");
     }

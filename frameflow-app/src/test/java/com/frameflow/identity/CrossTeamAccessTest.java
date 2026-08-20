@@ -42,7 +42,7 @@ class CrossTeamAccessTest extends IdentityIntegrationTestBase {
         String targetEmail = nextEmail();
         register(targetEmail, "passw0rd!");
         ResponseEntity<String> add = postJson("/api/v1/teams/" + teamId + "/members",
-                Map.of("email", targetEmail, "role", "EDITOR"),
+                Map.of("email", targetEmail, "role", "REVIEWER"),
                 headersWithKey(outsiderToken, UUID.randomUUID().toString()));
         assertThat(add.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 

@@ -57,7 +57,7 @@ class ConcurrencyConflictTest extends IdentityIntegrationTestBase {
             HttpHeaders headers = bearerHeaders(access);
             headers.set("Idempotency-Key", UUID.randomUUID().toString());
             return postJson("/api/v1/teams/" + teamId + "/members",
-                    Map.of("email", targetEmail, "role", "EDITOR"), headers);
+                    Map.of("email", targetEmail, "role", "REVIEWER"), headers);
         });
 
         assertThat(responses).filteredOn(r -> r.getStatusCode() == HttpStatus.CREATED).hasSize(1);

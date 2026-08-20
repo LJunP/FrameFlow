@@ -32,7 +32,7 @@
 | id | BIGSERIAL | no | - | PK |
 | team_id | BIGINT | no | - | FK teams.id |
 | user_id | BIGINT | no | - | FK users.id |
-| role | VARCHAR(20) | no | 'VIEWER' | OWNER / PRODUCER / EDITOR / VIEWER |
+| role | VARCHAR(20) | no | 'VIEWER' | OWNER / OPERATOR / REVIEWER / VIEWER |
 | status | VARCHAR(20) | no | 'ACTIVE' | ACTIVE / REMOVED；INVITED 等邀请态待未来完整邀请流程引入 |
 | created_at | TIMESTAMPTZ | no | now() | - |
 | updated_at | TIMESTAMPTZ | no | now() | - |

@@ -5,7 +5,7 @@
 ## 1. 角色模型（定稿）
 
 ```text
-团队角色（team_members.role）：OWNER / PRODUCER / EDITOR / VIEWER
+团队角色（team_members.role）：OWNER / OPERATOR / REVIEWER / VIEWER
 项目角色（project_members.role）：PROJECT_MANAGER / CONTRIBUTOR / VIEWER / CLIENT
 ```
 
@@ -18,7 +18,7 @@
 
 创建团队不依赖调用者已经拥有某个团队角色：任一 `users.status=ACTIVE` 的已认证用户都可调用 `POST /teams`，服务端在同一事务中创建团队并把创建者写为首名 OWNER。
 
-| 操作 | OWNER | PRODUCER | EDITOR | VIEWER |
+| 操作 | OWNER | OPERATOR | REVIEWER | VIEWER |
 |---|---|---|---|---|
 | 发现自己加入的有效团队 | ✅ | ✅ | ✅ | ✅ |
 | 查看团队与成员 | ✅ | ✅ | ✅ | ✅ |

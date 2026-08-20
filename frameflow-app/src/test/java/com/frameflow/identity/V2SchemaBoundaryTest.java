@@ -26,11 +26,11 @@ class V2SchemaBoundaryTest extends IdentityIntegrationTestBase {
                 "frameflow_schema_baseline", "users", "teams", "team_members",
                 "refresh_token_sessions", "idempotency_records", "flyway_schema_history");
 
-        // team_members.role CHECK 只允许 OWNER/PRODUCER/EDITOR/VIEWER，不包含 CLIENT
+        // team_members.role CHECK 只允许 OWNER/OPERATOR/REVIEWER/VIEWER（V4），不包含 CLIENT
         String roleCheck = jdbc.queryForObject(
                 "SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = 'ck_team_members_role'",
                 String.class);
-        assertThat(roleCheck).contains("OWNER", "PRODUCER", "EDITOR", "VIEWER").doesNotContain("CLIENT");
+        assertThat(roleCheck).contains("OWNER", "OPERATOR", "REVIEWER", "VIEWER").doesNotContain("CLIENT");
 
         // 用户状态约束与幂等 status 约束存在
         String idemCheck = jdbc.queryForObject(

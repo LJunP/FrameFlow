@@ -2,7 +2,7 @@ package com.frameflow.identity.domain;
 
 import java.time.OffsetDateTime;
 
-/** team_members row (status: ACTIVE / REMOVED; role: OWNER/PRODUCER/EDITOR/VIEWER). */
+/** team_members row (status: ACTIVE / REMOVED; role: OWNER/OPERATOR/REVIEWER/VIEWER). */
 public class TeamMember {
     private Long id;
     private Long teamId;

@@ -26,12 +26,12 @@ class PermissionTest extends IdentityIntegrationTestBase {
         Map producerPair = login(producerEmail, "passw0rd!");
         String producerToken = accessTokenOf(producerPair);
 
-        // owner 建团队并添加 producer 为 PRODUCER
+        // owner 建团队并添加 producer 为 OPERATOR
         Map team = json(postJson("/api/v1/teams", Map.of("name", nextName()),
                 headersWithKey(ownerToken, UUID.randomUUID().toString())).getBody());
         long teamId = ((Number) team.get("id")).longValue();
         ResponseEntity<String> add = postJson("/api/v1/teams/" + teamId + "/members",
-                Map.of("email", producerEmail, "role", "PRODUCER"),
+                Map.of("email", producerEmail, "role", "OPERATOR"),
                 headersWithKey(ownerToken, UUID.randomUUID().toString()));
         assertThat(add.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
@@ -39,7 +39,7 @@ class PermissionTest extends IdentityIntegrationTestBase {
         String thirdEmail = nextEmail();
         register(thirdEmail, "passw0rd!");
         ResponseEntity<String> addAttempt = postJson("/api/v1/teams/" + teamId + "/members",
-                Map.of("email", thirdEmail, "role", "EDITOR"),
+                Map.of("email", thirdEmail, "role", "REVIEWER"),
                 headersWithKey(producerToken, UUID.randomUUID().toString()));
         assertThat(addAttempt.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(json(addAttempt.getBody()).get("code")).isEqualTo("FORBIDDEN");

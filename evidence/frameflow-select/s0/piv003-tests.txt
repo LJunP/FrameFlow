@@ -1,0 +1,4 @@
+FF-PIV-003 owner invariants + negative authorization + V2 boundary evidence
+command: ./mvnw -B -pl frameflow-app -am test (T2/T5 suite)
+result: PASS (BUILD SUCCESS, exit 0)
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0

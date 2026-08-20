@@ -182,14 +182,14 @@ B_USER_ID=$(json_field "$REQ_BODY" id)
 request GET /api/v1/auth/me -H "$AUTH_C"
 C_USER_ID=$(json_field "$REQ_BODY" id)
 
-# A 添加 B（EDITOR）-> 201
+# A 添加 B（REVIEWER）-> 201
 request POST "/api/v1/teams/$TEAM_ID/members" -H 'Content-Type: application/json' -H "$AUTH_A" -H "$KEY_B" \
-    -d "{\"email\":\"$EMAIL_B\",\"role\":\"EDITOR\"}"
+    -d "{\"email\":\"$EMAIL_B\",\"role\":\"REVIEWER\"}"
 assert_status 201 "A 添加 B"
 
 # 重复添加 B -> 409 TEAM_MEMBER_ALREADY_EXISTS + requestId 一致
 request POST "/api/v1/teams/$TEAM_ID/members" -H 'Content-Type: application/json' -H "$AUTH_A" -H "$KEY_C" \
-    -d "{\"email\":\"$EMAIL_B\",\"role\":\"EDITOR\"}"
+    -d "{\"email\":\"$EMAIL_B\",\"role\":\"REVIEWER\"}"
 assert_status 409 "重复 ACTIVE 成员 TEAM_MEMBER_ALREADY_EXISTS"
 assert_request_id "重复成员 409 requestId 一致"
 
@@ -217,7 +217,7 @@ assert_request_id "自移除 409 requestId 一致"
 
 # 唯一 OWNER 降级 -> 409 TEAM_LAST_OWNER_CONFLICT
 request PATCH "/api/v1/teams/$TEAM_ID/members/$A_USER_ID" -H 'Content-Type: application/json' -H "$AUTH_A" \
-    -d "{\"role\":\"EDITOR\"}"
+    -d "{\"role\":\"REVIEWER\"}"
 assert_status 409 "最后一名 OWNER 降级 TEAM_LAST_OWNER_CONFLICT"
 
 # 移除普通成员 -> 204；验证成功响应带 X-Request-Id

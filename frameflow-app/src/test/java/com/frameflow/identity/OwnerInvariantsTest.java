@@ -30,9 +30,9 @@ class OwnerInvariantsTest extends IdentityIntegrationTestBase {
                 headersWithKey(ownerToken, UUID.randomUUID().toString())).getBody());
         long teamId = ((Number) team.get("id")).longValue();
 
-        // 添加 B（EDITOR）与 C（VIEWER）
+        // 添加 B（REVIEWER）与 C（VIEWER）
         assertThat(postJson("/api/v1/teams/" + teamId + "/members",
-                Map.of("email", bEmail, "role", "EDITOR"),
+                Map.of("email", bEmail, "role", "REVIEWER"),
                 headersWithKey(ownerToken, UUID.randomUUID().toString())).getStatusCode())
                 .isEqualTo(HttpStatus.CREATED);
         assertThat(postJson("/api/v1/teams/" + teamId + "/members",
@@ -42,7 +42,7 @@ class OwnerInvariantsTest extends IdentityIntegrationTestBase {
 
         // 重复添加 ACTIVE 成员 → 409 TEAM_MEMBER_ALREADY_EXISTS
         ResponseEntity<String> dup = postJson("/api/v1/teams/" + teamId + "/members",
-                Map.of("email", bEmail, "role", "EDITOR"),
+                Map.of("email", bEmail, "role", "REVIEWER"),
                 headersWithKey(ownerToken, UUID.randomUUID().toString()));
         assertThat(dup.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(json(dup.getBody()).get("code")).isEqualTo("TEAM_MEMBER_ALREADY_EXISTS");
@@ -55,31 +55,31 @@ class OwnerInvariantsTest extends IdentityIntegrationTestBase {
 
         // 当前只有 owner 一名 OWNER：降级自己 → 409 TEAM_LAST_OWNER_CONFLICT
         ResponseEntity<String> demoteSelf = patchJson("/api/v1/teams/" + teamId + "/members/" + ownerId,
-                Map.of("role", "EDITOR"), tokenHeaders(ownerToken));
+                Map.of("role", "REVIEWER"), tokenHeaders(ownerToken));
         assertThat(demoteSelf.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(json(demoteSelf.getBody()).get("code")).isEqualTo("TEAM_LAST_OWNER_CONFLICT");
 
         // 移除最后一名 OWNER（owner）→ 409 TEAM_LAST_OWNER_CONFLICT（自移除分支先拦截，但这里验证计数）
-        // B 提为 OWNER 后（两名 OWNER）移除 owner 应成功；再把 B 降级为 EDITOR，验证最后 OWNER 语义
+        // B 提为 OWNER 后（两名 OWNER）移除 owner 应成功；再把 B 降级为 REVIEWER，验证最后 OWNER 语义
         assertThat(patchJson("/api/v1/teams/" + teamId + "/members/" + bId,
                 Map.of("role", "OWNER"), tokenHeaders(ownerToken)).getStatusCode()).isEqualTo(HttpStatus.OK);
         // 两名 OWNER：移除 owner（非自移除由 B 执行不可，B 非 OWNER→403）；由 owner 移除 B 前先把 B 降级
         // 先把 B 降级会触发最后 OWNER 保护吗？此时 owner 仍 OWNER，B 不是最后 OWNER → 成功
         assertThat(patchJson("/api/v1/teams/" + teamId + "/members/" + bId,
-                Map.of("role", "EDITOR"), tokenHeaders(ownerToken)).getStatusCode()).isEqualTo(HttpStatus.OK);
-        // 现在 owner 是最后一名 OWNER；移除 B（EDITOR）成功
+                Map.of("role", "REVIEWER"), tokenHeaders(ownerToken)).getStatusCode()).isEqualTo(HttpStatus.OK);
+        // 现在 owner 是最后一名 OWNER；移除 B（REVIEWER）成功
         ResponseEntity<String> removeB = deleteJson("/api/v1/teams/" + teamId + "/members/" + bId,
                 tokenHeaders(ownerToken));
         assertThat(removeB.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // 已移除成员再次添加 → 复用原记录恢复 ACTIVE
         ResponseEntity<String> reAddB = postJson("/api/v1/teams/" + teamId + "/members",
-                Map.of("email", bEmail, "role", "EDITOR"),
+                Map.of("email", bEmail, "role", "REVIEWER"),
                 headersWithKey(ownerToken, UUID.randomUUID().toString()));
         assertThat(reAddB.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Map reAdded = json(reAddB.getBody());
         assertThat(reAdded.get("status")).isEqualTo("ACTIVE");
-        assertThat(reAdded.get("role")).isEqualTo("EDITOR");
+        assertThat(reAdded.get("role")).isEqualTo("REVIEWER");
 
         // requestId：409/204/403 响应均带 X-Request-Id 且 body 一致（取一个 401 用例在其它测试验证）
         assertThat(dup.getHeaders().getFirst("X-Request-Id")).isNotBlank();

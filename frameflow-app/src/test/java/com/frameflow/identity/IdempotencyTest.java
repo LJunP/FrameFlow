@@ -87,7 +87,7 @@ class IdempotencyTest extends IdentityIntegrationTestBase {
         register(memberEmail, "passw0rd!");
         long teamId = firstTeamId;
         String key3 = UUID.randomUUID().toString();
-        Map addBody = Map.of("email", memberEmail, "role", "EDITOR");
+        Map addBody = Map.of("email", memberEmail, "role", "REVIEWER");
         ResponseEntity<String> addFirst = postJson("/api/v1/teams/" + teamId + "/members", addBody,
                 headersWithKey(ownerToken, key3));
         assertThat(addFirst.getStatusCode()).isEqualTo(HttpStatus.CREATED);

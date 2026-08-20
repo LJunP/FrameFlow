@@ -78,7 +78,7 @@ class PersistenceConflictTranslationTest {
                 new IdempotencyService(idempotencyRecords, Clock.systemUTC()),
                 new RequestFingerprint(mapper), mapper);
         ApiException error = catchThrowableOfType(ApiException.class, () -> service.addMember(
-                11L, 10L, new AddMemberCommand("target@example.com", "EDITOR"), UUID.randomUUID()));
+                11L, 10L, new AddMemberCommand("target@example.com", "REVIEWER"), UUID.randomUUID()));
 
         assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(error.getCode()).isEqualTo("TEAM_MEMBER_ALREADY_EXISTS");
