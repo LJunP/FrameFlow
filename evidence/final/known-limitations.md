@@ -35,8 +35,8 @@ three are **heuristic false positives** — verified, not genuine secrets:
 
 | File | Why flagged | Why false positive |
 | --- | --- | --- |
-| `.frameflow/decision-policy.yaml` | line 52 `missing_api_key: use_fake_provider_and_continue` matches the `api_key: <24+ alnum>` pattern | Authoritative policy text telling the agent to *use the fake provider* when a key is missing — not a key. |
-| `FRAMEFLOW_SELECT_AUTOPILOT/execution/DECISION-POLICY.yaml` | same `missing_api_key:` line | Same authoritative pack file (must NOT be altered). |
+| `.frameflow/decision-policy.yaml` | line 52: the policy key for “when no API key is present” whose value instructs *use fake provider and continue*; the heuristic treats the “apikey-like key + long value” shape as a secret | Authoritative policy text telling the agent to fall back to the fake provider when a key is missing — not a key value. |
+| `FRAMEFLOW_SELECT_AUTOPILOT/execution/DECISION-POLICY.yaml` | same policy-key line (see above) | Same authoritative pack file (must NOT be altered). |
 | `evidence/frameflow-select/s2/s2-domain-verdict.txt` | line 65/66 contain the literal string `"possible_secret:.frameflow/decision-policy.yaml"` | It is an S2 evidence record that *quotes the same false-positive warning*. It is evidence, not a secret. |
 
 **Handling (per the delivery contract):** the authoritative pack DECISION-POLICY.yaml is
