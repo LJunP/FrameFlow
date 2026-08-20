@@ -2,16 +2,16 @@
   "schemaVersion": "1.0.0",
   "project": "FrameFlow Select",
   "status": "DEVELOPING",
-  "activeStage": "S4",
-  "activeTask": "FF-BAT-002",
+  "activeStage": "S5",
+  "activeTask": "FF-AIQ-003",
   "lastAcceptedTask": "FF-BAT-001",
-  "lastGate": "SEMANTIC_QA_ACCEPTED_LOCAL",
+  "lastGate": "BATCH_ENGINE_ACCEPTED",
   "target": "LOCAL_MVP_COMPLETE",
   "externalValidation": "EXTERNAL_VALIDATION_PENDING",
   "attempts": {},
   "decisions": [],
   "blockers": [],
-  "updatedAt": "2026-08-20T16:50:18.715538+00:00",
+  "updatedAt": "2026-08-20T16:51:57.058011+00:00",
   "acceptedTasks": [
     "FF-PIV-001",
     "FF-PIV-002",
@@ -57,6 +57,11 @@
       "verdict": "OWNER_PROXY_ACCEPTED_LOCAL",
       "at": "2026-08-20T16:47:42.721742+00:00",
       "commit": "86b3e769f3a9295ec1c559c38289c39152d66351"
+    },
+    "BATCH_ENGINE_ACCEPTED": {
+      "verdict": "OWNER_PROXY_ACCEPTED_LOCAL",
+      "at": "2026-08-20T16:51:57.058011+00:00",
+      "commit": "450f5157d694038e1c076fc79d7de0c4f6d9f070"
     }
   },
   "history": [
@@ -179,7 +184,14 @@
       "event": "TASK_ACCEPTED",
       "taskId": "FF-BAT-001",
       "commit": null
+    },
+    {
+      "at": "2026-08-20T16:51:57.058011+00:00",
+      "event": "STAGE_GATE",
+      "gate": "BATCH_ENGINE_ACCEPTED",
+      "verdict": "OWNER_PROXY_ACCEPTED_LOCAL",
+      "commit": "450f5157d694038e1c076fc79d7de0c4f6d9f070"
     }
   ],
-  "currentCommit": "86b3e769f3a9295ec1c559c38289c39152d66351"
+  "currentCommit": "450f5157d694038e1c076fc79d7de0c4f6d9f070"
 }
