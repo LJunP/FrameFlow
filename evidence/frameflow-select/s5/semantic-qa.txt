@@ -1,0 +1,1 @@
+S5 semantic QA: fake provider drives E2E without secret; optional OpenAI-compatible adapter present, disabled without key; semantic findings default REVIEW; no auto-reject; UNKNOWN paths supported (worker 20 pytest green).

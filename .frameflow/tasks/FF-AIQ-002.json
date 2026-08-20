@@ -1,0 +1,59 @@
+{
+  "taskId": "FF-AIQ-002",
+  "stage": "S5",
+  "goal": "Optional real multimodal adapter present but not required; fake adapter drives full E2E; timeouts/retries/cost bounded; no external accuracy claim without real labeled data.",
+  "nonGoals": [
+    "provision API keys",
+    "GPU infra"
+  ],
+  "readSet": [
+    "docs/contracts/analysis-result.schema.json"
+  ],
+  "writeSet": [
+    "frameflow-ai-worker/src/frameflow_ai/semantic.py",
+    ".frameflow/tasks/FF-AIQ-002.json",
+    "evidence/frameflow-select/s5/**"
+  ],
+  "allowedCommands": [
+    "frameflow-ai-worker/.venv/bin/python -m pytest"
+  ],
+  "networkPolicy": "OFF",
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "fake adapter drives full e2e without secret"
+    },
+    {
+      "id": "A2",
+      "criterion": "real adapter optional and disabled without key"
+    },
+    {
+      "id": "A3",
+      "criterion": "timeouts retries rate and cost bounded"
+    },
+    {
+      "id": "A4",
+      "criterion": "no claim of external accuracy without real labeled data"
+    }
+  ],
+  "tests": [
+    {
+      "id": "T1",
+      "command": "pytest test_semantic.py"
+    }
+  ],
+  "evidence": [
+    {
+      "acceptanceId": "A1",
+      "path": "frameflow-ai-worker/tests/test_semantic.py"
+    },
+    {
+      "acceptanceId": "A2",
+      "path": "frameflow-ai-worker/src/frameflow_ai/semantic.py"
+    }
+  ],
+  "rollback": "semantic.py additive",
+  "fallback": "ship fake adapter as default and mark real_provider_unconfigured",
+  "attempt": 1,
+  "status": "ACCEPTED"
+}

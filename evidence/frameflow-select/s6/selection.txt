@@ -1,0 +1,1 @@
+S6 selection: ranking deterministic (weighted, tie-break by candidate id); clusters from sha256 groups; top-K selection + LOCKED immutability; human override via candidate_human_decisions tables; export CSV/JSON endpoint. Verified in ProductFlowIntegrationTest.

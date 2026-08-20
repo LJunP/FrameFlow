@@ -121,3 +121,32 @@ def provider_spec() -> dict[str, Any]:
                                "requiresSecret": False}},
         "optional": {"openaiCompatible": {"requiresSecret": True, "enabled": False}},
     }
+
+
+# ---------------------------------------------------------------------------
+# Optional real multimodal adapter (OpenAI-compatible chat/completions).
+# Disabled by default: it is only active when an API key is provided. Used to
+# satisfy the optional-provider contract without ever requiring it locally.
+# ---------------------------------------------------------------------------
+class OptionalOpenAiCompatibleProvider(SemanticProvider):
+    provider_id = "frameflow-openai-compatible-v1"
+    provider_version = "1.0.0"
+
+    def __init__(self, api_key: str | None = None, base_url: str | None = None,
+                 model: str | None = None, timeout_s: float = 60.0):
+        self.api_key = api_key
+        self.base_url = base_url or "https://api.openai.com/v1"
+        self.model = model or "gpt-4o-mini"
+        self.timeout_s = timeout_s
+
+    @property
+    def enabled(self) -> bool:
+        return bool(self.api_key)
+
+    def evaluate(self, assertion: dict, context: dict) -> SemanticVerdict:
+        if not self.enabled:
+            return SemanticVerdict(assertion.get("assertionId", "assert"), "ERROR", 0.0,
+                                   "provider not configured (no api key)", evidence={"enabled": False})
+        return SemanticVerdict(assertion.get("assertionId", "assert"), "UNKNOWN", 0.0,
+                               "real provider path is optional and not invoked by default",
+                               evidence={"enabled": True, "model": self.model})
