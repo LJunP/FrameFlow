@@ -1,0 +1,61 @@
+{
+  "version": "1.0.0",
+  "archive_root": "docs/archive/frameflow-collaboration",
+  "archive_directories": [
+    "docs/00-governance",
+    "docs/01-product",
+    "docs/02-architecture",
+    "docs/03-data",
+    "docs/04-api",
+    "docs/05-engineering",
+    "docs/06-testing",
+    "docs/07-operations",
+    "docs/08-learning",
+    "docs/09-delivery"
+  ],
+  "restore_after_archive": [
+    {
+      "source": "docs/archive/frameflow-collaboration/04-api/openapi/frameflow-v1.yaml",
+      "target": "docs/04-api/openapi/frameflow-v1.yaml"
+    },
+    {
+      "source": "docs/archive/frameflow-collaboration/04-api/api-guidelines.md",
+      "target": "docs/04-api/api-guidelines.md"
+    },
+    {
+      "source": "docs/archive/frameflow-collaboration/04-api/error-code-catalog.md",
+      "target": "docs/04-api/error-code-catalog.md"
+    },
+    {
+      "source": "docs/archive/frameflow-collaboration/04-api/error-model.md",
+      "target": "docs/04-api/error-model.md"
+    },
+    {
+      "source": "docs/archive/frameflow-collaboration/04-api/idempotency-contract.md",
+      "target": "docs/04-api/idempotency-contract.md"
+    },
+    {
+      "source": "docs/archive/frameflow-collaboration/04-api/token-contract.md",
+      "target": "docs/04-api/token-contract.md"
+    },
+    {
+      "source": "docs/archive/frameflow-collaboration/04-api/permission-matrix.md",
+      "target": "docs/04-api/permission-matrix.md"
+    },
+    {
+      "source": "docs/archive/frameflow-collaboration/03-data/identity-data-dictionary.md",
+      "target": "docs/03-data/identity-data-dictionary.md"
+    }
+  ],
+  "cancel_task_patterns": [
+    "docs/archive/frameflow-collaboration/05-engineering/tasks/M01F/*.json",
+    "docs/archive/frameflow-collaboration/05-engineering/tasks/M02/*.json",
+    "docs/archive/frameflow-collaboration/05-engineering/tasks/M04F/*.json",
+    "docs/archive/frameflow-collaboration/05-engineering/tasks/M08F/*.json"
+  ],
+  "retain_history_task_patterns": [
+    "docs/archive/frameflow-collaboration/05-engineering/tasks/P0/*.json",
+    "docs/archive/frameflow-collaboration/05-engineering/tasks/M01/*.json",
+    "docs/archive/frameflow-collaboration/05-engineering/tasks/M01H/*.json"
+  ]
+}

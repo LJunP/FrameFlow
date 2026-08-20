@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frameflow.local/schemas/quality-profile.schema.json",
+  "title": "FrameFlow Select Quality Profile",
+  "type": "object",
+  "required": ["schemaVersion", "name", "templateType", "inputContract", "automationPolicy", "rules", "ranking"],
+  "properties": {
+    "schemaVersion": {"type": "string"},
+    "name": {"type": "string", "minLength": 1, "maxLength": 200},
+    "templateType": {"const": "ECOMMERCE_SHORT_AD_V1"},
+    "inputContract": {
+      "type": "object",
+      "required": ["durationSeconds", "aspectRatio", "audioRequired"],
+      "properties": {
+        "durationSeconds": {"type": "object", "required": ["minimum", "maximum"], "properties": {"minimum": {"type": "number", "minimum": 0}, "maximum": {"type": "number", "maximum": 300}}},
+        "aspectRatio": {"type": "object", "required": ["expected", "tolerance"], "properties": {"expected": {"enum": ["9:16", "1:1", "16:9"]}, "tolerance": {"type": "number", "minimum": 0, "maximum": 0.1}}},
+        "audioRequired": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "automationPolicy": {
+      "type": "object",
+      "required": ["defaultSemanticAction", "semanticAutoRejectEnabled", "unknownResultAction"],
+      "properties": {
+        "defaultSemanticAction": {"const": "REVIEW"},
+        "semanticAutoRejectEnabled": {"const": false},
+        "unknownResultAction": {"const": "REVIEW"}
+      },
+      "additionalProperties": true
+    },
+    "rules": {"type": "array", "items": {"$ref": "#/$defs/rule"}},
+    "ranking": {
+      "type": "object",
+      "required": ["dimensions", "unknownDimensionPolicy"],
+      "properties": {
+        "dimensions": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}},
+        "unknownDimensionPolicy": {"enum": ["RENORMALIZE_AVAILABLE_WEIGHTS", "REVIEW_REQUIRED"]}
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["ruleId", "version", "type", "dimension", "severity", "automationAction", "evidenceRequirement"],
+      "properties": {
+        "ruleId": {"type": "string"},
+        "version": {"type": "integer", "minimum": 1},
+        "type": {"enum": ["HARD_CONSTRAINT", "DETECTOR_THRESHOLD", "SEMANTIC_ASSERTION", "PROHIBITED_ASSERTION"]},
+        "dimension": {"type": "string"},
+        "severity": {"enum": ["BLOCKER", "MAJOR", "MINOR", "INFO"]},
+        "automationAction": {"enum": ["REJECT", "REVIEW", "INFO"]},
+        "evidenceRequirement": {"type": "object"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

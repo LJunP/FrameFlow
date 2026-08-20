@@ -32,3 +32,21 @@ __MACOSX/
 node_modules/
 dist/
 coverage/
+
+# FrameFlow Select generated/local artifacts
+.frameflow/runtime/
+.frameflow/worktrees/
+**/target/
+frameflow-web/node_modules/
+frameflow-web/.next/
+frameflow-ai-worker/.venv/
+frameflow-ai-worker/**/__pycache__/
+experiments/fixtures/generated/
+media/
+derived-media/
+model-cache/
+*.pem
+.env
+.DS_Store
+__MACOSX/
+.zcode/

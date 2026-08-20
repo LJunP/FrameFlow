@@ -1,0 +1,606 @@
+openapi: 3.0.3
+info:
+  title: FrameFlow API v1
+  description: |
+    FrameFlow M01 身份与授权接口的唯一权威契约（契约优先，手写维护）。
+    - 授权模型见 docs/04-api/permission-matrix.md（团队角色 OWNER/PRODUCER/EDITOR/VIEWER；CLIENT 为项目级角色，M02 起）
+    - Token 规则见 docs/04-api/token-contract.md（Access 15min / Refresh 30d / 轮换）
+    - 错误码见 docs/04-api/error-code-catalog.md；无权访问资源统一 404，操作权限不足 403
+    - 每个响应都必须返回 X-Request-Id；错误 body 的 requestId 与该 header 同值
+    - springdoc 生成的运行时文档只用于差异校验，不作为契约来源
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: 本地开发
+security:
+  - bearerAuth: []
+tags:
+  - name: auth
+    description: 注册、登录、Token 生命周期
+  - name: teams
+    description: 团队与成员管理（OWNER 管理操作）
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: 用户注册
+      description: 规范化邮箱已注册时返回 409 `USER_EMAIL_CONFLICT`。
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: 注册成功，返回用户信息
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: 登录，返回 Token 对
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: 刷新 Token（轮换，旧 Refresh Token 立即失效）
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: 新 Token 对
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: 登出，撤销 Refresh Token
+      description: Refresh Token 是唯一凭据，不要求 Access Token；即使 Access Token 已过期，仍可撤销该设备 token family。
+      operationId: logout
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '204':
+          description: 登出成功
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: 当前登录用户
+      operationId: currentUser
+      responses:
+        '200':
+          description: 当前用户信息
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /teams:
+    get:
+      tags: [teams]
+      summary: 发现当前用户加入的有效团队
+      description: 仅返回当前登录用户 status=ACTIVE 的团队成员关系，用于登录后的团队选择；不会返回其他用户或已移除的成员关系。
+      operationId: listMyTeams
+      responses:
+        '200':
+          description: 当前用户的团队成员关系列表
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [teams]
+      summary: 创建团队（创建者自动成为 OWNER；需要 Idempotency-Key）
+      description: 任一 ACTIVE 已认证用户均可创建；团队与创建者 OWNER 关系在同一事务写入。幂等键正在处理返回 409 `IDEMPOTENCY_IN_PROGRESS`，相同键复用于不同 payload 返回 409 `IDEMPOTENCY_CONFLICT`。
+      operationId: createTeam
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeamRequest'
+      responses:
+        '201':
+          description: 团队创建成功
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /teams/{teamId}:
+    get:
+      tags: [teams]
+      summary: 查看团队（仅团队成员；非成员统一 404）
+      operationId: getTeam
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+      responses:
+        '200':
+          description: 团队信息
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /teams/{teamId}/members:
+    get:
+      tags: [teams]
+      summary: 团队 ACTIVE 成员列表（仅团队成员）
+      operationId: listTeamMembers
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+      responses:
+        '200':
+          description: 成员列表
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [teams]
+      summary: 直接添加已注册成员为 ACTIVE（仅 OWNER；需要 Idempotency-Key）
+      description: 已是 ACTIVE 成员返回 409 `TEAM_MEMBER_ALREADY_EXISTS`；REMOVED 关系则复用原记录并恢复为 ACTIVE。幂等冲突使用 `IDEMPOTENCY_CONFLICT` / `IDEMPOTENCY_IN_PROGRESS`。M01 不创建 INVITED 记录。
+      operationId: addTeamMember
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMemberRequest'
+      responses:
+        '201':
+          description: 成员已添加
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /teams/{teamId}/members/{userId}:
+    patch:
+      tags: [teams]
+      summary: 修改成员角色（仅 OWNER；不能把最后一名 OWNER 降级）
+      description: 操作会使团队失去最后一名 ACTIVE OWNER 时返回 409 `TEAM_LAST_OWNER_CONFLICT`。
+      operationId: updateMemberRole
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberRoleRequest'
+      responses:
+        '200':
+          description: 角色已更新
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [teams]
+      summary: 移除成员（仅 OWNER；不能移除自己或最后一名 OWNER）
+      description: 移除自己返回 409 `TEAM_SELF_REMOVAL_FORBIDDEN`；移除最后一名 ACTIVE OWNER 返回 409 `TEAM_LAST_OWNER_CONFLICT`。
+      operationId: removeTeamMember
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: 成员已移除
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TeamId:
+      name: teamId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: 团队 ID
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: 用户 ID
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+        maxLength: 128
+      description: 写操作幂等键（见 docs/04-api/idempotency-contract.md）
+
+  headers:
+    RequestId:
+      description: 本次 HTTP 尝试的请求关联 ID；错误响应 body 的 requestId 必须与本 header 相同
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: 参数校验失败
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: 未认证或 Token 无效/过期
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: 已认证但角色/权限不足（操作级）
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: 资源不存在或无权访问（统一 404 防枚举）
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: 状态或幂等冲突；具体稳定错误码见 error-code-catalog.md
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required: [code, message, requestId]
+      properties:
+        code:
+          type: string
+          description: 稳定错误码，见 error-code-catalog.md
+          example: PROJECT_NOT_FOUND
+        message:
+          type: string
+          example: 项目不存在或无权访问
+        requestId:
+          type: string
+          format: uuid
+          description: 必须与响应 X-Request-Id header 完全相同
+        traceId:
+          type: string
+          description: 可观测环境可选
+    RegisterRequest:
+      type: object
+      required: [email, password, displayName]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 72
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 100
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          minLength: 43
+          maxLength: 43
+          description: 32 字节安全随机值的 Base64URL 无 padding 编码
+    CreateTeamRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+    AddMemberRequest:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+          format: email
+          description: 已注册目标用户邮箱；M01 直接创建或恢复 ACTIVE 成员关系，不发送邀请
+        role:
+          $ref: '#/components/schemas/TeamRole'
+    UpdateMemberRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          $ref: '#/components/schemas/TeamRole'
+    User:
+      type: object
+      required: [id, email, displayName, status]
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, DISABLED, PENDING]
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+    Team:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    TeamMember:
+      type: object
+      required: [id, teamId, userId, email, role, status]
+      properties:
+        id:
+          type: integer
+          format: int64
+        teamId:
+          type: integer
+          format: int64
+        userId:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/TeamRole'
+        status:
+          type: string
+          enum: [ACTIVE]
+          description: M01 成员 API 只返回 ACTIVE 关系；REMOVED 是数据库软删除态，INVITED 待未来邀请流程引入
+    MemberList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMember'
+    TeamMembershipSummary:
+      type: object
+      required: [teamId, name, role, status, createdAt]
+      properties:
+        teamId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/TeamRole'
+        status:
+          type: string
+          enum: [ACTIVE]
+          description: 团队发现端点只返回当前用户的有效成员关系
+        createdAt:
+          type: string
+          format: date-time
+          description: 团队创建时间
+    TeamList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMembershipSummary'
+    TokenPair:
+      type: object
+      required: [accessToken, refreshToken, expiresIn, tokenType]
+      properties:
+        accessToken:
+          type: string
+          description: RS256 JWT，TTL 15 分钟
+        refreshToken:
+          type: string
+          minLength: 43
+          maxLength: 43
+          description: 32 字节安全随机的不透明 Base64URL 字符串；轮换且 TTL 30 天
+        expiresIn:
+          type: integer
+          description: Access Token 有效期（秒）
+          example: 900
+        tokenType:
+          type: string
+          enum: [Bearer]
+    TeamRole:
+      type: string
+      enum: [OWNER, PRODUCER, EDITOR, VIEWER]
+      description: 团队角色（CLIENT 是项目级角色，M02 起，不在团队角色枚举内）
