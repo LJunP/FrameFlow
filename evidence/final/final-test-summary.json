@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "1.0.0",
+  "kind": "FINAL_TEST_SUMMARY_INDEPENDENT_VERIFIER",
+  "subjectCommit": "334a7374ca9546a51d27516385e1f374a7d10049",
+  "branch": "frameflow-select/main",
+  "capturedAtUtc": "2026-08-21T01:37:04.462Z",
+  "independentWorktree": ".frameflow/runtime/worktrees/final-verify (detached at subject commit)",
+  "suites": {
+    "javaFullVerify": {
+      "command": "JAVA_HOME=$(/usr/libexec/java_home -v 17 2>/dev/null || echo $JAVA_HOME) ./mvnw -B clean verify",
+      "exitCode": 0,
+      "status": "PASS",
+      "result": "BUILD SUCCESS",
+      "tests": 35,
+      "failures": 0,
+      "errors": 0,
+      "skippedByFreshEnv": 1,
+      "note": "35 tests, 0 fail, 0 error; 1 skip = SingleCandidateSliceE2ETest auto-skipped in the very first clean pass because the fresh verifier venv was not yet installed; the same test was then run explicitly (below) and PASSED with no skip."
+    },
+    "javaVerticalSliceE2E": {
+      "command": "./mvnw -B -pl frameflow-app -am test -Dtest=SingleCandidateSliceE2ETest,BatchEngineIntegrationTest",
+      "exitCode": 0,
+      "status": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "note": "SingleCandidateSliceE2ETest (real Python worker CLI full loop) + BatchEngineIntegrationTest (2) all executed, 0 skipped, BUILD SUCCESS."
+    },
+    "python": {
+      "command": "cd frameflow-ai-worker && PYTHONPATH=src .venv/bin/python -m pytest",
+      "exitCode": 0,
+      "status": "PASS",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "note": "First clean run: 10 passed/10 skipped because synthetic fixtures not yet generated; after generating fixtures in the verifier worktree: 20 passed, 0 skipped. Fixtures are reproducible from the committed generator + bundled static-ffmpeg."
+    },
+    "web": {
+      "command": "cd frameflow-web && npm install && npm run build",
+      "exitCode": 0,
+      "status": "PASS",
+      "note": "Fresh npm install (107 packages) then production build; build succeeded (8 App-Router routes; TypeScript type-check on build). Lint script present (dev,build,start,lint)."
+    },
+    "syntheticEval": {
+      "command": "PYTHONPATH=src .venv/bin/python -m frameflow_ai.eval --dataset experiments/fixtures/generated --profile experiments/fixtures/profile-ECOMMERCE_SHORT_AD_V1.json",
+      "exitCode": 0,
+      "status": "PASS",
+      "casesTotal": 10,
+      "tested": 10,
+      "matchedExpected": 10,
+      "failures": 0,
+      "note": "Synthetic fixtures regenerated from committed generator; offline evaluation matched expected 10/10."
+    },
+    "singleAnalyzeCli": {
+      "command": "PYTHONPATH=src .venv/bin/python -m frameflow_ai.cli analyze .../normal_vertical.mp4 <profile>",
+      "status": "PASS",
+      "note": "status=COMPLETED decision=ELIGIBLE findings=6."
+    },
+    "openApiConsistency": {
+      "note": "OpenApiDiffTest part of Java full verify suite (com.frameflow.identity.OpenApiDiffTest) - PASS within 35 tests.",
+      "status": "PASS"
+    },
+    "migrations": {
+      "note": "Fresh DB MigrationTest (V1-V8 from empty schema) and V2SchemaBoundaryTest included in Java verify suite - PASS. Applied V1-V3 byte-identical to legacy tag (verified in S2 gate).",
+      "status": "PASS"
+    },
+    "permissionNegative": {
+      "note": "CrossTeamAccessTest, PermissionTest, OwnerInvariantsTest included in verify suite - PASS.",
+      "status": "PASS"
+    }
+  },
+  "sourceZip": {
+    "path": "dist/frameflow-select-source.zip",
+    "files": 546,
+    "sizeBytes": 0,
+    "sha256": "20dd9738503a7d4501363f4ddea77769c6ca697866f95dc1a371668a40dc91fa",
+    "ziptest": true,
+    "exclusions": "0 forbidden entries (.git, node_modules, .next, target, .venv, .pem, .env, .DS_Store, __MACOSX, data/media, __pycache__)",
+    "includes": "java (pom+app+product module), python worker, web app (package.json + app pages), 6 books, RUNBOOK.md, FINAL-HANDOVER.md, contracts schemas",
+    "reExtract": "unzip + integrity verified; worker package imports from extracted source."
+  },
+  "secretScan": {
+    "result": "3 possible_secret warnings, all confirmed false positives",
+    "details": [
+      ".frameflow/decision-policy.yaml:52 missing_api_key: use_fake_provider_and_continue -> policy text word 'missing_api_key', not a key",
+      "FRAMEFLOW_SELECT_AUTOPILOT/execution/DECISION-POLICY.yaml:52 same authoritative policy line",
+      "evidence/frameflow-select/s2/s2-domain-verdict.txt:65-66 quotes the two warning path strings (historical evidence)"
+    ],
+    "noRealSecrets": "No real API key / token / JWT / private key / password / .env / certificate found. Only tracked .env.example templates present (intended).",
+    "handling": "Authoritative pack file, validator and historical evidence left unchanged per contract."
+  },
+  "externalValidation": "EXTERNAL_VALIDATION_PENDING",
+  "overall": "PASS"
+}

@@ -159,3 +159,28 @@ The following are **explicitly NOT claimed** and remain external:
   GPU infrastructure, automatic publishing.
 
 The local MVP is complete; the above are the next, externally-validated steps.
+
+-----
+
+## 7. Independent final verification (local handover)
+
+Executed by an independent verifier in a disposable detached worktree at the final
+subject commit, then re-confirmed from committed sources in the main workspace
+(no reuse of implementation build outputs or test results).
+
+- **Subject commit:** `334a7374ca9546a51d27516385e1f374a7d10049` (branch `frameflow-select/main`)
+- **Verdict:** `PASS` — see `evidence/final/final-verdict.md`
+- **Java:** `./mvnw -B clean verify` → BUILD SUCCESS, 35 tests, 0 failures, 0 errors;
+  single-candidate + batch E2E (3/3, 0 skipped) with the real Python worker CLI
+- **Python:** `PYTHONPATH=src .venv/bin/python -m pytest` → 20 passed (after generating synthetic fixtures)
+- **Web:** `cd frameflow-web && npm install && npm run build` → PASS (8 App-Router routes, TS type-check on build)
+- **Synthetic offline eval:** 10/10 matched expected, 0 failures
+- **Source archive:** `dist/frameflow-select-source.zip` — 546 files,
+  SHA-256 `20dd9738503a7d4501363f4ddea77769c6ca697866f95dc1a371668a40dc91fa`,
+  re-extract + integrity verified; 0 forbidden entries
+- **Secret scan:** 3 `possible_secret` warnings, each confirmed as a documented
+  policy/history false positive; no real secret present
+- **External status:** `EXTERNAL_VALIDATION_PENDING` (unchanged, not claimed)
+
+Local handover is **COMPLETE** within the local MVP scope; external validation
+remains explicitly pending (see section 6).
