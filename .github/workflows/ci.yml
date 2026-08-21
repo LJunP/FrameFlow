@@ -1,40 +1,41 @@
-name: FrameFlow CI
+name: FrameFlow Select CI (learning skeleton)
 
 on:
   push:
-    branches: [main]
+    branches:
+      - frameflow-select/learning-main
   pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  p0-build:
+  java:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
-          cache: maven
+          java-version: "21"
+      - run: ./mvnw -B -q verify
 
-      - name: Validate Compose
-        run: docker compose -f docker-compose.local.yml config --quiet
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest
+      - run: python -m pytest frameflow-ai-worker/tests -q
 
-      - name: Build and test
-        env:
-          DOCKER_API_VERSION: "1.44"
-        run: ./mvnw -B clean verify
-
-      - name: Verify repository hygiene
-        env:
-          FRAMEFLOW_HYGIENE_OUTPUT: /tmp/frameflow-repo-hygiene.txt
-          FRAMEFLOW_HYGIENE_REQUIRE_ZCODE: "false"
-        run: sh scripts/p0/check-repo-hygiene.sh
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm --prefix frameflow-web install
+      - run: npm --prefix frameflow-web run build

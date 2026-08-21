@@ -1,0 +1,25 @@
+# LR0-A001(AGENT_SUPPORT,已完成)
+id: LR0-A001
+stage: LR0
+owner: AGENT_SUPPORT
+goal: 保留自动生成 MVP 为参考基线,建立学习主线最小骨架,安装六本手册与 .learning 控制文件
+whyItMatters: 让项目所有者从最小起点亲手重建,同时完整保护旧成果可对照
+prerequisites: [none]
+nonGoals: [不实现任何业务功能,不复制参考实现]
+readSet: [docs/books/BOOK-01, docs/books/BOOK-06]
+writeSet: [根目录结构, docs/books/, .learning/, 最小骨架模块]
+manualSteps: [无(本任务由 Agent 完成)]
+allowedAgentHelp: 全部(AGENT_SUPPORT)
+acceptanceCriteria:
+  - tag frameflow-select-agent-mvp-v1.0.0 指向已验证 MVP commit
+  - archive/frameflow-select-agent-mvp-v1 分支仅保留旧成果
+  - frameflow-select/learning-main 为最小可运行骨架,无完整业务实现
+  - 六本 BOOK 就位,.learning 机器控制就位
+  - 最小骨架 Java/Python/Web 验证通过,文档与 Secret 校验通过
+  - 工作树干净,未 push
+automatedTests: [scripts/validate_learning.py]
+manualEvidence: [重构 commit, Git 引用清单]
+explainBackQuestions: [为什么学习主线不能保留完整实现]
+failureDrill: [从 tag 恢复任意误删文件]
+rollback: git checkout tag 或 archive 分支
+status: DONE

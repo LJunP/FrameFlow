@@ -31,6 +31,11 @@ __MACOSX/
 # Node frontend artifacts
 node_modules/
 dist/
+
+# Learning project runtime/pilot data (must never be committed)
+local-pilot-data/
+docs/archive/agent-experiments/fixtures/generated/
+docs/archive/agent-state/runtime/
 coverage/
 
 # FrameFlow Select generated/local artifacts

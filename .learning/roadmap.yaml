@@ -1,0 +1,96 @@
+version: 1.0.0
+project: FrameFlow Select (learning-first)
+target_status: LEARNING_PROJECT_COMPLETE
+stages:
+  - id: LR0
+    name: 保留旧成果并建立学习主线
+    owner: AGENT_SUPPORT
+    gate: LEARNING_REBUILD_READY
+    status: DONE
+  - id: LR1
+    name: Git、Java 与最小垂直切片基础
+    owner: HUMAN_CORE
+    gate: FOUNDATION_SKILLS_ACCEPTED
+    status: PENDING
+    first_task: LR1-H001
+  - id: LR2
+    name: Linux 服务器与 SSH
+    owner: HUMAN_CORE
+    gate: NONPROD_LINUX_READY
+    status: PENDING
+    first_task: LR2-H001
+  - id: LR3
+    name: Docker 与基础服务手工部署
+    owner: HUMAN_CORE
+    gate: NONPROD_INFRA_READY
+    status: PENDING
+  - id: LR4
+    name: 环境隔离与第一个服务器版本
+    owner: HUMAN_CORE+PAIR
+    gate: FIRST_SERVER_RELEASE_ACCEPTED
+    status: PENDING
+  - id: LR5
+    name: 身份、团队与权限
+    owner: HUMAN_CORE
+    gate: IDENTITY_SLICE_ACCEPTED
+    status: PENDING
+  - id: LR6
+    name: Project、Quality Profile 与数据库设计
+    owner: HUMAN_CORE
+    gate: DOMAIN_FOUNDATION_ACCEPTED
+    status: PENDING
+  - id: LR7
+    name: Redis 工程实践
+    owner: HUMAN_CORE
+    gate: REDIS_ENGINEERING_ACCEPTED
+    status: PENDING
+  - id: LR8
+    name: Batch、Candidate 与 MinIO
+    owner: HUMAN_CORE+PAIR
+    gate: MEDIA_INGEST_ACCEPTED
+    status: PENDING
+  - id: LR9
+    name: RabbitMQ、异步任务和可靠性
+    owner: HUMAN_CORE
+    gate: ASYNC_ENGINE_ACCEPTED
+    status: PENDING
+  - id: LR10
+    name: Python 视频处理
+    owner: HUMAN_CORE
+    gate: DETERMINISTIC_VIDEO_QA_ACCEPTED
+    status: PENDING
+  - id: LR11
+    name: 多模态 AI 与 Evaluation
+    owner: HUMAN_CORE+PAIR
+    gate: AI_QA_ACCEPTED
+    status: PENDING
+  - id: LR12
+    name: Web 产品与完整联调
+    owner: HUMAN_CORE+PAIR
+    gate: FULL_STACK_PRODUCT_ACCEPTED
+    status: PENDING
+  - id: LR13
+    name: CI/CD 和环境晋级
+    owner: HUMAN_CORE
+    gate: DELIVERY_PIPELINE_ACCEPTED
+    status: PENDING
+  - id: LR14
+    name: Production 上线
+    owner: HUMAN_CORE
+    gate: PRODUCTION_RELEASE_ACCEPTED
+    status: PENDING
+  - id: LR15
+    name: 监控、日志、备份和事故演练
+    owner: HUMAN_CORE
+    gate: OPERATIONS_SKILLS_ACCEPTED
+    status: PENDING
+  - id: LR16
+    name: 真实用户和真实视频验证
+    owner: HUMAN_CORE+PAIR
+    gate: PILOT_VALUE_PROVEN_OR_NOT
+    status: PENDING
+  - id: LR17
+    name: 最终个人能力验收
+    owner: HUMAN_CORE (owner approval only)
+    gate: LEARNING_PROJECT_COMPLETE
+    status: PENDING

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LearningTask",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "stage", "owner", "goal", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^(LR[0-9]+)-(H|P|A)[0-9]+$" },
+    "stage": { "type": "string" },
+    "owner": { "enum": ["HUMAN_CORE", "PAIR", "AGENT_SUPPORT"] },
+    "goal": { "type": "string" },
+    "whyItMatters": { "type": "string" },
+    "prerequisites": { "type": "array", "items": { "type": "string" } },
+    "nonGoals": { "type": "array", "items": { "type": "string" } },
+    "readSet": { "type": "array", "items": { "type": "string" } },
+    "writeSet": { "type": "array", "items": { "type": "string" } },
+    "manualSteps": { "type": "array", "items": { "type": "string" } },
+    "allowedAgentHelp": { "type": "string" },
+    "acceptanceCriteria": { "type": "array", "items": { "type": "string" } },
+    "automatedTests": { "type": "array", "items": { "type": "string" } },
+    "manualEvidence": { "type": "array", "items": { "type": "string" } },
+    "explainBackQuestions": { "type": "array", "items": { "type": "string" } },
+    "failureDrill": { "type": "string" },
+    "rollback": { "type": "string" },
+    "status": { "enum": ["READY", "IN_PROGRESS", "DONE", "BLOCKED"] }
+  }
+}

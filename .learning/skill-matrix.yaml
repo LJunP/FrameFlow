@@ -1,0 +1,74 @@
+version: 1.0.0
+# 能力矩阵:每项能力只有项目所有者亲自完成并提交 Evidence + Explain-back 后才
+# 能标记 mastered。Agent 无权自行标记。
+skills:
+  - id: git
+    name: Git 公司式流程
+    stages: [LR1, LR13]
+    level: 0
+    status: not_started
+  - id: java
+    name: Java 21 + Spring Boot 3.x
+    stages: [LR1, LR5, LR6, LR9]
+    level: 0
+    status: not_started
+  - id: database
+    name: PostgreSQL / Flyway / SQL / 索引 / 事务
+    stages: [LR6, LR9, LR15]
+    level: 0
+    status: not_started
+  - id: redis
+    name: Redis 工程实践
+    stages: [LR7]
+    level: 0
+    status: not_started
+  - id: rabbitmq
+    name: RabbitMQ 异步与可靠性
+    stages: [LR9]
+    level: 0
+    status: not_started
+  - id: minio
+    name: MinIO / S3 对象存储
+    stages: [LR8]
+    level: 0
+    status: not_started
+  - id: python
+    name: Python 视频处理与 AI 评估
+    stages: [LR10, LR11]
+    level: 0
+    status: not_started
+  - id: web
+    name: Next.js 前后端联调
+    stages: [LR12]
+    level: 0
+    status: not_started
+  - id: linux
+    name: Linux 运维基础
+    stages: [LR2]
+    level: 0
+    status: not_started
+  - id: docker
+    name: Docker / Compose 部署
+    stages: [LR3, LR4]
+    level: 0
+    status: not_started
+  - id: ci
+    name: CI/CD 与镜像晋级
+    stages: [LR13]
+    level: 0
+    status: not_started
+  - id: ops
+    name: 监控/日志/备份/故障恢复
+    stages: [LR15]
+    level: 0
+    status: not_started
+  - id: deploy
+    name: Nginx/HTTPS/域名/生产上线
+    stages: [LR14]
+    level: 0
+    status: not_started
+  - id: evaluation
+    name: AI Evaluation 与产品指标
+    stages: [LR11, LR16]
+    level: 0
+    status: not_started

@@ -1,20 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "frameflow-ai-worker"
 version = "0.1.0"
-description = "FrameFlow Select AI worker: deterministic media QA, semantic provider SPI, duplicate clustering, evaluation"
+description = "FrameFlow Select AI worker (learning skeleton: no business detectors yet)"
 requires-python = ">=3.11"
-dependencies = [
-  "static-ffmpeg>=3.0",
-  "Pillow>=10.0",
-  "jsonschema>=4.20",
-]
 
-[project.optional-dependencies]
-test = ["pytest>=8.0", "pytest-cov"]
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
 
-[build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/frameflow_ai"]

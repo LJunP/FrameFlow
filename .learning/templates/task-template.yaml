@@ -1,0 +1,19 @@
+# Task 模板
+id: LRX-H000
+stage: LRX
+owner: HUMAN_CORE            # HUMAN_CORE | PAIR | AGENT_SUPPORT
+goal: 一句话目标
+whyItMatters: 为什么这项能力重要
+prerequisites: []
+nonGoals: []
+readSet: []                  # 必须先读的书/文档/章节
+writeSet: []                 # 允许修改/创建的文件范围
+manualSteps: []              # 所有者手工步骤(Agent 只给清单,不给完整答案)
+allowedAgentHelp: 允许的 Agent 协助范围
+acceptanceCriteria: []       # 必须全部满足
+automatedTests: []           # 必须通过
+manualEvidence: []           # 操作记录/脱敏输出/失败记录/问题定位/解决方式/总结
+explainBackQuestions: []     # 项目所有者必须能回答
+failureDrill: 故障演练要求
+rollback: 回滚方案
+status: READY                # READY | IN_PROGRESS | DONE | BLOCKED

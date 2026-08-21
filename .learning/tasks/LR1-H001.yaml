@@ -1,0 +1,46 @@
+# LR1-H001(HUMAN_CORE,第一个待办任务)
+id: LR1-H001
+stage: LR1
+owner: HUMAN_CORE
+goal: 建立个人开发基线:掌握 Git 分支流程、Maven、Java 21、最小 Spring Boot 功能与测试
+whyItMatters: 后续一切开发、联调、部署都建立在这组工具之上;不掌握工具,后面所有阶段都会卡住
+prerequisites:
+  - 本地安装 JDK 21 与任一 IDE(或命令行工具)
+  - 已通读 docs/books/BOOK-01 与 BOOK-06
+nonGoals: [不实现任何业务实体,不做数据库,不做前端]
+readSet:
+  - docs/books/BOOK-04(流程)
+  - frameflow-app/src/main/java/com/frameflow/learning/LearningApplication.java(现有骨架)
+  - 根 pom.xml 与 frameflow-app/pom.xml
+writeSet:
+  - frameflow-app/src/main/java/com/frameflow/learning/(可新增文件)
+  - frameflow-app/src/test/java/com/frameflow/learning/
+  - feature 分支名:feature/lr1-h001-个人开发基线
+manualSteps:
+  - 用 git checkout -b 创建 feature 分支并熟悉 add/commit/status/log/diff
+  - 本地运行 ./mvnw -B -q verify 观察构建与测试
+  - 亲自实现:一个新的健康信息接口(例如 GET /api/v1/learning/ping 返回版本与时间)
+  - 亲自实现:一个配置读取功能(读取 application.yml 中的自定义属性)
+  - 亲自实现:一个单元测试与一个集成测试(@SpringBootTest)覆盖上述功能
+  - 提交与合并:commit 后发起合并到 frameflow-select/learning-main 并复查
+allowedAgentHelp: 只提供分层提示(先目标与验收,后文件级提示)、审查命令、审查 Commit;不提供接口与测试完整代码
+acceptanceCriteria:
+  - 新接口可运行,通过 curl 验证
+  - 配置读取生效(改配置可见变化)
+  - 单元测试与集成测试通过(./mvnw -B -q verify 全绿)
+  - 分支合并完成,learning-main 包含全部提交
+automatedTests:
+  - ./mvnw -B -q verify
+manualEvidence:
+  - 操作记录(命令清单)
+  - 脱敏命令输出(curl/测试结果)
+  - 失败记录与问题定位过程(如有)
+  - 个人总结一段
+explainBackQuestions:
+  - 解释 Git 分支、commit、merge 的含义与你的用法
+  - 解释 Spring Boot 启动流程与你新增接口的调用链
+  - 解释 @SpringBootTest 与普通单元测试的区别
+  - 解释 Maven 生命周期(build/test/package)在本任务中的角色
+failureDrill: [故意在一个文件里制造编译错误并修复,记录过程]
+rollback: git revert 最后一次合并或 git checkout 单个文件
+status: READY

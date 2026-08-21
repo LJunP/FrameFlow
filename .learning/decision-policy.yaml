@@ -1,0 +1,29 @@
+version: 1.0.0
+# Agent 行为决策政策(学习项目)
+rules:
+  1: 当前只能有一个 Active Stage。
+  2: 同时最多一个主要开发任务和一个验证任务。
+  3: 同一实现策略最多尝试两次。
+  4: 第二次失败后必须输出根因和更小替代方案。
+  5: 不得通过不断重写文档代替代码。
+  6: 不得通过不断加技术代替解决用户问题。
+  7: 不得因为公司也用就强行加入某项基础设施。
+  8: Redis、RabbitMQ、MinIO 都必须有明确业务用途。
+  9: 禁止新增微服务、Kafka、Kubernetes、Istio,除非有真实测量证据。
+  10: 六本手册封顶,禁止第七本。
+  11: 参考 Agent MVP 不得被复制回来绕过学习。
+  12: Agent 不得替项目所有者完成 HUMAN_CORE。
+  13: Agent 不得自行宣布项目所有者掌握某项能力。
+  14: Agent 不得自行设置 LEARNING_PROJECT_COMPLETE。
+  15: 产品功能、工程能力和个人能力必须分别验收。
+task_ownership:
+  HUMAN_CORE: 解释/任务说明/检查清单/分层提示/审查命令与结果/分析故障/验证脚本/审查 Commit;不得代做或提交最终结果。
+  PAIR: 所有者完成核心后,可协助异常处理/测试/重构/SQL/性能/前端体验/Docker/CI;完成后仍要求所有者解释调用链与失败路径。
+  AGENT_SUPPORT: 迁移/归档/目录/测试基础设施/非核心样板/代码审查/日志分析/文档校验/安全扫描/独立验证。
+environments:
+  - local
+  - dev
+  - staging
+  - production
+secrets:
+  policy: 密钥只存在于服务器或 CI Secret Store;不进 Git、不写日志、不进前端、不同环境独立。
