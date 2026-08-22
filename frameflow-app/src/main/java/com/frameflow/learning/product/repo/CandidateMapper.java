@@ -45,19 +45,23 @@ public interface CandidateMapper {
             + "WHERE id = #{id} AND status = 'UPLOADED'")
     int markAnalyzing(Long id);
 
-    /** 结果回写：ANALYZED / AUTO_REJECT / ANALYSIS_ERROR 三选一。 */
+    /** 结果回写：状态三选一 + 探针字段 + F7 指纹（content_hash/phash）一并落列。 */
     @Update("UPDATE candidates SET status = #{status}, updated_at = now(), "
             + "duration_ms = COALESCE(#{durationMs}, duration_ms), "
             + "width = COALESCE(#{width}, width), "
             + "height = COALESCE(#{height}, height), "
-            + "fps = COALESCE(#{fps}, fps) "
+            + "fps = COALESCE(#{fps}, fps), "
+            + "content_hash = COALESCE(#{contentHash}, content_hash), "
+            + "phash = COALESCE(#{phash}, phash) "
             + "WHERE id = #{id} AND status = 'ANALYZING'")
     int markAnalysisResult(@Param("id") Long id,
                            @Param("status") String status,
                            @Param("durationMs") Long durationMs,
                            @Param("width") Integer width,
                            @Param("height") Integer height,
-                           @Param("fps") Double fps);
+                           @Param("fps") Double fps,
+                           @Param("contentHash") String contentHash,
+                           @Param("phash") String phash);
 
     /** 登记后回填上传会话信息（简单/分片 + S3 uploadId）。 */
     @Update("UPDATE candidates SET upload_mode = #{mode}, s3_upload_id = #{uploadId}, "

@@ -76,6 +76,13 @@ def _run_detectors(run_id: int, local_path: str, task: dict,
         sampled, stamps, provider=None, candidate_hint=task.get("objectKey", "")))
 
     info = {k: v for k, v in probe_result.to_dict().items() if k != "hasAudio"}
+
+    # F7 重复检测指纹：字节级精确指纹 + 中间帧感知哈希（复用抽帧结果）
+    from .detectors import phash as phash_mod
+    info["contentHash"] = phash_mod.file_sha256(local_path)
+    if sampled:
+        info["phash"] = phash_mod.dhash(sampled[len(sampled) // 2])
+
     return AnalysisOutcome(run_id=run_id, ok=True, worker_version=worker_version,
                            findings=findings, probe_info=info)
 

@@ -192,6 +192,53 @@ paths:
       summary: 候选的完整 Finding 列表（含通过项证据）
       responses:
         "200": { description: Finding 列表 }
+  /api/v1/batches/{id}/rank:
+    post:
+      tags: [ranking]
+      summary: 触发排名（资格门+加权评分+聚类去重，生成不可变快照）
+      responses:
+        "201": { description: 快照摘要 }
+  /api/v1/batches/{id}/ranking/latest:
+    get:
+      tags: [ranking]
+      summary: 最新排名快照及其全部条目
+      responses:
+        "200": { description: 快照与条目 }
+  /api/v1/batches/{id}/selections:
+    get:
+      tags: [selection]
+      summary: 批次的优选集列表
+      responses:
+        "200": { description: 优选集列表 }
+    post:
+      tags: [selection]
+      summary: 创建优选集（机器 Top-K 打底，DRAFT 态）
+      responses:
+        "201": { description: 已创建 }
+  /api/v1/selections/{id}:
+    get:
+      tags: [selection]
+      summary: 优选集详情（含机器/人工两列标记）
+      responses:
+        "200": { description: 优选集详情 }
+  /api/v1/selections/{id}/items:
+    post:
+      tags: [selection]
+      summary: 人工叠加调整（INCLUDE/EXCLUDE，不改写机器标记；仅 DRAFT）
+      responses:
+        "200": { description: 调整后的优选集 }
+  /api/v1/selections/{id}/lock:
+    post:
+      tags: [selection]
+      summary: 锁定优选集（DRAFT→LOCKED 单向不可逆）
+      responses:
+        "200": { description: 锁定后的优选集 }
+  /api/v1/selections/{id}/export:
+    get:
+      tags: [selection]
+      summary: 导出（仅 LOCKED；format=json|csv）
+      responses:
+        "200": { description: 导出内容 }
   /api/v1/internal/analysis-results:
     post:
       tags: [internal]

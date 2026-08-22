@@ -37,7 +37,13 @@ def test_happy_path_payload_shape(monkeypatch):
     task = {"runId": 9, "objectKey": "k",
             "profileSpec": '{"dimensions":{"duration":{"min":5,"max":20}}}',
             "briefContent": "b"}
-    outcome = pipeline.analyze(task, lambda k, l: None, "test")
+
+    def download(_key, local):
+        # F7 起管线会计算文件 SHA-256，桩必须真的落盘
+        with open(local, "wb") as f:
+            f.write(b"stub-bytes")
+
+    outcome = pipeline.analyze(task, download, "test")
     payload = outcome.to_payload()
     assert payload["ok"] is True
     assert payload["durationMs"] == 8000

@@ -15,6 +15,8 @@ public class CandidateRow {
     private String uploadMode;
     private String s3UploadId;
     private String etag;
+    private String contentHash;
+    private String phash;
     private Long durationMs;
     private Integer width;
     private Integer height;
@@ -45,6 +47,10 @@ public class CandidateRow {
     public void setS3UploadId(String s3UploadId) { this.s3UploadId = s3UploadId; }
     public String getEtag() { return etag; }
     public void setEtag(String etag) { this.etag = etag; }
+    public String getContentHash() { return contentHash; }
+    public void setContentHash(String contentHash) { this.contentHash = contentHash; }
+    public String getPhash() { return phash; }
+    public void setPhash(String phash) { this.phash = phash; }
     public Long getDurationMs() { return durationMs; }
     public void setDurationMs(Long durationMs) { this.durationMs = durationMs; }
     public Integer getWidth() { return width; }
