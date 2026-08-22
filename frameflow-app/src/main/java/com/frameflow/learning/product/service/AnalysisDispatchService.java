@@ -104,7 +104,7 @@ public class AnalysisDispatchService {
         Boolean confirmed = rabbitTemplate.invoke(operation -> {
             operation.convertAndSend(
                     RabbitConfig.TASK_EXCHANGE, RabbitConfig.TASK_ROUTING_KEY, message);
-            return operation.waitForConfirms(5);
+            return operation.waitForConfirms(5_000);
         });
         if (!Boolean.TRUE.equals(confirmed)) {
             throw new ApiException(ErrorCode.INTERNAL_ERROR,

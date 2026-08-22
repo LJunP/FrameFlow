@@ -192,6 +192,12 @@ paths:
       summary: 候选的完整 Finding 列表（含通过项证据）
       responses:
         "200": { description: Finding 列表 }
+  /api/v1/candidates/{id}/content-url:
+    get:
+      tags: [analysis]
+      summary: 候选媒体的短时效播放地址（审阅页视频源）
+      responses:
+        "200": { description: 预签名 GET URL 与过期时间 }
   /api/v1/batches/{id}/rank:
     post:
       tags: [ranking]

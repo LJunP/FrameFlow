@@ -78,6 +78,17 @@ public class S3StorageAdapter implements StoragePort {
     }
 
     @Override
+    public String presignGet(String objectKey, Duration ttl) {
+        ensureBucket();
+        var get = software.amazon.awssdk.services.s3.model.GetObjectRequest.builder()
+                .bucket(props.bucket()).key(objectKey).build();
+        return presigner.presignGetObject(
+                software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
+                        .builder().signatureDuration(ttl).getObjectRequest(get).build())
+                .url().toString();
+    }
+
+    @Override
     public String initiateMultipart(String objectKey) {
         ensureBucket();
         return s3.createMultipartUpload(CreateMultipartUploadRequest.builder()

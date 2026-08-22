@@ -16,6 +16,9 @@ public interface StoragePort {
     /** 预签名单次 PUT 直传 URL（客户端带文件体直接 PUT 到此地址）。 */
     String presignPut(String objectKey, Duration ttl);
 
+    /** 预签名 GET 下载/播放 URL（F8 审阅页的视频源）。 */
+    String presignGet(String objectKey, Duration ttl);
+
     /** 发起分片上传会话，返回 S3 uploadId。 */
     String initiateMultipart(String objectKey);
 
