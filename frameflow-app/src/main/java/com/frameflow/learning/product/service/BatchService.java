@@ -41,11 +41,13 @@ public class BatchService {
     private final StoragePort storage;
     private final StorageProperties storageProps;
     private final Clock clock;
+    private final ProgressCacheService progressCache;
 
     public BatchService(BatchMapper batches, CandidateMapper candidates,
                         ProjectMapper projects, QualityProfileMapper profiles,
                         TeamAccessService teamAccess, StoragePort storage,
-                        StorageProperties storageProps, Clock clock) {
+                        StorageProperties storageProps, Clock clock,
+                        ProgressCacheService progressCache) {
         this.batches = batches;
         this.candidates = candidates;
         this.projects = projects;
@@ -54,6 +56,7 @@ public class BatchService {
         this.storage = storage;
         this.storageProps = storageProps;
         this.clock = clock;
+        this.progressCache = progressCache;
     }
 
     @Transactional
@@ -81,12 +84,36 @@ public class BatchService {
 
     public BatchResponse get(long userId, long batchId) {
         BatchRow batch = requireBatchOfMyTeam(userId, batchId);
+        // F5：进度统计走 Cache-Aside——热批次的轮询不再每次打库；
+        // TTL 30s + 写后失效双保险（见 ProgressCacheService ★ 注释）
+        Map<String, Integer> counts = progressCache.getOrLoad(batchId, () -> countsFromDb(batchId));
+        QualityProfileVersionRow version = profiles.findVersionById(batch.getProfileVersionId());
+        return toResponse(batch, version.getVersionNo(), counts);
+    }
+
+    private Map<String, Integer> countsFromDb(long batchId) {
         Map<String, Integer> counts = new HashMap<>();
         for (CandidateMapper.StatusCount sc : candidates.countByStatus(batchId)) {
             counts.put(sc.getStatus(), sc.getCnt());
         }
-        QualityProfileVersionRow version = profiles.findVersionById(batch.getProfileVersionId());
-        return toResponse(batch, version.getVersionNo(), counts);
+        return counts;
+    }
+
+    /**
+     * F5：缓存优先的进度查询（高频轮询专用端点）。
+     * 与 get() 的区别：get() 先做归属校验（必然查库），缓存只省聚合查询；
+     * 本方法缓存优先——不存在的批次以"哨兵"缓存，重复扫 ID 连主键查询都省掉。
+     * 授权检查只对真实存在的批次执行（在加载器内）。
+     */
+    public Map<String, Integer> progressOf(long userId, long batchId) {
+        return progressCache.getOrLoad(batchId, () -> {
+            BatchRow row = batches.findById(batchId);
+            if (row == null) {
+                return null;   // → 空值哨兵，防穿透
+            }
+            teamAccess.requireMember(userId, batchTeamId(row));
+            return countsFromDb(batchId);
+        });
     }
 
     @Transactional
@@ -124,6 +151,7 @@ public class BatchService {
                 + "/" + sanitize(req.fileName());
         Long candidateId = candidates.insert(batchId, sanitize(req.fileName()),
                 req.contentType(), req.sizeBytes(), objectKey, userId);
+        progressCache.evict(batchId);   // 候选数量变了，进度缓存立即失效
 
         // ★ 核心：先落库再发凭证，S3 调用失败时事务回滚不留孤儿行；
         // 反向顺序（先 S3 后落库）失败会留下无主对象。注意 S3 的分片会话

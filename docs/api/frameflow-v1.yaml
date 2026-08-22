@@ -145,6 +145,12 @@ paths:
       summary: 关闭批次（停止接收上传，幂等）
       responses:
         "200": { description: 关闭后的批次 }
+  /api/v1/batches/{id}/progress:
+    get:
+      tags: [batch]
+      summary: 批次进度（缓存优先，轮询友好；不存在的批次返回空对象）
+      responses:
+        "200": { description: 各状态候选计数 }
   /api/v1/batches/{id}/candidates:
     get:
       tags: [batch]

@@ -49,6 +49,13 @@ public class BatchController {
         return batchService.get(Long.parseLong(jwt.getSubject()), id);
     }
 
+    /** F5：缓存优先的进度查询（轮询友好，含穿透防护哨兵）。 */
+    @GetMapping("/{id}/progress")
+    public java.util.Map<String, Integer> progress(@AuthenticationPrincipal Jwt jwt,
+                                                   @PathVariable long id) {
+        return batchService.progressOf(Long.parseLong(jwt.getSubject()), id);
+    }
+
     @PostMapping("/{id}/close")
     public BatchResponse close(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
         return batchService.close(Long.parseLong(jwt.getSubject()), id);
