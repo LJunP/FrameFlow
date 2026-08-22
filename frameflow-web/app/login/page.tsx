@@ -65,7 +65,7 @@ export default function LoginPage() {
         >
           {mode === 'login' ? '没有账号？注册' : '已有账号？登录'}
         </button>
-        {error && <div className="error">{error}</div>}
+        {error && <div className="notice bad">{error}</div>}
       </form>
     </div>
   );
