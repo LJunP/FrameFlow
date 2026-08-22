@@ -41,10 +41,12 @@ public class AuthService {
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
     private final Clock clock;
+    private final TeamAccessService teamAccess;
 
     public AuthService(UserMapper users, TeamMapper teams, MemberMapper members,
                        RefreshTokenMapper refreshTokens, TokenService tokenService,
-                       PasswordEncoder passwordEncoder, Clock clock) {
+                       PasswordEncoder passwordEncoder, Clock clock,
+                       TeamAccessService teamAccess) {
         this.users = users;
         this.teams = teams;
         this.members = members;
@@ -52,6 +54,7 @@ public class AuthService {
         this.tokenService = tokenService;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
+        this.teamAccess = teamAccess;
     }
 
     /**
@@ -138,18 +141,11 @@ public class AuthService {
 
     /**
      * 团队成员列表：404（不在团队）→ 403（在团队但非 OWNER）→ 200。
+     * 判定逻辑已抽到 TeamAccessService（F2 起全项目复用同一规则），
+     * 404-先-403 的防枚举语义见那里的 ★ 注释。
      */
-    // ★ 核心：404 在 403 之前——"不属于你的团队"一律回 404（资源不存在），
-    // 而不是 403（存在但你无权）：403 等于向试探者承认"这个团队 ID 存在"，
-    // 这是防枚举（anti-enumeration）的标准做法。顺序不能反。
     public List<MemberResponse> teamMembers(long userId, long teamId) {
-        MemberRow member = members.findByUserAndTeam(userId, teamId);
-        if (member == null) {
-            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND);
-        }
-        if (!Role.OWNER.name().equals(member.getRole())) {
-            throw new ApiException(ErrorCode.FORBIDDEN);
-        }
+        teamAccess.requireRole(userId, teamId, Role.OWNER);
         return members.listByTeam(teamId).stream()
                 .map(this::toMemberResponse)
                 .toList();
