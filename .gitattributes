@@ -1,6 +1,5 @@
 .zcode/ export-ignore
 .codex/ export-ignore
 evidence/ export-ignore
-docs/08-learning/legacy/ export-ignore
 .DS_Store export-ignore
 __MACOSX/ export-ignore
