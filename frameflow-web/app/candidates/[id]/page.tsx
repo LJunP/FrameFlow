@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useApi } from '@/lib/api';
-import type { Candidate, Finding } from '@/lib/types';
+import type { Finding } from '@/lib/types';
 
 function fmtTime(ms: number | null): string {
   if (ms == null) return '—';
@@ -16,7 +16,6 @@ function fmtTime(ms: number | null): string {
 export default function CandidatePage() {
   const { id } = useParams<{ id: string }>();
   const api = useApi();
-  const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState('');

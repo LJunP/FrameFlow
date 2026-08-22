@@ -31,14 +31,25 @@ export function useApi() {
   const { accessToken, setAccessToken } = useAuth();
 
   async function request<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
-    const resp = await fetch(`/api/gw${path}`, {
-      ...init,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        ...(init.headers ?? {}),
-      },
-    });
+    const doFetch = () =>
+      fetch(`/api/gw${path}`, {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          ...(init.headers ?? {}),
+        },
+      });
+    let resp: Response;
+    try {
+      resp = await doFetch();
+    } catch (err) {
+      // 网络级瞬断（连接复位/代理重启窗口）：幂等 GET 250ms 后重试一次
+      const isGet = !init.method || init.method === 'GET';
+      if (!isGet || !retry) throw err;
+      await new Promise((r) => setTimeout(r, 250));
+      resp = await doFetch();
+    }
     if (resp.status === 401 && retry) {
       // access 过期：单飞静默换新，然后原样重试一次
       const data = await refreshSession();

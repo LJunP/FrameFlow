@@ -273,6 +273,11 @@ class BatchUploadFlowIntegrationTest {
                         + "(SELECT id FROM users WHERE email='rec@example.com'), now() - interval '3 hours')",
                 ctx.batchId, ctx.batchId);
 
+        // 预热进度缓存（此时 stale 的 PENDING 还被计入）
+        mockMvc.perform(get("/api/v1/batches/" + ctx.batchId + "/progress")
+                        .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isOk());
+
         MvcResult report = mockMvc.perform(post("/api/v1/batches/" + ctx.batchId + "/reconcile")
                         .header("Authorization", bearer(ctx.tokens)))
                 .andExpect(status().isOk())
@@ -282,6 +287,14 @@ class BatchUploadFlowIntegrationTest {
                 .andExpect(jsonPath("$.missingObjectKeys[0]").value(objectKey))
                 .andReturn();
         assertThat(report.getResponse().getContentAsString()).contains("orphan-xyz.bin");
+
+        // ★ 回归：对账改了候选状态后，进度缓存必须已失效——
+        // 立即再读不应看到被判 INVALID 的 stale 候选还占着 PENDING_UPLOAD
+        //（该 bug 曾让进度端点最长 30 秒展示过期计数）
+        mockMvc.perform(get("/api/v1/batches/" + ctx.batchId + "/progress")
+                        .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.PENDING_UPLOAD").doesNotExist());
     }
 
     // ---------- 工具 ----------

@@ -29,14 +29,17 @@ public class ReconcileService {
     private final StoragePort storage;
     private final StorageProperties storageProps;
     private final Clock clock;
+    private final ProgressCacheService progressCache;
 
     public ReconcileService(BatchService batchService, CandidateMapper candidates,
-                            StoragePort storage, StorageProperties storageProps, Clock clock) {
+                            StoragePort storage, StorageProperties storageProps, Clock clock,
+                            ProgressCacheService progressCache) {
         this.batchService = batchService;
         this.candidates = candidates;
         this.storage = storage;
         this.storageProps = storageProps;
         this.clock = clock;
+        this.progressCache = progressCache;
     }
 
     public ReconcileResponse reconcile(long userId, long batchId) {
@@ -46,6 +49,12 @@ public class ReconcileService {
         // 这是"对账要能修数"的最小修复动作，其余异常只报告不动手
         OffsetDateTime cutoff = OffsetDateTime.now(clock).minus(storageProps.uploadSessionTtl());
         int invalidated = candidates.invalidateStalePending(batchId, cutoff);
+        // ★ 修 bug：对账改了候选状态（PENDING→INVALID），必须同步失效进度缓存——
+        // 这里曾是 F5"写后失效"清单漏掉的第 4 个变更点，导致进度端点
+        // 最长 30 秒展示过期计数（有专门回归测试盯着）
+        if (invalidated > 0) {
+            progressCache.evict(batchId);
+        }
 
         int awaitingUpload = 0;
         int uploadedNotCompleted = 0;

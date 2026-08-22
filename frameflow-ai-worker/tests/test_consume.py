@@ -55,3 +55,40 @@ def test_poison_message_reports_error_and_acks():
     assert action == "ack"
     assert client.submitted[0]["ok"] is False
     assert "重试超过" in client.submitted[0]["errorSummary"]
+
+
+def test_requeue_republishes_with_incremented_attempt(monkeypatch):
+    """requeue 分支必须"重发 attempt+1 新消息 + ack 旧消息"（而非裸 nack），
+    否则毒消息上限永不触发（回归：曾读 nobody 设置过的 header）。"""
+    from frameflow_ai import consume
+
+    monkeypatch.setattr("frameflow_ai.consume.analyze", _ok_analyze)
+    client = _Client(ReportFailed("timeout"))   # 首次回写失败 → requeue
+
+    calls = {}
+
+    class Ch:
+        def basic_publish(self, exchange, routing_key, body, properties=None):
+            calls["publish"] = (exchange, routing_key, body, properties)
+
+        def basic_ack(self, delivery_tag):
+            calls["ack"] = delivery_tag
+
+        def basic_nack(self, delivery_tag, requeue):
+            calls["nack"] = (delivery_tag, requeue)
+
+    class Method:
+        delivery_tag = 7
+
+    task = {"runId": 1, "deliveryAttempt": 1}
+    consume._handle_message(Ch(), Method(), None,
+                            __import__("json").dumps(task).encode(),
+                            _cfg(), client, None, "t")
+
+    assert "nack" not in calls, "requeue 不能走裸 nack（不携带计数）"
+    exchange, rk, body, props = calls["publish"]
+    assert exchange == "frameflow.analysis" and rk == "analyze"
+    republished = __import__("json").loads(body)
+    assert republished["deliveryAttempt"] == 2      # 计数递增
+    assert props.headers["x-delivery-attempt"] == 2
+    assert calls["ack"] == 7                        # 旧消息 ack，不丢不重
