@@ -23,6 +23,12 @@ public enum ErrorCode {
     VERSION_CONFLICT(HttpStatus.CONFLICT, "数据已被他人修改，请刷新后重试"),
     PROJECT_ARCHIVED(HttpStatus.CONFLICT, "项目已归档，不能修改"),
     INVALID_SPEC(HttpStatus.BAD_REQUEST, "质检标准必须是合法的 JSON 对象"),
+    INVALID_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "仅接受 video/* 内容类型"),
+    PARTS_INVALID(HttpStatus.BAD_REQUEST, "分片列表不合法（须从 1 连续且带 ETag）"),
+    UPLOAD_NOT_FOUND(HttpStatus.BAD_REQUEST, "对象尚未上传，无法确认完成"),
+    BATCH_CLOSED(HttpStatus.CONFLICT, "批次已关闭，不再接收上传"),
+    BATCH_FULL(HttpStatus.CONFLICT, "批次容量已满"),
+    INVALID_UPLOAD_STATE(HttpStatus.CONFLICT, "候选当前状态不允许该操作"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "服务内部错误");
 
     private final HttpStatus status;

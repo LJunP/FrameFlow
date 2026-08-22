@@ -56,4 +56,9 @@ public interface QualityProfileMapper {
             + "WHERE profile_id = #{profileId} AND version_no = #{versionNo}")
     QualityProfileVersionRow findVersion(@Param("profileId") Long profileId,
                                          @Param("versionNo") int versionNo);
+
+    /** 按版本行 id 直取（批次只存了 profile_version_id，反查版本号用）。 */
+    @Select("SELECT id, profile_id, version_no, spec::text AS spec_json, published_by, "
+            + "published_at FROM quality_profile_versions WHERE id = #{id}")
+    QualityProfileVersionRow findVersionById(Long id);
 }

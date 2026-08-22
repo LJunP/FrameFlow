@@ -18,5 +18,25 @@ services:
       timeout: 3s
       retries: 10
 
+  # F3 对象存储：S3 兼容 API（9000），控制台（9001）
+  minio:
+    image: minio/minio:latest
+    container_name: frameflow-local-minio
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web 控制台（浏览器打开 http://localhost:9001）
+    environment:
+      MINIO_ROOT_USER: frameflow
+      MINIO_ROOT_PASSWORD: frameflow_local_only   # 仅本机开发值
+    command: server /data --console-address ":9001"
+    volumes:
+      - frameflow-local-minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
 volumes:
   frameflow-local-pg-data:
+  frameflow-local-minio-data:

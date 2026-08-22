@@ -56,6 +56,13 @@
       <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
+    <!-- F3: S3 兼容对象存储客户端（MinIO 走 endpoint 覆盖 + path-style），
+         AWS SDK v2 同时也是求职市场上的通用技能 -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+      <version>2.25.60</version>
+    </dependency>
     <!-- F2: 运行时生成 OpenAPI 文档，供契约一致性测试对照（手写契约是权威） -->
     <dependency>
       <groupId>org.springdoc</groupId>
@@ -88,6 +95,12 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- F3: 测试用真实 MinIO 容器，验证 presigned URL 真的能直传 -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>minio</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
