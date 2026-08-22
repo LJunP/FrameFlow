@@ -33,7 +33,8 @@ Agent 实现整个产品，所有者通过阅读带注释的源码掌握全部�
 
 ## 5. 硬性红线
 
-- 不 push 远端、不改写历史、不删除 .git
+- 远程同步策略（2026-08-22 所有者批准）：仅向 origin 推送 `frameflow-select/learning-main`
+  与 tags；不 force push、不改写已推送历史、不删除 .git、不动远程其他分支
 - 不向已冻结分支提交（main、archive/frameflow-select-agent-mvp-v1）
 - 不读取工作区外 Secret；不提交真实客户媒体、密钥、密码
 - 不修改已执行迁移；不通过改阈值/测试/历史制造 PASS
