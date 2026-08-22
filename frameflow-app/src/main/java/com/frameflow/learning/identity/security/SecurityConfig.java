@@ -56,6 +56,10 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/ping", "/actuator/health").permitAll()
+                        // OpenAPI 文档端点：契约一致性测试需要匿名访问。
+                        // 生产环境应在网关层按环境开关（dev 开、prod 关），
+                        // F9 部署时处理，此处先放行供测试与本地联调。
+                        .requestMatchers("/v3/api-docs/**").permitAll()
                         // ★ 核心：放行清单用"方法 + 精确路径"而不是 /auth/** 通配——
                         // auth 下未来新增接口（如改密码）默认就落在"需要认证"侧，
                         // 这是"默认拒绝、显式放行"的安全原则：新东西不声明就是关着的。

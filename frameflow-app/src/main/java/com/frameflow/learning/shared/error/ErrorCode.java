@@ -17,6 +17,12 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "无权执行该操作"),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "资源不存在"),
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "邮箱已被注册"),
+    NAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "同名资源已存在"),
+    // ★ 核心：乐观锁冲突专用错误码——客户端应重新读取数据后重试，
+    // 与其它 409（如重名）语义不同，绝不能混用
+    VERSION_CONFLICT(HttpStatus.CONFLICT, "数据已被他人修改，请刷新后重试"),
+    PROJECT_ARCHIVED(HttpStatus.CONFLICT, "项目已归档，不能修改"),
+    INVALID_SPEC(HttpStatus.BAD_REQUEST, "质检标准必须是合法的 JSON 对象"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "服务内部错误");
 
     private final HttpStatus status;

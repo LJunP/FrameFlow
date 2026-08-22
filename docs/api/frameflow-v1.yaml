@@ -1,0 +1,129 @@
+# =====================================================================
+# FrameFlow API 契约（v1）——手写文件是唯一权威
+#
+# 契约一致性测试（ContractConsistencyTest）会把本文件与运行时由 springdoc
+# 生成的 /v3/api-docs 对照：文档里每个 (路径, 方法, 成功状态码) 必须在运行时
+# 存在，运行时也不允许出现文档没写的 /api/v1 接口——双向锁死，
+# "文档与代码不一致"从此是测试失败而不是口头约定。
+# =====================================================================
+openapi: 3.0.3
+info:
+  title: FrameFlow Select API
+  version: "1.0.0"
+  description: 面向 AI 生成短视频的批量质检与优选平台
+paths:
+  /api/v1/ping:
+    get:
+      tags: [system]
+      summary: 存活探测
+      responses:
+        "200": { description: OK }
+  /api/v1/auth/register:
+    post:
+      tags: [auth]
+      summary: 注册（需 Idempotency-Key 请求头）
+      responses:
+        "200": { description: 注册成功并返回令牌 }
+  /api/v1/auth/login:
+    post:
+      tags: [auth]
+      summary: 登录
+      responses:
+        "200": { description: 登录成功并返回令牌 }
+  /api/v1/auth/refresh:
+    post:
+      tags: [auth]
+      summary: 刷新令牌（一次性轮换）
+      responses:
+        "200": { description: 新的令牌对 }
+  /api/v1/auth/logout:
+    post:
+      tags: [auth]
+      summary: 登出（吊销全部刷新令牌）
+      responses:
+        "204": { description: 已登出 }
+  /api/v1/me:
+    get:
+      tags: [auth]
+      summary: 当前用户信息
+      responses:
+        "200": { description: 用户与所属团队 }
+  /api/v1/teams/{teamId}/members:
+    get:
+      tags: [team]
+      summary: 团队成员列表（仅 OWNER）
+      responses:
+        "200": { description: 成员列表 }
+  /api/v1/projects:
+    get:
+      tags: [project]
+      summary: 分页列出本团队项目
+      responses:
+        "200": { description: 分页结果 }
+    post:
+      tags: [project]
+      summary: 创建项目（OWNER/OPERATOR）
+      responses:
+        "201": { description: 已创建 }
+  /api/v1/projects/{id}:
+    get:
+      tags: [project]
+      summary: 项目详情（团队成员）
+      responses:
+        "200": { description: 项目详情 }
+    put:
+      tags: [project]
+      summary: 更新项目（OWNER/OPERATOR，乐观锁）
+      responses:
+        "200": { description: 更新后的项目 }
+  /api/v1/projects/{id}/archive:
+    post:
+      tags: [project]
+      summary: 归档项目（仅 OWNER，乐观锁）
+      responses:
+        "200": { description: 归档后的项目 }
+  /api/v1/projects/{id}/briefs:
+    get:
+      tags: [brief]
+      summary: Brief 快照列表（按时间正序）
+      responses:
+        "200": { description: 快照列表 }
+    post:
+      tags: [brief]
+      summary: 发布新的 Brief 快照（不可变，指针前移）
+      responses:
+        "201": { description: 新快照 }
+  /api/v1/projects/{id}/briefs/current:
+    get:
+      tags: [brief]
+      summary: 当前生效的 Brief 快照
+      responses:
+        "200": { description: 当前快照 }
+  /api/v1/quality-profiles:
+    get:
+      tags: [quality-profile]
+      summary: 列出本团队质检标准（含最新版本号）
+      responses:
+        "200": { description: Profile 列表 }
+    post:
+      tags: [quality-profile]
+      summary: 创建质检标准并发布 v1
+      responses:
+        "201": { description: 已创建 }
+  /api/v1/quality-profiles/{id}/versions:
+    get:
+      tags: [quality-profile]
+      summary: 版本历史
+      responses:
+        "200": { description: 版本列表 }
+    post:
+      tags: [quality-profile]
+      summary: 发布新版本（旧版本不可变）
+      responses:
+        "201": { description: 新版本 }
+  /api/v1/quality-profiles/{id}/versions/{versionNo}:
+    get:
+      tags: [quality-profile]
+      summary: 取指定版本
+      responses:
+        "200": { description: 版本详情 }
