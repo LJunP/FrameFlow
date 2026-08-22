@@ -37,6 +37,25 @@ services:
       timeout: 3s
       retries: 10
 
+  # F4 消息队列：AMQP（5672），管理台（15672，guest/guest 仅本机）
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: frameflow-local-rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # 管理台 http://localhost:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: frameflow
+      RABBITMQ_DEFAULT_PASS: frameflow_local_only
+    volumes:
+      - frameflow-local-rabbit-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
 volumes:
   frameflow-local-pg-data:
   frameflow-local-minio-data:
+  frameflow-local-rabbit-data:

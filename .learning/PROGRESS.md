@@ -6,10 +6,10 @@
 
 ## 当前状态
 
-- 已交付：F1、F2、F3（待所有者学习）
-- 下一功能：F4 确定性质检流水线（RabbitMQ + Python worker）
-- 开发状态：F3 已交付（38 测试全绿：真实 MinIO 直传/分片/对账）
-- 学习状态：F1/F2/F3 均未读（导读：[F1](../docs/guides/F1-源码导读.md)、[F2](../docs/guides/F2-源码导读.md)、[F3](../docs/guides/F3-源码导读.md)）
+- 已交付：F1–F4（待所有者学习）
+- 下一功能：F5 缓存与限流（Redis，可在 F4 后穿插）
+- 开发状态：F4 已交付（Java 44 测试 + Python 21 测试全绿；真实 RabbitMQ 全链路）
+- 学习状态：F1–F4 均未读（导读：docs/guides/F1–F4-源码导读.md）
 - 更新日期：2026-08-22
 
 ## 功能进度
@@ -21,7 +21,7 @@
 | F1 工程基线与用户认证 | 已交付 | 未读 | [F1](../docs/guides/F1-源码导读.md) | 17 测试全绿 |
 | F2 项目与质检配置管理 | 已交付 | 未读 | [F2](../docs/guides/F2-源码导读.md) | 30 测试全绿（累计） |
 | F3 批次与视频上传 | 已交付 | 未读 | [F3](../docs/guides/F3-源码导读.md) | 38 测试全绿（累计） |
-| F4 确定性质检流水线 | 未开始 | 未读 | — | |
+| F4 确定性质检流水线 | 已交付 | 未读 | [F4](../docs/guides/F4-源码导读.md) | Java 44 + Py 21 测试全绿 |
 | F5 缓存与限流（Redis） | 未开始 | 未读 | — | 可在 F4 后穿插 |
 | F6 语义质检（AI Provider） | 未开始 | 未读 | — | |
 | F7 聚类排名与 Top-K 优选 | 未开始 | 未读 | — | |
@@ -57,6 +57,16 @@
 - [x] T4 对账（超时会话判 INVALID、missing/orphan/未确认 全量报告）
 - [x] T5 可复现测试媒体脚本（scripts/gen_test_media.py，ffmpeg/占位双模式）
 - [x] 交付《F3 源码导读》（docs/guides/F3-源码导读.md）
+
+### F4 确定性质检流水线（开发完成 2026-08-22）
+
+- [x] T1 Analysis Run 状态机 + 批次调度（条件迁移当锁，防重复派发）
+- [x] T2 RabbitMQ 派发/消费骨架（Publisher Confirm + DLX/DLQ 拓扑）
+- [x] T3 Python worker：消费循环 + ffprobe 探针（本机无 ffmpeg 自动 ANALYSIS_ERROR）
+- [x] T4 黑帧/冻结检测器（OpenCV，纯函数可单测）+ spec 规则判定
+- [x] T5 幂等回写（条件状态迁移裁决；重复回放零副作用有专测）
+- [x] T6 DLQ 重放接口 + 队列深度报告（OWNER 运维接口）
+- [x] 交付《F4 源码导读》（docs/guides/F4-源码导读.md）
 
 ## 技术学习清单
 
