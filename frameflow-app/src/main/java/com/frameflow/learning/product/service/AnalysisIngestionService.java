@@ -37,7 +37,8 @@ public class AnalysisIngestionService {
 
     public record ResultRequest(long runId, String workerVersion, boolean ok,
                                 String errorSummary, List<FindingRequest> findings,
-                                Long durationMs, Integer width, Integer height, Double fps) {
+                                Long durationMs, Integer width, Integer height, Double fps,
+                                String contentHash, String phash) {
     }
 
     public record IngestionResponse(long runId, long candidateId, String candidateStatus,
@@ -67,7 +68,7 @@ public class AnalysisIngestionService {
             // ★ 红线落地：worker 故障 = ANALYSIS_ERROR（系统问题），
             // 绝不写成 AUTO_REJECT（视频问题）。两者在报表里是两个世界。
             candidates.markAnalysisResult(run.getCandidateId(), "ANALYSIS_ERROR",
-                    null, null, null, null);
+                    null, null, null, null, null, null);
             progressCache.evict(run.getBatchId());
             return new IngestionResponse(run.getId(), run.getCandidateId(),
                     "ANALYSIS_ERROR", false);
@@ -100,7 +101,8 @@ public class AnalysisIngestionService {
             finalStatus = "ANALYZED";
         }
         candidates.markAnalysisResult(run.getCandidateId(), finalStatus,
-                req.durationMs(), req.width(), req.height(), req.fps());
+                req.durationMs(), req.width(), req.height(), req.fps(),
+                req.contentHash(), req.phash());
         progressCache.evict(run.getBatchId());
         return new IngestionResponse(run.getId(), run.getCandidateId(), finalStatus, false);
     }

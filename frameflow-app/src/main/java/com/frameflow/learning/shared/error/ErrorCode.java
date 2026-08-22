@@ -30,6 +30,9 @@ public enum ErrorCode {
     BATCH_FULL(HttpStatus.CONFLICT, "批次容量已满"),
     INVALID_UPLOAD_STATE(HttpStatus.CONFLICT, "候选当前状态不允许该操作"),
     RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "尝试过于频繁，请稍后再试"),
+    INVALID_STATE(HttpStatus.CONFLICT, "当前状态不允许该操作"),
+    SELECTION_LOCKED(HttpStatus.CONFLICT, "优选集已锁定，内容不可变更"),
+    NOT_LOCKED(HttpStatus.CONFLICT, "优选集尚未锁定，不能导出"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "服务内部错误");
 
     private final HttpStatus status;
