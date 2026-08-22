@@ -1,5 +1,10 @@
 # FrameFlow Select
 
+> 🔒 **本分支已冻结（2026-08-22）——只读答案册，禁止复制实现**
+> 这是 Agent 自动生成的 FrameFlow Select 完整 MVP 参考实现，仅供项目所有者学习对照，不作为开发基线，不再更新；项目红线禁止复制本分支实现充当个人成果。
+> 最终验证通过的冻结状态锁定在 tag `frameflow-select-agent-mvp-v1.0.0`（commit `c893550`）。
+> **最新主线分支：[`frameflow-select/learning-main`](../../tree/frameflow-select/learning-main)**（学习优先重建：全部业务代码由项目所有者亲手从零实现）。
+
 FrameFlow Select 是面向 AI 生成短视频团队的批量质检、问题定位、重复聚类与 Top-K 优选平台。
 
 ```text
