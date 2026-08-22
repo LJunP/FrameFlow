@@ -24,9 +24,19 @@ def test_detector_error_is_analysis_error_not_blocker(monkeypatch):
 def test_happy_path_payload_shape(monkeypatch):
     monkeypatch.setattr(pipeline, "probe",
                         lambda _p: ProbeResult(8000, 1080, 1920, 30.0, True))
-    monkeypatch.setattr(pipeline, "_frame_checks",
-                        lambda _p, _r: ([], {}))
-    task = {"runId": 9, "objectKey": "k", "profileSpec": '{"dimensions":{"duration":{"min":5,"max":20}}}'}
+    # 桩须带 DETECTOR_ID/DETECTOR_VERSION：帧检测构造"通过项 Finding"
+    # 时引用这两个模块常量，缺了会 AttributeError 走 ANALYSIS_ERROR 分支
+    monkeypatch.setattr(pipeline, "frames",
+                        type("F", (), {
+                            "DETECTOR_ID": "stub-frames",
+                            "DETECTOR_VERSION": "1",
+                            "sample_frames": staticmethod(lambda _p: ([], [])),
+                            "find_black_segments": staticmethod(lambda f, t: []),
+                            "find_freeze_segments": staticmethod(lambda f, t: []),
+                        }))
+    task = {"runId": 9, "objectKey": "k",
+            "profileSpec": '{"dimensions":{"duration":{"min":5,"max":20}}}',
+            "briefContent": "b"}
     outcome = pipeline.analyze(task, lambda k, l: None, "test")
     payload = outcome.to_payload()
     assert payload["ok"] is True

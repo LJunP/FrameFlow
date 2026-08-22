@@ -1,0 +1,118 @@
+{
+  "provider": "semantic-fake",
+  "version": "1",
+  "total_cases": 10,
+  "accuracy": 0.4,
+  "false_reject_rate": 0.0667,
+  "needs_review_rate": 0.2,
+  "mismatches": [
+    {
+      "case": "ecom-001",
+      "dimension": "quality_impression",
+      "expected": "PASS",
+      "actual": "UNKNOWN"
+    },
+    {
+      "case": "ecom-002",
+      "dimension": "prompt_alignment",
+      "expected": "VIOLATE",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-002",
+      "dimension": "policy_violation",
+      "expected": "VIOLATE",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-002",
+      "dimension": "quality_impression",
+      "expected": "UNKNOWN",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-003",
+      "dimension": "quality_impression",
+      "expected": "PASS",
+      "actual": "UNKNOWN"
+    },
+    {
+      "case": "ecom-005",
+      "dimension": "prompt_alignment",
+      "expected": "UNKNOWN",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-005",
+      "dimension": "quality_impression",
+      "expected": "PASS",
+      "actual": "UNKNOWN"
+    },
+    {
+      "case": "ecom-006",
+      "dimension": "quality_impression",
+      "expected": "VIOLATE",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-006",
+      "dimension": "policy_violation",
+      "expected": "PASS",
+      "actual": "VIOLATE"
+    },
+    {
+      "case": "ecom-008",
+      "dimension": "prompt_alignment",
+      "expected": "VIOLATE",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-008",
+      "dimension": "quality_impression",
+      "expected": "UNKNOWN",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-008",
+      "dimension": "policy_violation",
+      "expected": "PASS",
+      "actual": "UNKNOWN"
+    },
+    {
+      "case": "ecom-009",
+      "dimension": "prompt_alignment",
+      "expected": "PASS",
+      "actual": "UNKNOWN"
+    },
+    {
+      "case": "ecom-009",
+      "dimension": "quality_impression",
+      "expected": "PASS",
+      "actual": "VIOLATE"
+    },
+    {
+      "case": "ecom-009",
+      "dimension": "policy_violation",
+      "expected": "VIOLATE",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-010",
+      "dimension": "prompt_alignment",
+      "expected": "UNKNOWN",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-010",
+      "dimension": "quality_impression",
+      "expected": "UNKNOWN",
+      "actual": "PASS"
+    },
+    {
+      "case": "ecom-010",
+      "dimension": "policy_violation",
+      "expected": "UNKNOWN",
+      "actual": "PASS"
+    }
+  ]
+}

@@ -13,9 +13,9 @@ public interface FindingMapper {
 
     @Insert("INSERT INTO findings"
             + "(run_id, candidate_id, detector, detector_version, dimension, passed, "
-            + "severity, timecode_ms, evidence, message) "
+            + "severity, timecode_ms, evidence, message, verdict) "
             + "VALUES(#{runId}, #{candidateId}, #{detector}, #{detectorVersion}, #{dimension}, "
-            + "#{passed}, #{severity}, #{timecodeMs}, #{evidence}::jsonb, #{message})")
+            + "#{passed}, #{severity}, #{timecodeMs}, #{evidence}::jsonb, #{message}, #{verdict})")
     int insert(@Param("runId") Long runId,
                @Param("candidateId") Long candidateId,
                @Param("detector") String detector,
@@ -25,11 +25,13 @@ public interface FindingMapper {
                @Param("severity") String severity,
                @Param("timecodeMs") Long timecodeMs,
                @Param("evidence") String evidence,
-               @Param("message") String message);
+               @Param("message") String message,
+               @Param("verdict") String verdict);
 
     @Select("SELECT f.id, f.run_id, f.candidate_id, f.detector, f.detector_version, "
             + "f.dimension, f.passed, f.severity, f.timecode_ms, f.evidence::text AS evidence, "
-            + "f.message FROM findings f WHERE f.candidate_id = #{candidateId} ORDER BY f.id")
+            + "f.message, f.verdict FROM findings f WHERE f.candidate_id = #{candidateId} "
+            + "ORDER BY f.id")
     List<FindingRow> listByCandidate(Long candidateId);
 
     @Select("SELECT count(*) FROM findings WHERE run_id = #{runId}")
@@ -48,6 +50,7 @@ public interface FindingMapper {
         private Long timecodeMs;
         private String evidence;
         private String message;
+        private String verdict;
 
         public Long getId() { return id; }
         public void setId(Long id) { this.id = id; }
@@ -71,5 +74,7 @@ public interface FindingMapper {
         public void setEvidence(String evidence) { this.evidence = evidence; }
         public String getMessage() { return message; }
         public void setMessage(String message) { this.message = message; }
+        public String getVerdict() { return verdict; }
+        public void setVerdict(String verdict) { this.verdict = verdict; }
     }
 }

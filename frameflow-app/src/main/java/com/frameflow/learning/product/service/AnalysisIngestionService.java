@@ -32,7 +32,7 @@ public class AnalysisIngestionService {
 
     public record FindingRequest(String detector, String detectorVersion, String dimension,
                                  boolean passed, String severity, Long timecodeMs,
-                                 String evidence, String message) {
+                                 String evidence, String message, String verdict) {
     }
 
     public record ResultRequest(long runId, String workerVersion, boolean ok,
@@ -74,13 +74,31 @@ public class AnalysisIngestionService {
         }
 
         boolean blocker = false;
+        boolean needsReview = false;
         for (FindingRequest f : req.findings()) {
+            // ★ 红线（docs/01 §8.2）：语义 Finding 禁止 BLOCKER——
+            // 模型意见没有"生杀大权"，防御性地在接收端再拦一道：
+            // 就算被恶意/错误客户端标成 BLOCKER，也强制降级为 WARNING。
+            String severity = f.severity();
+            boolean semantic = f.verdict() != null;
+            if (semantic && "BLOCKER".equals(severity)) {
+                severity = "WARNING";
+            }
             findings.insert(run.getId(), run.getCandidateId(), f.detector(),
-                    f.detectorVersion(), f.dimension(), f.passed(), f.severity(),
-                    f.timecodeMs(), f.evidence(), f.message());
-            blocker |= !f.passed() && "BLOCKER".equals(f.severity());
+                    f.detectorVersion(), f.dimension(), f.passed(), severity,
+                    f.timecodeMs(), f.evidence(), f.message(), f.verdict());
+            blocker |= !f.passed() && "BLOCKER".equals(severity);
+            // 语义 VIOLATE/UNKNOWN/ERROR 都进人工复核（REVIEW_REQUIRED）
+            needsReview |= semantic && !"PASS".equals(f.verdict());
         }
-        String finalStatus = blocker ? "AUTO_REJECT" : "ANALYZED";
+        String finalStatus;
+        if (blocker) {
+            finalStatus = "AUTO_REJECT";           // 仅确定性规则可触发
+        } else if (needsReview) {
+            finalStatus = "REVIEW_REQUIRED";       // 语义存疑 → 人来定夺
+        } else {
+            finalStatus = "ANALYZED";
+        }
         candidates.markAnalysisResult(run.getCandidateId(), finalStatus,
                 req.durationMs(), req.width(), req.height(), req.fps());
         progressCache.evict(run.getBatchId());

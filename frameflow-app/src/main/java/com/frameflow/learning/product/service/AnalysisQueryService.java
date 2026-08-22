@@ -31,7 +31,7 @@ public class AnalysisQueryService {
         return findings.listByCandidate(candidateId).stream()
                 .map(f -> new FindingResponse(f.getId(), f.getDimension(), f.getDetector(),
                         f.getDetectorVersion(), f.isPassed(), f.getSeverity(),
-                        f.getTimecodeMs(), f.getEvidence(), f.getMessage()))
+                        f.getTimecodeMs(), f.getEvidence(), f.getMessage(), f.getVerdict()))
                 .toList();
     }
 }

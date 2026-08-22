@@ -1,0 +1,65 @@
+{
+  "description": "F6 语义评测集 v1：人工标注的 (brief, 候选, 期望判定)。固定不变——改它等于改考卷，指标就失去跨版本可比性；要扩充请追加用例而不是修改既有用例。",
+  "cases": [
+    {
+      "id": "ecom-001",
+      "brief": "电商带货短视频：突出商品主体，竖版，不得出现水印与二维码",
+      "candidateHint": "batch01/c0001",
+      "expected": {"prompt_alignment": "PASS", "policy_violation": "PASS", "quality_impression": "PASS"}
+    },
+    {
+      "id": "ecom-002",
+      "brief": "电商带货短视频：突出商品主体，竖版，不得出现水印与二维码",
+      "candidateHint": "batch01/c0002",
+      "expected": {"prompt_alignment": "VIOLATE", "policy_violation": "VIOLATE", "quality_impression": "UNKNOWN"}
+    },
+    {
+      "id": "ecom-003",
+      "brief": "品牌形象片：柔和影调，慢节奏，无口播",
+      "candidateHint": "batch02/c0001",
+      "expected": {"prompt_alignment": "PASS", "quality_impression": "PASS", "policy_violation": "PASS"}
+    },
+    {
+      "id": "ecom-004",
+      "brief": "品牌形象片：柔和影调，慢节奏，无口播",
+      "candidateHint": "batch02/c0002",
+      "expected": {"prompt_alignment": "VIOLATE", "quality_impression": "PASS", "policy_violation": "PASS"}
+    },
+    {
+      "id": "ecom-005",
+      "brief": "信息流广告：前 3 秒出现产品，直给卖点",
+      "candidateHint": "batch03/c0001",
+      "expected": {"prompt_alignment": "UNKNOWN", "quality_impression": "PASS", "policy_violation": "PASS"}
+    },
+    {
+      "id": "ecom-006",
+      "brief": "信息流广告：前 3 秒出现产品，直给卖点",
+      "candidateHint": "batch03/c0002",
+      "expected": {"prompt_alignment": "PASS", "quality_impression": "VIOLATE", "policy_violation": "PASS"}
+    },
+    {
+      "id": "ecom-007",
+      "brief": "测评类内容：真人出镜，口齿清晰，画面稳定",
+      "candidateHint": "batch04/c0001",
+      "expected": {"prompt_alignment": "PASS", "quality_impression": "PASS", "policy_violation": "UNKNOWN"}
+    },
+    {
+      "id": "ecom-008",
+      "brief": "测评类内容：真人出镜，口齿清晰，画面稳定",
+      "candidateHint": "batch04/c0002",
+      "expected": {"prompt_alignment": "VIOLATE", "quality_impression": "UNKNOWN", "policy_violation": "PASS"}
+    },
+    {
+      "id": "ecom-009",
+      "brief": "混剪热点内容：节奏快，卡点准，无版权素材",
+      "candidateHint": "batch05/c0001",
+      "expected": {"prompt_alignment": "PASS", "quality_impression": "PASS", "policy_violation": "VIOLATE"}
+    },
+    {
+      "id": "ecom-010",
+      "brief": "混剪热点内容：节奏快，卡点准，无版权素材",
+      "candidateHint": "batch05/c0002",
+      "expected": {"prompt_alignment": "UNKNOWN", "quality_impression": "UNKNOWN", "policy_violation": "UNKNOWN"}
+    }
+  ]
+}
