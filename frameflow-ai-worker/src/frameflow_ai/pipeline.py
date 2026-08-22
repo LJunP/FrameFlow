@@ -46,7 +46,7 @@ def analyze(task: dict, download, worker_version: str) -> AnalysisOutcome:
         with tempfile.TemporaryDirectory(prefix="frameflow-") as tmp:
             local = os.path.join(tmp, "candidate.bin")
             download(task["objectKey"], local)
-            return _run_detectors(run_id, local, task.get("profileSpec") or "{}", worker_version)
+            return _run_detectors(run_id, local, task, worker_version)
     except DetectorError as e:
         # 系统侧失败：ANALYSIS_ERROR（红线：不得伪装成视频不合格）
         return AnalysisOutcome(run_id=run_id, ok=False, worker_version=worker_version,
@@ -56,26 +56,33 @@ def analyze(task: dict, download, worker_version: str) -> AnalysisOutcome:
                                error_summary=f"[unexpected:{type(e).__name__}] {e}")
 
 
-def _run_detectors(run_id: int, local_path: str, spec_json: str,
+def _run_detectors(run_id: int, local_path: str, task: dict,
                    worker_version: str) -> AnalysisOutcome:
-    spec = json.loads(spec_json) if spec_json else {}
+    spec = json.loads(task.get("profileSpec") or "{}") or {}
     probe_result = probe(local_path)
 
     findings: list[dict] = [
         f.to_payload() for f in rules.evaluate(spec, probe_result)
     ]
-    frame_findings, probe_info = _frame_checks(local_path, probe_result)
-    findings.extend(frame_findings)
+    # 抽帧一次，帧检测与语义阶段共用（解码是最贵的 CPU 步骤）
+    sampled, stamps = frames.sample_frames(local_path)
+    findings.extend(_frame_checks(sampled, stamps))
+
+    # F6 语义阶段：spec.semantic.enabled 时运行（Provider 失败 → ERROR 判定
+    # 进人工复核，绝不拖垮整个 run——见 semantic.run_semantic ★ 注释）
+    from . import semantic
+    findings.extend(semantic.run_semantic(
+        spec, task.get("briefContent") or "", local_path,
+        sampled, stamps, provider=None, candidate_hint=task.get("objectKey", "")))
 
     info = {k: v for k, v in probe_result.to_dict().items() if k != "hasAudio"}
     return AnalysisOutcome(run_id=run_id, ok=True, worker_version=worker_version,
                            findings=findings, probe_info=info)
 
 
-def _frame_checks(path: str, probe_result) -> tuple[list[dict], dict]:
-    """黑帧/冻结检测；不含帧级规则时不抽帧（省 CPU）。"""
+def _frame_checks(sampled, stamps) -> list[dict]:
+    """黑帧/冻结检测（基于已抽好的帧）。"""
     frame_findings: list[dict] = []
-    sampled, stamps = frames.sample_frames(path)
 
     black = frames.find_black_segments(sampled, stamps)
     if black:
@@ -89,7 +96,7 @@ def _frame_checks(path: str, probe_result) -> tuple[list[dict], dict]:
     else:
         frame_findings.append(_passed_finding("freeze", "未检测到画面冻结"))
 
-    return frame_findings, {}
+    return frame_findings
 
 
 def _segment_finding(dimension: str, segments: list[FrameSegment], message: str) -> dict:

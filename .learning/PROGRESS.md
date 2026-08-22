@@ -6,10 +6,11 @@
 
 ## 当前状态
 
-- 已交付：F1–F5（待所有者学习）
-- 下一功能：F6 语义质检（AI Provider 适配与评测）
-- 开发状态：F5 已交付（50 测试全绿；Redis 宕机演练有实测记录）
-- 学习状态：F1–F5 均未读（导读：docs/guides/F1–F5-源码导读.md）
+- 已交付：F1–F6（待所有者学习）
+- 下一功能：F7 聚类排名与 Top-K 优选
+- 开发状态：F6 已交付（Java 55 + Python 29 全绿；评测基线已存档）
+- 学习状态：F1–F6 均未读（导读：docs/guides/F1–F6-源码导读.md）
+- 待办：F6 真实 Provider 调用记录（等所有者提供 API Key 后补真实评测基线）
 - 更新日期：2026-08-22
 
 ## 功能进度
@@ -23,7 +24,7 @@
 | F3 批次与视频上传 | 已交付 | 未读 | [F3](../docs/guides/F3-源码导读.md) | 38 测试全绿（累计） |
 | F4 确定性质检流水线 | 已交付 | 未读 | [F4](../docs/guides/F4-源码导读.md) | Java 44 + Py 21 测试全绿 |
 | F5 缓存与限流（Redis） | 已交付 | 未读 | [F5](../docs/guides/F5-源码导读.md) | 50 测试全绿；降级演练实测 |
-| F6 语义质检（AI Provider） | 未开始 | 未读 | — | |
+| F6 语义质检（AI Provider） | 已交付 | 未读 | [F6](../docs/guides/F6-源码导读.md) | 55+29 全绿；真实调用待 Key |
 | F7 聚类排名与 Top-K 优选 | 未开始 | 未读 | — | |
 | F8 Web 前端产品化 | 未开始 | 未读 | — | 可与 F6/F7 并行 |
 | F9 服务器部署与 CI/CD | 未开始 | 未读 | — | 物理操作需所有者执行 |
@@ -75,6 +76,16 @@
 - [x] T3 穿透防护（空值哨兵 60s）+ 击穿防护（SETNX 互斥重建）
 - [x] T4 宕机降级演练（实测记录：docs/evidence/F5-redis-降级演练.md）
 - [x] 交付《F5 源码导读》（docs/guides/F5-源码导读.md）
+
+### F6 语义质检（AI Provider）（开发完成 2026-08-22）
+
+- [x] T1 Provider SPI + Fake Provider（稳定哈希，评测可复现）
+- [x] T2 OpenAI 兼容适配器（无 Key 自动禁用 → 语义 ERROR 进人工复核）
+- [x] T3 语义 Finding 证据束落库 + REVIEW_REQUIRED（BLOCKER 双侧强制降级）
+- [x] T4 离线评测集 + 指标报告（基线已存档 eval/reports/）
+- [x] T5 关键帧/提示词预算控制（MAX_KEYFRAMES=3、prompt 截断）
+- [x] 交付《F6 源码导读》（docs/guides/F6-源码导读.md）
+- [ ] 真实 Provider 调用记录（等 API Key）
 
 ## 技术学习清单
 

@@ -8,6 +8,7 @@ public final class AnalysisDtos {
 
     public record FindingResponse(Long id, String dimension, String detector,
                                   String detectorVersion, boolean passed, String severity,
-                                  Long timecodeMs, String evidence, String message) {
+                                  Long timecodeMs, String evidence, String message,
+                                  String verdict) {
     }
 }

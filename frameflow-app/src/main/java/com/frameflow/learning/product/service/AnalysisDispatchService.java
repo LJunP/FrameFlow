@@ -30,15 +30,18 @@ public class AnalysisDispatchService {
     private final CandidateMapper candidates;
     private final AnalysisRunMapper runs;
     private final QualityProfileMapper profiles;
+    private final com.frameflow.learning.product.repo.BriefMapper briefs;
     private final RabbitTemplate rabbitTemplate;
 
     public AnalysisDispatchService(BatchService batchService, CandidateMapper candidates,
                                    AnalysisRunMapper runs, QualityProfileMapper profiles,
+                                   com.frameflow.learning.product.repo.BriefMapper briefs,
                                    RabbitTemplate rabbitTemplate) {
         this.batchService = batchService;
         this.candidates = candidates;
         this.runs = runs;
         this.profiles = profiles;
+        this.briefs = briefs;
         this.rabbitTemplate = rabbitTemplate;
     }
 
@@ -52,6 +55,10 @@ public class AnalysisDispatchService {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND);
         }
         return candidate.getBatchId();
+    }
+
+    private String briefContentOf(com.frameflow.learning.product.repo.BatchRow batch) {
+        return briefs.findById(batch.getBriefId()).getContent();
     }
 
     @Transactional
@@ -77,7 +84,8 @@ public class AnalysisDispatchService {
             publishConfirmed(new AnalysisTaskMessage(
                     runId, candidate.getId(), batchId,
                     candidate.getObjectKey(), candidate.getContentType(),
-                    candidate.getSizeBytes(), version.getSpecJson(), 1),
+                    candidate.getSizeBytes(), version.getSpecJson(),
+                    briefContentOf(batch), 1),
                     candidate.getId());
         }
         // 事务提交在方法返回时——publish 在事务内先行。若提交失败，
