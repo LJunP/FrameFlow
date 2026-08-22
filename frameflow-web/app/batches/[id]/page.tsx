@@ -48,7 +48,7 @@ export default function BatchPage() {
     return () => clearInterval(timer);
   }, [batch, load]);
 
-  if (!batch) return <p className="muted">加载中… {message}</p>;
+  if (!batch) return <p className="loading">加载中…</p>;
 
   async function upload() {
     const file = fileRef.current?.files?.[0];
@@ -69,8 +69,8 @@ export default function BatchPage() {
       );
       setMessage(
         done.status === 'UPLOADED'
-          ? '上传成功，已入队待分析'
-          : `文件被判无效：${done.probeError}`,
+          ? '✓ 上传成功，已入队待分析'
+          : `✗ 文件被判无效：${done.probeError}`,
       );
       if (fileRef.current) fileRef.current.value = '';
       await load();
@@ -108,6 +108,11 @@ export default function BatchPage() {
           ))}
           {Object.keys(batch.candidateCounts).length === 0 && <span className="muted">还没有候选</span>}
         </p>
+        {message && (
+          <div className={`notice ${message.includes('✗') ? 'bad' : message.includes('✓') ? 'ok' : ''}`}>
+            {message}
+          </div>
+        )}
         <div className="row" style={{ marginTop: 10 }}>
           {batch.status === 'OPEN' ? (
             <button className="btn secondary" onClick={() => act('关闭批次', () => api.post(`/batches/${id}/close`))}>
@@ -130,7 +135,6 @@ export default function BatchPage() {
             </>
           )}
         </div>
-        {message && <p className="muted">{message}</p>}
         {selections.length > 0 && (
           <p className="row" style={{ gap: 10 }}>
             {selections.map((s) => (
@@ -158,7 +162,10 @@ export default function BatchPage() {
       <div className="card">
         <h2>候选（{candidates.length}）</h2>
         {candidates.length === 0 ? (
-          <p className="muted">空批次</p>
+          <div className="empty">
+            批次还没有候选
+            <div className="hint">在上方选择视频文件上传，或等待批量导入</div>
+          </div>
         ) : (
           <table>
             <thead>

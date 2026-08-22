@@ -34,7 +34,7 @@ export default function Dashboard() {
     load();
   }, [load]);
 
-  if (!ready || !user) return <p className="muted">加载中…</p>;
+  if (!ready || !user) return <p className="loading">加载中…</p>;
 
   return (
     <>
@@ -65,7 +65,10 @@ export default function Dashboard() {
       <div className="card">
         <h2>我的项目（{projects.length}）</h2>
         {projects.length === 0 ? (
-          <p className="muted">还没有项目——创建第一个，然后发布 Brief、配置质检标准。</p>
+          <div className="empty">
+            还没有项目
+            <div className="hint">创建第一个项目，然后发布 Brief、配置质检标准</div>
+          </div>
         ) : (
           <table>
             <thead>

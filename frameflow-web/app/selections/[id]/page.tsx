@@ -39,7 +39,7 @@ export default function SelectionPage() {
     load();
   }, [load]);
 
-  if (!selection) return <p className="muted">加载中… {message}</p>;
+  if (!selection) return <p className="loading">加载中…</p>;
   const locked = selection.status === 'LOCKED';
 
   async function adjust(candidateId: number, action: 'INCLUDE' | 'EXCLUDE') {
@@ -114,7 +114,7 @@ export default function SelectionPage() {
             ← 返回批次
           </Link>
         </div>
-        {message && <p className="error">{message}</p>}
+        {message && <div className="notice bad">{message}</div>}
         <p className="muted" style={{ marginTop: 8 }}>
           机器标记与人工调整并存——最终交付 = 机器 Top-K 剔除人工 EXCLUDE 后 + 人工 INCLUDE。
         </p>

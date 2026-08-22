@@ -34,7 +34,7 @@ export default function ProjectPage() {
     load();
   }, [load]);
 
-  if (!project) return <p className="muted">加载中… {message}</p>;
+  if (!project) return <p className="loading">加载中…</p>;
 
   return (
     <>
@@ -171,7 +171,7 @@ export default function ProjectPage() {
           </button>
           {!project.currentBriefId && <span className="muted">先发布 Brief</span>}
         </form>
-        {message && <div className="error">{message}</div>}
+        {message && <div className="notice bad">{message}</div>}
       </div>
     </>
   );

@@ -44,7 +44,7 @@ export default function CandidatePage() {
     videoRef.current.play().catch(() => undefined);
   }
 
-  if (error) return <div className="card"><p className="error">{error}</p><Link href="/">返回</Link></div>;
+  if (error) return <div className="card"><div className="notice bad">{error}</div><p style={{ marginTop: 12 }}><Link href="/">← 返回</Link></p></div>;
 
   const deterministic = findings.filter((f) => !f.verdict);
   const semantic = findings.filter((f) => f.verdict);
@@ -56,7 +56,7 @@ export default function CandidatePage() {
         {videoUrl ? (
           <video ref={videoRef} src={videoUrl} controls style={{ width: '100%', maxHeight: 420, background: '#000', borderRadius: 8 }} />
         ) : (
-          <p className="muted">视频地址加载中…（无法播放的候选通常是签名未通过或文件损坏）</p>
+          <p className="loading">视频地址加载中…（无法播放的候选通常是签名未通过或文件损坏）</p>
         )}
       </div>
 
@@ -73,7 +73,7 @@ export default function CandidatePage() {
               {f.evidence && <details><summary className="t">证据</summary><pre className="mono">{f.evidence}</pre></details>}
             </li>
           ))}
-          {deterministic.length === 0 && <li className="muted">无（未分析或全部通过无记录）</li>}
+          {deterministic.length === 0 && <li className="muted">暂无确定性结论（未分析，或全部通过且无记录）</li>}
         </ul>
       </div>
 
@@ -90,7 +90,7 @@ export default function CandidatePage() {
               {f.evidence && <details><summary className="t">证据束</summary><pre className="mono">{f.evidence}</pre></details>}
             </li>
           ))}
-          {semantic.length === 0 && <li className="muted">无语义结论（未启用或 Provider 禁用）</li>}
+          {semantic.length === 0 && <li className="muted">暂无语义结论（质检标准未启用语义检测，或 Provider 禁用）</li>}
         </ul>
       </div>
     </>
