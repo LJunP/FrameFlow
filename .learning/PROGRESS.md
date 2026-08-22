@@ -6,10 +6,10 @@
 
 ## 当前状态
 
-- 当前功能：F1、F2 已交付，待所有者学习
-- 下一功能：F3 批次与视频上传（MinIO）
-- 开发状态：F2 已交付（30 测试全绿，含契约与架构守护）
-- 学习状态：F1 未读 / F2 未读（导读：[F1](../docs/guides/F1-源码导读.md)、[F2](../docs/guides/F2-源码导读.md)）
+- 已交付：F1、F2、F3（待所有者学习）
+- 下一功能：F4 确定性质检流水线（RabbitMQ + Python worker）
+- 开发状态：F3 已交付（38 测试全绿：真实 MinIO 直传/分片/对账）
+- 学习状态：F1/F2/F3 均未读（导读：[F1](../docs/guides/F1-源码导读.md)、[F2](../docs/guides/F2-源码导读.md)、[F3](../docs/guides/F3-源码导读.md)）
 - 更新日期：2026-08-22
 
 ## 功能进度
@@ -20,7 +20,7 @@
 | --- | --- | --- | --- | --- |
 | F1 工程基线与用户认证 | 已交付 | 未读 | [F1](../docs/guides/F1-源码导读.md) | 17 测试全绿 |
 | F2 项目与质检配置管理 | 已交付 | 未读 | [F2](../docs/guides/F2-源码导读.md) | 30 测试全绿（累计） |
-| F3 批次与视频上传 | 未开始 | 未读 | — | |
+| F3 批次与视频上传 | 已交付 | 未读 | [F3](../docs/guides/F3-源码导读.md) | 38 测试全绿（累计） |
 | F4 确定性质检流水线 | 未开始 | 未读 | — | |
 | F5 缓存与限流（Redis） | 未开始 | 未读 | — | 可在 F4 后穿插 |
 | F6 语义质检（AI Provider） | 未开始 | 未读 | — | |
@@ -48,6 +48,15 @@
 - [x] T3 Quality Profile 版本化（JSONB spec，版本号只增不复用）
 - [x] T4 手写 OpenAPI 契约 + 双向一致性测试 + ArchUnit 三条边界规则
 - [x] 交付《F2 源码导读》（docs/guides/F2-源码导读.md）
+
+### F3 批次与视频上传（开发完成 2026-08-22）
+
+- [x] T1 批次创建（绑定 Profile 版本 + Brief 快照，容量 1..300 有界）
+- [x] T2 Presigned 直传（SIMPLE/MULTIPART 双模式，真实 MinIO 容器验证）
+- [x] T3 候选元数据入库（object_key/etag；完成时三重校验：存在/大小/媒体签名）
+- [x] T4 对账（超时会话判 INVALID、missing/orphan/未确认 全量报告）
+- [x] T5 可复现测试媒体脚本（scripts/gen_test_media.py，ffmpeg/占位双模式）
+- [x] 交付《F3 源码导读》（docs/guides/F3-源码导读.md）
 
 ## 技术学习清单
 

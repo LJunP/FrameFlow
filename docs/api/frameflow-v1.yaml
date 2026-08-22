@@ -127,3 +127,50 @@ paths:
       summary: 取指定版本
       responses:
         "200": { description: 版本详情 }
+  /api/v1/batches:
+    post:
+      tags: [batch]
+      summary: 创建批次（绑定 Profile 版本与 Brief 快照）
+      responses:
+        "201": { description: 已创建 }
+  /api/v1/batches/{id}:
+    get:
+      tags: [batch]
+      summary: 批次详情（含候选状态统计）
+      responses:
+        "200": { description: 批次详情 }
+  /api/v1/batches/{id}/close:
+    post:
+      tags: [batch]
+      summary: 关闭批次（停止接收上传，幂等）
+      responses:
+        "200": { description: 关闭后的批次 }
+  /api/v1/batches/{id}/candidates:
+    get:
+      tags: [batch]
+      summary: 分页列出候选
+      responses:
+        "200": { description: 候选分页 }
+    post:
+      tags: [batch]
+      summary: 登记候选并发放直传凭证（SIMPLE/MULTIPART）
+      responses:
+        "201": { description: 上传指令 }
+  /api/v1/batches/{id}/reconcile:
+    post:
+      tags: [batch]
+      summary: 对账（元数据 vs 对象存储，修超时会话并出报告）
+      responses:
+        "200": { description: 对账报告 }
+  /api/v1/candidates/{id}/upload-parts:
+    post:
+      tags: [batch]
+      summary: 领取分片直传 URL
+      responses:
+        "200": { description: 分片 URL 映射 }
+  /api/v1/candidates/{id}/complete:
+    post:
+      tags: [batch]
+      summary: 确认上传完成（入口校验：存在/大小/媒体签名）
+      responses:
+        "200": { description: 候选状态（UPLOADED 或 INVALID+原因） }

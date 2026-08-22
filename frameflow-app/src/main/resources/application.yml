@@ -28,6 +28,17 @@ frameflow:
     # ISO-8601 时长：access 15 分钟（盗取窗口），refresh 14 天（免频繁登录）
     access-token-ttl: PT15M
     refresh-token-ttl: P14D
+  storage:
+    # MinIO（infra/local/docker-compose.yml）；生产用环境变量覆盖
+    endpoint: ${FRAMEFLOW_STORAGE_ENDPOINT:http://127.0.0.1:9000}
+    region: ${FRAMEFLOW_STORAGE_REGION:us-east-1}
+    access-key: ${FRAMEFLOW_STORAGE_ACCESS_KEY:frameflow}
+    secret-key: ${FRAMEFLOW_STORAGE_SECRET_KEY:frameflow_local_only}
+    bucket: ${FRAMEFLOW_STORAGE_BUCKET:frameflow-media-local}
+    presign-ttl: PT30M        # 直传 URL 有效期
+    multipart-threshold: 32MB # 超过此大小走分片上传
+    part-size: 8MB            # 建议分片大小（客户端参考）
+    upload-session-ttl: PT1H  # 上传会话超时：超时未完成的候选在对账时判 INVALID
 
 server:
   port: ${FRAMEFLOW_SERVER_PORT:18080}
