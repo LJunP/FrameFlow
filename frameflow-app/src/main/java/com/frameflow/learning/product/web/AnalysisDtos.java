@@ -11,4 +11,7 @@ public final class AnalysisDtos {
                                   Long timecodeMs, String evidence, String message,
                                   String verdict) {
     }
+
+    public record ContentUrlResponse(String url, String expiresAt) {
+    }
 }
