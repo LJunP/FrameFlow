@@ -2,9 +2,8 @@ export default function HomePage() {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", padding: "2rem", maxWidth: "42rem", margin: "0 auto" }}>
       <h1>FrameFlow Select</h1>
-      <p>学习优先重建工程(learning-first rebuild)。当前仅为最小骨架,不含任何业务功能。</p>
-      <p>完整产品参考实现位于归档分支 archive/frameflow-select-agent-mvp-v1(仅供学习对照)。</p>
-      <p>学习路线见 .learning/roadmap.yaml,当前任务见 .learning/tasks/。第一个任务 LR1-H001 见 .learning/tasks/LR1-H001.yaml。</p>
+      <p>面向 AI 生成短视频的批量质检与优选平台（开发中）。</p>
+      <p>产品设计见 docs/01，技术架构见 docs/02，开发与学习路线见 docs/03，当前进度见 .learning/PROGRESS.md。</p>
     </main>
   );
 }

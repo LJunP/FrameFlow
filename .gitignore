@@ -24,43 +24,24 @@ data/
 .DS_Store
 __MACOSX/
 
-# Local tooling and plans
+# Local tooling
 .zcode/
 .codex/
 
-# Node frontend artifacts
+# Node frontend
 node_modules/
 dist/
-
-# Learning project runtime/pilot data (must never be committed)
-local-pilot-data/
-docs/archive/agent-experiments/fixtures/generated/
-docs/archive/agent-state/runtime/
+frameflow-web/.next/
 coverage/
 
-# FrameFlow Select generated/local artifacts
-.frameflow/runtime/
-.frameflow/worktrees/
-**/target/
-frameflow-web/node_modules/
-frameflow-web/.next/
+# Python worker
 frameflow-ai-worker/.venv/
-frameflow-ai-worker/**/__pycache__/
+**/__pycache__/
+*.egg-info/
+
+# Generated / local media (reproducible via generator; never commit binaries)
 experiments/fixtures/generated/
 media/
 derived-media/
 model-cache/
-*.pem
-.env
-.DS_Store
-__MACOSX/
-.zcode/
-# FrameFlow Select AI worker
-frameflow-ai-worker/.venv/
-frameflow-ai-worker/**/__pycache__/
-frameflow-ai-worker/*.egg-info/
-frameflow-ai-worker/**/*.egg-info/
-
-# Synthetic generated media (reproducible via generator; do not commit binaries)
-experiments/fixtures/generated/
-
+docs/evidence/**/media/

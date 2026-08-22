@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * This application intentionally contains NO business implementation. It only
  * proves the local toolchain (Java 21 + Maven + Spring Boot) works end to end
  * and exposes the actuator health endpoint. The first real business slice
- * (Project create/query) is the project owner task (see .learning/).
+ * (Project create/query) is the project owner task (see docs/03).
  *
  * The finished reference product lives on archive branch
  * archive/frameflow-select-agent-mvp-v1 (tag frameflow-select-agent-mvp-v1.0.0).

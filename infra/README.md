@@ -1,7 +1,7 @@
 # infra — 四套逻辑隔离环境(目录与模板)
 
 此目录只提供:环境要求、模板与验证脚本。**第一版真实 Dockerfile、Compose、
-Nginx 与部署脚本必须由项目所有者在其对应的 HUMAN_CORE(LR3/LR4/LR13/LR14/LR15)
+Nginx 与部署脚本必须由项目所有者在其对应的 HUMAN_CORE(F9/F10)
 任务中亲手完成**,不得由 Agent 代写完整生产配置。
 
 | 目录 | 环境 | 用途 |
@@ -11,6 +11,6 @@ Nginx 与部署脚本必须由项目所有者在其对应的 HUMAN_CORE(LR3/LR4/
 | staging/ | 非生产 VPS | Release Candidate、迁移验证、E2E、回滚验证 |
 | production/ | 独立生产 VPS | 真实用户、真实数据、域名、HTTPS、监控、备份 |
 
-隔离要求(见 BOOK-05):数据库、Redis、RabbitMQ VHost、MinIO Bucket、Docker
+隔离要求(见 docs/02):数据库、Redis、RabbitMQ VHost、MinIO Bucket、Docker
 Network/Volume、环境变量、Secret、域名、日志、备份全部按环境隔离;禁止跨环境
 共用生产数据与 Secret。
