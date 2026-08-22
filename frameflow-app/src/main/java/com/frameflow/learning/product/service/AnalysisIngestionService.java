@@ -20,12 +20,14 @@ public class AnalysisIngestionService {
     private final AnalysisRunMapper runs;
     private final CandidateMapper candidates;
     private final FindingMapper findings;
+    private final ProgressCacheService progressCache;
 
     public AnalysisIngestionService(AnalysisRunMapper runs, CandidateMapper candidates,
-                                    FindingMapper findings) {
+                                    FindingMapper findings, ProgressCacheService progressCache) {
         this.runs = runs;
         this.candidates = candidates;
         this.findings = findings;
+        this.progressCache = progressCache;
     }
 
     public record FindingRequest(String detector, String detectorVersion, String dimension,
@@ -66,6 +68,7 @@ public class AnalysisIngestionService {
             // 绝不写成 AUTO_REJECT（视频问题）。两者在报表里是两个世界。
             candidates.markAnalysisResult(run.getCandidateId(), "ANALYSIS_ERROR",
                     null, null, null, null);
+            progressCache.evict(run.getBatchId());
             return new IngestionResponse(run.getId(), run.getCandidateId(),
                     "ANALYSIS_ERROR", false);
         }
@@ -80,6 +83,7 @@ public class AnalysisIngestionService {
         String finalStatus = blocker ? "AUTO_REJECT" : "ANALYZED";
         candidates.markAnalysisResult(run.getCandidateId(), finalStatus,
                 req.durationMs(), req.width(), req.height(), req.fps());
+        progressCache.evict(run.getBatchId());
         return new IngestionResponse(run.getId(), run.getCandidateId(), finalStatus, false);
     }
 }

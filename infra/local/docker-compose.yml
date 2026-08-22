@@ -55,7 +55,22 @@ services:
       timeout: 3s
       retries: 10
 
+  # F5 缓存与限流：Redis 7
+  redis:
+    image: redis:7-alpine
+    container_name: frameflow-local-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - frameflow-local-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
 volumes:
   frameflow-local-pg-data:
   frameflow-local-minio-data:
   frameflow-local-rabbit-data:
+  frameflow-local-redis-data:

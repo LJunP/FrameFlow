@@ -27,13 +27,16 @@ public class UploadService {
     private final CandidateMapper candidates;
     private final StoragePort storage;
     private final StorageProperties storageProps;
+    private final ProgressCacheService progressCache;
 
     public UploadService(BatchService batchService, CandidateMapper candidates,
-                         StoragePort storage, StorageProperties storageProps) {
+                         StoragePort storage, StorageProperties storageProps,
+                         ProgressCacheService progressCache) {
         this.batchService = batchService;
         this.candidates = candidates;
         this.storage = storage;
         this.storageProps = storageProps;
+        this.progressCache = progressCache;
     }
 
     /** 分片直传 URL：客户端按需领取（不必一次拿全）。 */
@@ -117,9 +120,11 @@ public class UploadService {
         String reason = MediaSignature.check(storage.rangeGet(candidate.getObjectKey(), 0, 16));
         if (reason != null) {
             candidates.markInvalid(candidate.getId(), reason);
+            progressCache.evict(candidate.getBatchId());
             return new CompleteUploadResponse(candidate.getId(), "INVALID", reason);
         }
         candidates.markUploaded(candidate.getId(), S3StorageAdapter.normalizeEtag(head.etag()));
+        progressCache.evict(candidate.getBatchId());
         return new CompleteUploadResponse(candidate.getId(), "UPLOADED", null);
     }
 

@@ -29,6 +29,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-amqp</artifactId>
     </dependency>
+    <!-- F5: Redis（限流/缓存，Lettuce 客户端） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
     <!-- F1: 安全与 JWT（RS256 签发 + 资源服务器校验） -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

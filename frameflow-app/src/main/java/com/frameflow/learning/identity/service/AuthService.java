@@ -42,11 +42,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final Clock clock;
     private final TeamAccessService teamAccess;
+    private final com.frameflow.learning.shared.ratelimit.RedisRateLimiter rateLimiter;
 
     public AuthService(UserMapper users, TeamMapper teams, MemberMapper members,
                        RefreshTokenMapper refreshTokens, TokenService tokenService,
                        PasswordEncoder passwordEncoder, Clock clock,
-                       TeamAccessService teamAccess) {
+                       TeamAccessService teamAccess,
+                       com.frameflow.learning.shared.ratelimit.RedisRateLimiter rateLimiter) {
         this.users = users;
         this.teams = teams;
         this.members = members;
@@ -55,6 +57,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
         this.teamAccess = teamAccess;
+        this.rateLimiter = rateLimiter;
     }
 
     /**
@@ -88,6 +91,11 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
+        // F5 限流：每邮箱容量 5、每 30 秒回填 1 个令牌——
+        // 正常用户（偶发输错一两次）无感；持续爆破被平滑压制。
+        if (!rateLimiter.tryAcquire("ratelimit:login:" + req.email(), 5, 1.0 / 30)) {
+            throw new ApiException(ErrorCode.RATE_LIMITED);
+        }
         UserRow user = users.findByEmail(req.email());
         // ★ 核心：用户不存在与密码错误必须返回同一个错误（INVALID_CREDENTIALS）——
         // 如果分开提示"用户不存在"/"密码错误"，攻击者就能批量探测哪些邮箱

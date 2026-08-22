@@ -29,6 +29,7 @@ public enum ErrorCode {
     BATCH_CLOSED(HttpStatus.CONFLICT, "批次已关闭，不再接收上传"),
     BATCH_FULL(HttpStatus.CONFLICT, "批次容量已满"),
     INVALID_UPLOAD_STATE(HttpStatus.CONFLICT, "候选当前状态不允许该操作"),
+    RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "尝试过于频繁，请稍后再试"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "服务内部错误");
 
     private final HttpStatus status;

@@ -11,6 +11,13 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  data:
+    redis:
+      host: ${FRAMEFLOW_REDIS_HOST:127.0.0.1}
+      port: ${FRAMEFLOW_REDIS_PORT:6379}
+      # 快速失败：Redis 挂掉时业务走降级分支，不能让请求挂一分钟等超时
+      timeout: 500ms
+      connect-timeout: 500ms
   rabbitmq:
     host: ${FRAMEFLOW_RABBITMQ_HOST:127.0.0.1}
     port: ${FRAMEFLOW_RABBITMQ_PORT:5672}
