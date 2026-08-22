@@ -22,7 +22,7 @@
 
 | 层 | 选型 |
 | --- | --- |
-| 后端 | Java 21 + Spring Boot 3.x + Maven 多模块（模块化单体） |
+| 后端 | Java 17 + Spring Boot 3.x + Maven 多模块（模块化单体） |
 | 数据 | PostgreSQL 16（唯一事实源）+ Flyway + MyBatis |
 | 中间件 | Redis（缓存/限流）· RabbitMQ（异步任务）· MinIO（对象存储） |
 | AI Worker | Python 3.11 + FFmpeg/ffprobe + OpenCV + 多模态模型 Adapter |

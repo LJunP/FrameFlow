@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * FrameFlow Select - minimal learning skeleton.
  *
  * This application intentionally contains NO business implementation. It only
- * proves the local toolchain (Java 21 + Maven + Spring Boot) works end to end
+ * proves the local toolchain (Java 17 + Maven + Spring Boot) works end to end
  * and exposes the actuator health endpoint. The first real business slice
  * (Project create/query) is the project owner task (see docs/03).
  *

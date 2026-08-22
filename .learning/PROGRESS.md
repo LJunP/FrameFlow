@@ -42,7 +42,7 @@
 > 仅当对应功能三件套齐备且自测通过时才可记 mastered。
 
 - Git 公司式流程 — not_started（F1）
-- Java 21 + Spring Boot — not_started（F1/F2）
+- Java 17 + Spring Boot — not_started（F1/F2）
 - PostgreSQL / Flyway / SQL — not_started（F1/F2）
 - MinIO 对象存储 — not_started（F3）
 - RabbitMQ 异步可靠性 — not_started（F4）
