@@ -2,6 +2,14 @@ spring:
   application:
     name: frameflow-select-learning
 
+# F1-T1 自定义配置段：AppInfoProperties(prefix = "frameflow.app") 绑定这里。
+# 改这里的 name/version，重启后 /api/v1/ping 的返回随之变化——
+# 这就是"配置外置"的意义：改配置不用改代码。
+frameflow:
+  app:
+    name: frameflow-select
+    version: 0.1.0-SNAPSHOT
+
 server:
   port: ${FRAMEFLOW_SERVER_PORT:18080}
 
