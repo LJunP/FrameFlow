@@ -1,5 +1,10 @@
 # FrameFlow
 
+> 🔒 **本分支已冻结（2026-08-22），不再是主线**
+> 这是 FrameFlow 早期"视频协作平台"时代的 main 分支，停留在旧阶段中途的中间状态（2026-08-20），其全部提交已被后续历史完整包含，无独立价值，不再更新。
+> **最新主线分支：[`frameflow-select/learning-main`](../../tree/frameflow-select/learning-main)**（学习优先重建，所有新开发都在该分支进行）。
+> 完整参考实现（Agent MVP 答案册，只读对照）：分支 `archive/frameflow-select-agent-mvp-v1`，其验证通过的冻结状态锁定在 tag `frameflow-select-agent-mvp-v1.0.0`。
+
 > 面向 3～30 人视频创作团队的 AI 视频项目协同与交付平台，同时作为 Java 后端、微服务治理与云原生工程实战项目。
 
 ## 浏览声明（使用许可）
