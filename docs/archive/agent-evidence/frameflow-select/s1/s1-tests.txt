@@ -1,2 +1,0 @@
-S1 py tests: 20 passed in 0.95s
-S1 eval: tested=10 matched=10 failures=0

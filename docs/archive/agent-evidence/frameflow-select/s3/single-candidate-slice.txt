@@ -1,7 +1,0 @@
-S3 vertical slice evidence (FF-VSL-002/003):
-- SingleCandidateSliceE2ETest PASS: upload real synthetic MP4 -> start analysis
-  -> Python worker CLI (frameflow-ai analyze) computes deterministic findings
-  -> idempotent result ingest -> findings persisted in Postgres (last state)
-- Worker writes no Java business tables (result ingestion through API only)
-- StoragePort + LocalStorageAdapter: tenant-scoped keys, no browser credentials
-- Duplicate delivery idempotent (commandId + completed status no-op)

@@ -1,9 +1,0 @@
-Evidence: EV-FF-P0-001-03
-Subject commit: acbe53d52c3c0056e6eca53c9f4b999ec591824a
-Database state during failure probe: STOPPED
-GET /readiness status while stopped: 503
-GET /readiness body while stopped: {"status":"NOT_READY"}
-GET /health status while stopped: 200
-GET /health body while stopped: {"status":"UP"}
-Database state at script completion: HEALTHY
-Result: PASS

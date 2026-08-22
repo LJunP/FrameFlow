@@ -1,4 +1,0 @@
-S2: OpenApiDiffTest PASS — runtime openapi == handwritten contract (31 paths incl product)
-ProductFlowIntegrationTest PASS (2/2) — full workflow end-to-end + tenant isolation
-ModuleArchitectureTest PASS — product module consumes identity.api.IdentityPrincipal only
-Migrations V1-V8 apply cleanly on fresh PostgreSQL 16 (FF-DOM-003 fresh DB gate)

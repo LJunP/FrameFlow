@@ -1,1 +1,0 @@
-V4 forward migration: PRODUCER->OPERATOR, EDITOR->REVIEWER; CHECK constraint now OWNER/OPERATOR/REVIEWER/VIEWER; owner invariant preserved
