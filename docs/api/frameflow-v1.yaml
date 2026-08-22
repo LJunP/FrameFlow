@@ -174,3 +174,33 @@ paths:
       summary: 确认上传完成（入口校验：存在/大小/媒体签名）
       responses:
         "200": { description: 候选状态（UPLOADED 或 INVALID+原因） }
+  /api/v1/batches/{id}/analyze:
+    post:
+      tags: [analysis]
+      summary: 触发批次分析（批次须已关闭；为全部 UPLOADED 候选建 run 并派发）
+      responses:
+        "202": { description: 派发结果 }
+  /api/v1/candidates/{id}/findings:
+    get:
+      tags: [analysis]
+      summary: 候选的完整 Finding 列表（含通过项证据）
+      responses:
+        "200": { description: Finding 列表 }
+  /api/v1/internal/analysis-results:
+    post:
+      tags: [internal]
+      summary: worker 回写分析结果（X-Worker-Key 鉴权，幂等）
+      responses:
+        "200": { description: 回写结果（duplicate 标识是否重放） }
+  /api/v1/admin/mq/stats:
+    get:
+      tags: [internal]
+      summary: 队列深度（主队列/死信，OWNER）
+      responses:
+        "200": { description: 深度统计 }
+  /api/v1/admin/mq/replay-dlq:
+    post:
+      tags: [internal]
+      summary: 重放死信到主队列（OWNER）
+      responses:
+        "200": { description: 重放数量 }

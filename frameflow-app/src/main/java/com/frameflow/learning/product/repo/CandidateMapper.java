@@ -40,6 +40,25 @@ public interface CandidateMapper {
             + "GROUP BY status")
     List<StatusCount> countByStatus(Long batchId);
 
+    /** 派发时迁移：仅 UPLOADED 状态可进入分析（条件更新防重复派发）。 */
+    @Update("UPDATE candidates SET status = 'ANALYZING', updated_at = now() "
+            + "WHERE id = #{id} AND status = 'UPLOADED'")
+    int markAnalyzing(Long id);
+
+    /** 结果回写：ANALYZED / AUTO_REJECT / ANALYSIS_ERROR 三选一。 */
+    @Update("UPDATE candidates SET status = #{status}, updated_at = now(), "
+            + "duration_ms = COALESCE(#{durationMs}, duration_ms), "
+            + "width = COALESCE(#{width}, width), "
+            + "height = COALESCE(#{height}, height), "
+            + "fps = COALESCE(#{fps}, fps) "
+            + "WHERE id = #{id} AND status = 'ANALYZING'")
+    int markAnalysisResult(@Param("id") Long id,
+                           @Param("status") String status,
+                           @Param("durationMs") Long durationMs,
+                           @Param("width") Integer width,
+                           @Param("height") Integer height,
+                           @Param("fps") Double fps);
+
     /** 登记后回填上传会话信息（简单/分片 + S3 uploadId）。 */
     @Update("UPDATE candidates SET upload_mode = #{mode}, s3_upload_id = #{uploadId}, "
             + "updated_at = now() WHERE id = #{id}")

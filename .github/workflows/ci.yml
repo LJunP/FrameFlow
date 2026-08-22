@@ -26,8 +26,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - run: pip install pytest
+          python-version: "3.12"
+      # F4 起 worker 有真实依赖（pika/minio/opencv...），装完整包
+      - run: pip install -e "frameflow-ai-worker[dev]"
       - run: python -m pytest frameflow-ai-worker/tests -q
 
   web:
