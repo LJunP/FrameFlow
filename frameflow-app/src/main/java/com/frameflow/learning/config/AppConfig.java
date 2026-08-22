@@ -20,4 +20,13 @@ public class AppConfig {
     public Clock clock() {
         return Clock.systemDefaultZone();
     }
+
+    // ★ 核心：密码哈希用 BCrypt——自带随机盐（同密码每次哈希结果不同，
+    // 抗彩虹表）+ 刻意慢（暴力破解成本高）。盐由 encode 内部生成并编码进
+    // 结果字符串，matches 时自动取出，代码不用手工管理盐。
+    // 改坏后果：用 MD5/SHA-256 裸哈希，拖库后彩虹表秒破。
+    @Bean
+    public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
+        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+    }
 }

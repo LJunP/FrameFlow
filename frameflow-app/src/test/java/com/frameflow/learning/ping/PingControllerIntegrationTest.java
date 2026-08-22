@@ -8,7 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.frameflow.learning.TestcontainersConfiguration;
 
 /**
  * 集成测试：启动完整 Spring 上下文，用 MockMvc 发起（模拟的）HTTP 请求。
@@ -20,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 // 本测试要验证"配置真的被绑定进来了"，所以必须用完整上下文。
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(TestcontainersConfiguration.class)
 class PingControllerIntegrationTest {
 
     @Autowired
