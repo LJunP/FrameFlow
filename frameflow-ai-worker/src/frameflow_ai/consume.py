@@ -92,7 +92,16 @@ def start_worker(cfg: Config, download, worker_version: str):
         credentials=pika.PlainCredentials(cfg.rabbit_user, cfg.rabbit_password),
     ))
     channel = conn.channel()
-    channel.queue_declare(queue=TASK_QUEUE, durable=True)
+    # ★ 声明参数必须与 Java 侧 RabbitConfig 完全一致（含死信配置）——
+    # 队列已存在时 broker 会做参数比对，不一致直接 PRECONDITION_FAILED
+    # 关闭信道（曾因漏死信参数在"本地复用过的 RabbitMQ"上启动失败；
+    # 测试环境队列每次新建，从未暴露）
+    channel.queue_declare(
+        queue=TASK_QUEUE, durable=True,
+        arguments={
+            "x-dead-letter-exchange": "frameflow.dlx",
+            "x-dead-letter-routing-key": "analysis.dead",
+        })
     channel.basic_qos(prefetch_count=cfg.prefetch)
 
     def handle(ch, method, properties, body: bytes):
