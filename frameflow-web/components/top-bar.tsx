@@ -11,13 +11,13 @@ export default function TopBar() {
 
   return (
     <nav className="topbar">
-      <Link href="/" style={{ color: '#fff', textDecoration: 'none' }} className="brand">
+      <Link href="/" style={{ color: 'var(--text)', textDecoration: 'none' }} className="brand">
         FrameFlow Select
       </Link>
       {user && (
         <Link
           href="/"
-          style={{ color: pathname === '/' ? '#fff' : '#9ca3af', textDecoration: 'none', fontSize: 13 }}
+          style={{ color: pathname === '/' ? 'var(--text)' : 'var(--text-2)', textDecoration: 'none', fontSize: 13 }}
         >
           项目
         </Link>
@@ -32,7 +32,7 @@ export default function TopBar() {
           </span>
           <button
             className="btn small secondary"
-            style={{ color: '#9ca3af', borderColor: '#374151' }}
+            style={{ color: 'var(--text-2)', borderColor: 'var(--line-strong)' }}
             onClick={async () => {
               await logout();
               router.push('/login');

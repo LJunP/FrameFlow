@@ -4,36 +4,44 @@
    单一强调色贯穿全站；语义状态色三档；克制动效（尊重 reduced-motion）。
    ===================================================================== */
 
+/* =====================================================================
+   FrameFlow Select 设计系统 v2
+   风格基准：影视飓风（ysjf.com）——工业感黑白灰极简 + 单红点缀
+   - 主色/强调 = 炭黑 #24252c（参考站 primary/accent 同值）
+   - 页面底 #f4f6f7 · 画布 #eef0f2 · 卡片纯白 · 分隔线 #eeeeee
+   - 唯一彩色 = 错误红 #ff4b40；绿/黄仅作状态语义且柔化
+   - 字体 PingFang SC 优先；圆角 10/16；克制动效（尊重 reduced-motion）
+   ===================================================================== */
+
 :root {
-  /* 中性色阶（冷灰，统一同族） */
-  --bg: #f4f5f7;
+  /* 中性色阶（对齐参考站 base/separator/placeholder 三级） */
+  --bg: #f4f6f7;
   --surface: #ffffff;
-  --surface-2: #f8f9fb;
-  --line: #e4e7ec;
-  --line-strong: #d0d5dd;
-  --text: #101828;
-  --text-2: #475467;
-  --muted: #98a2b3;
+  --surface-2: #eef0f2;
+  --line: #eeeeee;
+  --line-strong: #d8d8d8;
+  --text: #24252c;
+  --text-2: #646464;
+  --muted: #adadad;
 
-  /* 单一强调色（全站锁定）：深靛蓝 */
-  --accent: #3538cd;
-  --accent-hover: #2d31b0;
-  --accent-soft: #eef0ff;
-  --accent-line: #c7cbff;
+  /* 单一强调色：炭黑（按钮/焦点/进度） */
+  --accent: #24252c;
+  --accent-hover: #101014;
+  --accent-soft: #f4f6f7;
+  --accent-line: #b9bcc4;
 
-  /* 语义状态（软底色 + 同色文字 + 同色描边） */
-  --ok: #067647;      --ok-bg: #ecfdf3;   --ok-line: #abefc6;
-  --warn: #b54708;    --warn-bg: #fffaeb; --warn-line: #fedf89;
-  --bad: #b42318;     --bad-bg: #fef3f2;  --bad-line: #fecdca;
-  --info: #175cd3;    --info-bg: #eff8ff; --info-line: #b2ddff;
+  /* 语义状态（ok/warn 柔化可用；bad 对齐参考站 #ff4b40） */
+  --ok: #177245;      --ok-bg: #f0f7f3;   --ok-line: #c6e6d3;
+  --warn: #a15c07;    --warn-bg: #fdf7ec; --warn-line: #f1d9a8;
+  --bad: #ff4b40;     --bad-bg: #ffefee;  --bad-line: #ffc9c5;
 
-  /* 圆角（单一体系：控件 8 / 容器 12 / 徽章胶囊） */
-  --r-ctl: 8px;
-  --r-box: 12px;
+  /* 圆角（单一体系：控件 10 / 容器 16 / 徽章胶囊） */
+  --r-ctl: 10px;
+  --r-box: 16px;
 
-  /* 阴影（带色相的浅投影，不用纯黑） */
-  --shadow-1: 0 1px 2px rgb(16 24 40 / 0.05);
-  --shadow-2: 0 4px 12px -2px rgb(16 24 40 / 0.08), 0 2px 4px -2px rgb(16 24 40 / 0.04);
+  /* 阴影（灰相浅投影） */
+  --shadow-1: 0 1px 2px rgb(36 37 44 / 0.05);
+  --shadow-2: 0 4px 14px -2px rgb(36 37 44 / 0.08), 0 2px 4px -2px rgb(36 37 44 / 0.04);
 }
 
 * { box-sizing: border-box; }
@@ -60,23 +68,22 @@ body {
   display: flex; align-items: center; gap: 18px;
   padding: 0 24px;
   height: 56px;
-  background: #101828;
-  border-bottom: 1px solid rgb(255 255 255 / 0.08);
-  box-shadow: var(--shadow-1);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
 }
 .topbar .brand {
   display: flex; align-items: center; gap: 8px;
-  font-weight: 700; letter-spacing: 0.2px; color: #fff;
+  font-weight: 700; letter-spacing: 0.2px; color: var(--text);
   text-decoration: none; font-size: 15px;
 }
+/* 品牌标：参考站风格的黑色方块 */
 .topbar .brand::before {
   content: "";
-  width: 18px; height: 18px; border-radius: 5px;
-  background: linear-gradient(135deg, #6366f1, var(--accent) 60%, #1f22b8);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35);
+  width: 16px; height: 16px; border-radius: 4px;
+  background: var(--accent);
 }
 .topbar .spacer { flex: 1; }
-.topbar .who { color: #98a2b3; font-size: 13px; }
+.topbar .who { color: var(--text-2); font-size: 13px; }
 
 .container { max-width: 980px; margin: 28px auto 48px; padding: 0 20px; }
 
@@ -254,6 +261,7 @@ input:focus-visible, .btn:focus-visible { outline-offset: 0; }
 @media (max-width: 640px) {
   .topbar { padding: 0 16px; gap: 10px; }
   .topbar .who { display: none; }
+  .topbar .brand::after { content: "Select"; font-weight: 500; color: var(--text-2); }
   .container { margin: 16px auto 32px; padding: 0 12px; }
   .card { padding: 16px; }
   table { display: block; overflow-x: auto; }
