@@ -47,5 +47,7 @@ Agent 实现整个产品，所有者通过阅读带注释的源码掌握全部�
 ## 6. 当前状态速览
 
 - 主线分支：`frameflow-select/learning-main`（唯一活跃分支）
-- 进度：`.learning/PROGRESS.md`（F9 前合成真媒体产品全链与 F6.1 平台多模型选择自动化已通过；真实 Provider 调用记录尚未执行，F9 继续暂缓）
+- 进度：`.learning/PROGRESS.md`（合成真媒体产品全链、F6.1 平台多模型选择自动化、
+  OpenCode Go Luna 单请求合成视觉门禁及 F9–F11 本地工程均已通过；远程部署、
+  production 运维、真实客户试点与价值结论仍未执行）
 - 流程、注释规范与交付标准：`docs/03-开发与学习路线.md` §0

@@ -8,25 +8,29 @@
 
 - 已交付：F1–F8、F6.1；F9/F10 的本地工程与动态门禁；F11 Pilot-ready
   工程与合成彩排（不等于远程上线、production 运维或真实试点完成）
-- 当前阶段：本地可完成的开发已推进到 Deploy-ready / Pilot-ready。F9 的 VPS、SSH、
-  DNS、HTTPS 与远程 CI/发布，F10 的 production 告警/恢复，F11 的真实 Provider 与
-  真实试点仍是外部门禁
+- 当前阶段：本地可完成的开发已推进到 Deploy-ready / Pilot-ready。F6 的一次真实
+  Provider 合成视觉门禁已通过；F9 的 VPS、SSH、DNS、HTTPS 与远程 CI/发布，F10 的
+  production 告警/恢复，F11 的真实客户批次与真实试点仍是外部门禁
 - 开发状态：F12 品牌前台与账户团队基础已完成当前工作树回归，等待所有者验收
 - F12 范围：公开首页、认证体验、工作台导航、个人中心、当前团队只读页、业务化质量规则表单（含平台多模态模型选择）
 - F12 导读：[F12 源码导读](../docs/guides/F12-源码导读.md)
 - F12 学习状态：未读（由所有者本人更新）
 - 学习状态：F1–F8、F6.1、F12 均未读（只能由所有者本人更新）
-- 当前门禁事实：合成真 MP4 已跑通 API → MinIO → RabbitMQ → Python Worker → Java 回写 → 排名/聚类 → 人工调整 → 锁定 → JSON/CSV 导出；真实 Provider 按所有者边界尚未调用
+- 当前门禁事实：合成真 MP4 已跑通 API → MinIO → RabbitMQ → Python Worker → Java
+  回写 → 排名/聚类 → 人工调整 → 锁定 → JSON/CSV 导出；另以生产 Responses Adapter
+  对 OpenCode Go `gpt-5.6-luna` 完成 1 次真实合成视觉请求并 PASS，未把两者伪装成
+  “完整产品链真实 Provider E2E”
 - F6.1 当前事实：平台无密钥模型目录、受保护安全 API、Profile 版本化选择、
   Chat Completions/Responses 精确路由、Worker-only Secret 注入、证据脱敏和前端
-  选择器的自动化均通过；未做真实 Provider 调用
+  选择器的自动化均通过；真实门禁为 HTTP 200、3 张合成 JPEG、挑战码精确匹配、
+  1 次请求且无重试，真实客户媒体为 0
 - F9/F10 当前事实：三种本地镜像与全栈 Smoke 通过；监控、日志、合成告警触达/
   恢复、PostgreSQL/MinIO 隔离恢复及四类故障 harness 已在 local 实际通过
 - F11 当前事实：合成彩排 `PASS`，310 个候选记录、337 项校验、30 个 hash artifact；
   `realPilotDecisionEligible=false`，不得作为真实试点结论
-- 下一外部动作：所有者未来明确授权真实 Provider 后，由平台在 Worker 侧注入模型目录
-  与 Key，补真实多模态调用记录；其后由所有者按 F9 Runbook 手工部署，再执行
-  production 运维门禁和真实试点
+- 下一外部动作：由所有者按 F9 Runbook 手工部署，再执行 production 运维门禁和
+  真实试点；若要补“完整 API→MQ→Worker→回写链的真实 Provider E2E”，因会产生
+  第二次真实请求，仍须另行明确授权
 - 更新日期：2026-08-24
 
 ## 功能进度
@@ -40,14 +44,14 @@
 | F3 批次与视频上传 | 已交付 | 未读 | [F3](../docs/guides/F3-源码导读.md) | 38 测试全绿（累计） |
 | F4 确定性质检流水线 | 已交付 | 未读 | [F4](../docs/guides/F4-源码导读.md) | 当前全量 Java 77 + Worker 101 测试全绿；合成真媒体主链通过 |
 | F5 缓存与限流（Redis） | 已交付 | 未读 | [F5](../docs/guides/F5-源码导读.md) | 50 测试全绿；降级演练实测 |
-| F6 语义质检（AI Provider） | 已交付（待真实调用） | 未读 | [F6](../docs/guides/F6-源码导读.md) | 多模态帧输入、证据哈希、错误降级和多模型路由已测试；真实调用记录未执行 |
+| F6 语义质检（AI Provider） | 已交付（真实合成门禁通过） | 未读 | [F6](../docs/guides/F6-源码导读.md) | OpenCode Go Luna：1 次 Responses 请求、HTTP 200、视觉挑战精确匹配；不是完整产品 E2E/真实试点 |
 | F6.1 平台多模型选择 | 已交付（自动化通过） | 未读 | [F6.1](../docs/guides/F6.1-源码导读.md) | 平台托管 Key，用户选 enabled 模型；Chat Completions/Responses 均已离线适配；Java 77、Worker 101、Web 契约 15 全绿 |
 | F7 聚类排名与 Top-K 优选 | 已交付 | 未读 | [F7](../docs/guides/F7-源码导读.md) | 58+33 全绿 |
 | F8 Web 前端产品化 | 已交付（合成全链回归通过） | 未读 | [F8](../docs/guides/F8-源码导读.md) | 合成真媒体全链与真实浏览器深链通过；不等于真实 Provider/试点价值证明 |
 | F12 品牌前台与账户团队基础 | 回归完成（待验收） | 未读 | [F12](../docs/guides/F12-源码导读.md) | 登录/登出、团队/账户、工作台深链及 390px 焦点管理当前实测通过 |
 | F9 服务器部署与 CI/CD | 本地工程与 Smoke 已交付（远程门禁未执行） | 未读 | [F9](../docs/guides/F9-源码导读.md) | 未推 Registry；VPS/SSH/DNS/HTTPS/远程发布由所有者执行 |
 | F10 生产化运维 | 本地工程与动态演练已交付（production 门禁未执行） | 未读 | [F10](../docs/guides/F10-源码导读.md) | 本地 synthetic 告警、隔离恢复、4 类故障通过；不等于 production RTO/RPO |
-| F11 真实试点验证 | Pilot-ready 工程与合成彩排已交付 | — | [F11](../docs/guides/F11-源码导读.md) | 真实 Provider/真实批次/价值结论未执行；只由所有者批准 |
+| F11 真实试点验证 | Pilot-ready 工程与合成彩排已交付 | — | [F11](../docs/guides/F11-源码导读.md) | F6 单请求合成视觉门禁已过；真实客户批次、真实人工审核与价值结论未执行 |
 
 ## 任务明细
 
@@ -106,7 +110,7 @@
 - [x] T7 Responses API 多模态适配器 + `input_image/output_text` 契约 + Worker-only `0600` Secret 注入
 - [x] 交付《F6 源码导读》（docs/guides/F6-源码导读.md）
 - [x] 交付《F6.1 源码导读》（docs/guides/F6.1-源码导读.md）
-- [ ] 真实 Provider 调用记录（待所有者确认与受控 Provider 配置）
+- [x] 真实 Provider 调用记录（2026-08-24：OpenCode Go Luna，1 次合成视觉请求，HTTP 200，挑战码精确匹配；Evidence 已脱敏）
 
 ### F7 聚类排名与 Top-K 优选（开发完成 2026-08-22）
 
@@ -129,7 +133,8 @@
 - [x] 历史 F8 浏览器闭环不作为当前证据；2026-08-23 已重新运行当前工作树
 - [x] 当前工作树：公开页、认证、工作台、账户/团队、深层业务路由、移动菜单焦点环与 Escape 恢复实测通过
 - [x] 合成真 MP4 → 分析 → 排名/重复聚类 → 人工优选 → 锁定 → JSON/CSV 导出当前 PASS（Provider 明确禁用）
-- [ ] 真实 Provider 多模态调用记录：尚未执行，执行前必须按所有者要求再次通知
+- [ ] 完整 Web/API→MQ→Worker→回写链的真实 Provider E2E：F6 单请求 Adapter 门禁已
+  PASS，但该整链还会产生新的真实请求，执行前必须再次通知并取得授权
 - [x] 交付《F8 源码导读》（docs/guides/F8-源码导读.md）
 
 ### F9 服务器部署与 CI/CD（本地工程交付 2026-08-24）
@@ -160,7 +165,7 @@
 - [x] 可复现合成视频/图片/Brief/Profile/异常/重复/300 条压力记录生成器
 - [x] 合成彩排、337 项校验、30 个 hash artifact 与 `realPilotDecisionEligible=false` 门禁
 - [x] 交付《F11 源码导读》（docs/guides/F11-源码导读.md）
-- [ ] 真实 Provider、真实客户媒体、真实人工审核与正/负试点价值结论
+- [ ] 真实试点批次 Provider、真实客户媒体、真实人工审核与正/负试点价值结论
 
 ## 技术学习清单
 

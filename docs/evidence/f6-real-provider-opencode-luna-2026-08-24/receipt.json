@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "frameflow.real-provider-synthetic-gate.v1",
+  "classification": "REAL_PROVIDER_SYNTHETIC_GATE",
+  "status": "PASS",
+  "startedAt": "2026-08-24T09:40:53.551Z",
+  "source": {
+    "gitCommit": "b5f84293b5c12fe92177d8a340a039ea93d5bbdc",
+    "branch": "frameflow-select/learning-main",
+    "worktreeCleanAtStart": true
+  },
+  "provider": {
+    "logicalModelId": "opencode-go-luna-v1",
+    "model": "gpt-5.6-luna",
+    "protocol": "openai-responses"
+  },
+  "authorization": {
+    "ownerAuthorized": true,
+    "exposedCredentialRotationDeclined": true
+  },
+  "dataBoundary": {
+    "source": "PROGRAM_GENERATED",
+    "syntheticOnly": true,
+    "customerMediaCount": 0,
+    "jpegFrameCount": 3
+  },
+  "requestBudget": {
+    "maximumExternalRequests": 1,
+    "automaticRetriesAllowed": false,
+    "adapterRequests": 1,
+    "externalRequests": 1,
+    "requestDurationMs": 8242,
+    "httpStatus": 200,
+    "usage": {
+      "input_tokens": 3536,
+      "output_tokens": 117,
+      "total_tokens": 3653
+    }
+  },
+  "input": {
+    "challenge": "FF-UQ3D-XSKA",
+    "challengeAbsentFromPrompt": true,
+    "frames": [
+      {
+        "file": "frame-01.jpg",
+        "byteLength": 55986,
+        "sha256": "8e142278bb64c4f99dd5a75c7fbc6dd028b760b7051c1db349bb33d623b0510d",
+        "timecodeMs": 0
+      },
+      {
+        "file": "frame-02.jpg",
+        "byteLength": 56057,
+        "sha256": "e15992e7334da5801b2cd694377737f9998854f4894ab58d0baf6d3c34fa7b59",
+        "timecodeMs": 1000
+      },
+      {
+        "file": "frame-03.jpg",
+        "byteLength": 56100,
+        "sha256": "07e82ddca963fb769db0b907b7258986f44eac1f5ca07ae5356ff31474eebe30",
+        "timecodeMs": 2000
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "request_budget_exactly_one",
+      "status": "PASS"
+    },
+    {
+      "name": "challenge_absent_from_prompt",
+      "status": "PASS"
+    },
+    {
+      "name": "visual_challenge_pass",
+      "status": "PASS"
+    },
+    {
+      "name": "visual_challenge_exact_match",
+      "status": "PASS"
+    },
+    {
+      "name": "frame_sequence_pass",
+      "status": "PASS"
+    }
+  ],
+  "result": {
+    "provider": "semantic-openai-responses",
+    "providerVersion": "1",
+    "verdicts": {
+      "visual_challenge": {
+        "verdict": "PASS",
+        "reason": "FF-UQ3D-XSKA"
+      },
+      "frame_sequence": {
+        "verdict": "PASS",
+        "reason": "三帧依次标为1/3、2/3、3/3，且橙色三角形从左向右移动"
+      }
+    },
+    "prompt": "你是视频质检助手。根据关键帧与创作要求判断视频的语义质量。\n创作要求(Brief): 这是完全由程序生成的三帧测试图，不含人物、品牌、客户或个人数据。画面中央包含一个一次性视觉挑战码，但本段文字不会提供该码。对 visual_challenge：只有实际读取完整挑战码时才能 PASS，reason 必须逐字写出该码；否则回答 UNKNOWN。对 frame_sequence：只有确认三帧依次标为 1/3、2/3、3/3，且橙色三角形从左向右移动时才能 PASS；否则回答 UNKNOWN。\n需要检查的维度: visual_challenge, frame_sequence\n关键帧数量: 3\n对每个维度输出一行 JSON：{\"dimension\":..., \"verdict\":\"PASS|VIOLATE|UNKNOWN\", \"reason\":...}\n只输出 JSON 行，不要其他内容。不确定时必须回答 UNKNOWN，不要猜。",
+    "rawOutput": "{\"dimension\":\"visual_challenge\",\"verdict\":\"PASS\",\"reason\":\"FF-UQ3D-XSKA\"}\n{\"dimension\":\"frame_sequence\",\"verdict\":\"PASS\",\"reason\":\"三帧依次标为1/3、2/3、3/3，且橙色三角形从左向右移动\"}",
+    "visualChallengeMatched": true
+  },
+  "finishedAt": "2026-08-24T09:41:01.830Z",
+  "durationMs": 8279
+}

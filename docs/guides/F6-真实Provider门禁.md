@@ -96,3 +96,18 @@ frameflow-ai-worker/.venv/bin/python scripts/run_real_provider_gate.py \
 
 只有这些证据真实产生后，才能把“真实 Provider 调用记录”由未执行改为已执行；
 它仍不等于生产部署、真实客户试点或产品价值证明。
+
+## 5. 2026-08-24 执行记录
+
+- 结果：`PASS`；分类：`REAL_PROVIDER_SYNTHETIC_GATE`；
+- 源码：`b5f84293b5c12fe92177d8a340a039ea93d5bbdc`，执行前工作树干净；
+- 请求：OpenCode Go `gpt-5.6-luna` Responses，HTTP 200，外部请求 1、自动重试 0；
+- 输入：程序生成 JPEG 3 张、真实客户媒体 0；
+- 视觉证据：挑战码未出现在 prompt，模型逐字返回；帧序列与三角形移动均 PASS；
+- 用量：input 3536、output 117、total 3653 tokens；请求墙钟约 8.24 秒；
+- 安全偏差：所有者明确拒绝轮换已出现在截图中的 Key；Evidence 如实记录，临时
+  `0600` 文件已删除，这不构成凭据安全 PASS；
+- Evidence：`docs/evidence/f6-real-provider-opencode-luna-2026-08-24/`。
+
+此次没有启动完整产品栈，因此下一次若验证 API→MQ→Worker→回写真实整链，必须
+重新取得一次明确真实调用授权。

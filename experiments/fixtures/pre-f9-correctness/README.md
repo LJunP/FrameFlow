@@ -25,7 +25,8 @@ python3 scripts/gen_test_media.py \
 `model-catalog.opencode-go-luna.example.json` 是 OpenCode Go Luna 的固定无密钥路由；
 只有 `scripts/run_real_provider_gate.py --mode live` 在精确确认、0600 Key 文件和全合成
 视觉挑战同时满足时才允许发出一次请求，且不自动重试。完整步骤见
-`docs/guides/F6-真实Provider门禁.md`。
+`docs/guides/F6-真实Provider门禁.md`。2026-08-24 的唯一一次真实请求 Evidence 位于
+`docs/evidence/f6-real-provider-opencode-luna-2026-08-24/`；再次执行必须重新授权。
 
 完整本地 API 门禁（前提是 Compose、Java API 与 Python Worker 已启动）：
 
