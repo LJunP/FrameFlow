@@ -25,6 +25,11 @@
    监控数据最长 30 天；真实客户试点前必须重新确认当时政策，并完成隐私、地域、
    合同和客户授权决策。
 
+若所有者明确拒绝轮换已暴露 Key，本项目不能把这种选择记录为安全 PASS。一次性门禁
+执行器要求额外传入 `--ack-exposed-key-risk`，并在 Evidence 中永久记录
+`exposedCredentialRotationDeclined=true`；这只表示所有者接受本次风险，不会消除
+撤销旧 Key 的安全建议。
+
 ## 3. 安全安装 Key（未来由所有者执行）
 
 先把模板复制为环境自己的无密钥目录，确认里面只有公开配置。然后运行：
@@ -56,13 +61,37 @@ Compose 只把该 env-file 注入 Worker，App/Web 无法读取其中的值。
 
 ## 4. 获得授权后的验收证据
 
+先执行零网络 dry-run，确认挑战码不在 prompt、Adapter 恰好调用一次且外部请求为 0：
+
+```bash
+frameflow-ai-worker/.venv/bin/python scripts/run_real_provider_gate.py \
+  --mode dry-run \
+  --evidence-dir /ABS/NEW/PATH/offline-gate-evidence
+```
+
+真实执行使用同一个生产 Responses Adapter，但注入 one-shot transport；Evidence 目录
+必须预先不存在，避免覆盖历史。若本次按所有者决定复用已暴露 Key，命令为：
+
+```bash
+frameflow-ai-worker/.venv/bin/python scripts/run_real_provider_gate.py \
+  --mode live \
+  --provider-env-file /ABS/PATH/worker-provider.env \
+  --evidence-dir /ABS/NEW/PATH/real-gate-evidence \
+  --confirm LIVE_PROVIDER_SYNTHETIC_ONE_REQUEST \
+  --ack-exposed-key-risk
+```
+
+执行器会生成 3 张 JPEG，随机挑战码只写入图片、不写入 prompt。只有模型在
+`visual_challenge` reason 中逐字返回该码，并正确识别 1/3→3/3 与橙色三角形移动，
+门禁才 PASS。任何失败都不自动重试；第二次真实请求必须取得新的明确授权。
+
 - 实际请求为 `/responses`，含 1–3 个字节可追溯的 `input_image` JPEG；
 - 模型返回可解析的 `output_text`，每个请求维度都有 PASS/VIOLATE/UNKNOWN；
 - Evidence 只含 `modelId`、实际 `model`、prompt、输出、帧时间码与帧 SHA-256；
 - Key、Key 环境变量名与 Base URL 均不进入产品证据或日志；
 - 记录 HTTP 结果、端到端延迟、token/费用（若供应商返回）、失败语义与人工复核状态；
-- 至少执行一个错误负例，证明 Provider 故障形成语义 ERROR，而不是视频不合格或
-  整条分析任务失败；
+- Provider 故障的 ERROR 降级由离线 Stub 负例验证；真实 one-shot 门禁不为了制造
+  负例再浪费第二次联网请求；
 - 测试完成后停止服务，删除合成运行时 Secret 文件或按所有者选择保留在受控路径。
 
 只有这些证据真实产生后，才能把“真实 Provider 调用记录”由未执行改为已执行；

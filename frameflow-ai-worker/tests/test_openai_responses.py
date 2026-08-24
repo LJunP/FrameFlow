@@ -115,6 +115,26 @@ def test_openai_responses_posts_protocol_and_jpegs_byte_for_byte(monkeypatch):
     ])
 
 
+def test_openai_responses_accepts_explicit_one_shot_transport():
+    calls = []
+
+    def injected_post(url, headers, json, timeout):
+        calls.append((url, timeout))
+        return StubResponse({"output": [{"content": [{
+            "type": "output_text",
+            "text": '{"dimension":"prompt_alignment",'
+                    '"verdict":"PASS","reason":"ok"}',
+        }]}]})
+
+    provider = OpenAIResponsesProvider(
+        base_url="https://responses.example/v1", api_key="test-key",
+        post=injected_post)
+
+    provider.analyze(_request(frames_jpeg=[]))
+
+    assert calls == [("https://responses.example/v1/responses", 30.0)]
+
+
 def test_openai_responses_prompt_budget_is_enforced(monkeypatch):
     captured = {}
 

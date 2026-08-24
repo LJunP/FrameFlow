@@ -22,6 +22,10 @@ python3 scripts/gen_test_media.py \
 `semantic-profile.json` 只在真实 Provider 调用获得所有者再次确认后使用。
 `model-catalog.example.json` 是平台双模型目录的无密钥样例；其中供应商地址、
 真实模型名和两个 Key 环境变量都只是占位符，直接使用不会形成真实调用。
+`model-catalog.opencode-go-luna.example.json` 是 OpenCode Go Luna 的固定无密钥路由；
+只有 `scripts/run_real_provider_gate.py --mode live` 在精确确认、0600 Key 文件和全合成
+视觉挑战同时满足时才允许发出一次请求，且不自动重试。完整步骤见
+`docs/guides/F6-真实Provider门禁.md`。
 
 完整本地 API 门禁（前提是 Compose、Java API 与 Python Worker 已启动）：
 

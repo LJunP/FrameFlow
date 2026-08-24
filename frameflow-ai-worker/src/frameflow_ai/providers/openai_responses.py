@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import os
+from collections.abc import Callable
 
 import requests
 
@@ -27,7 +28,8 @@ class OpenAIResponsesProvider:
     def __init__(self, base_url: str | None = None,
                  api_key: str | None = None, model: str | None = None,
                  timeout_s: float = 30.0, max_prompt_chars: int = 12000,
-                 model_id: str = "platform-default"):
+                 model_id: str = "platform-default",
+                 post: Callable[..., requests.Response] | None = None):
         # 与 Chat Completions 适配器保持同一 legacy 配置语义；目录路由会
         # 显式传入值，因此空 Key 不会回退到另一模型的全局凭据。
         configured_base_url = (os.environ.get("FRAMEFLOW_SEMANTIC_BASE_URL", "")
@@ -40,6 +42,9 @@ class OpenAIResponsesProvider:
         self.model_id = model_id
         self.timeout_s = timeout_s
         self.max_prompt_chars = max_prompt_chars
+        # 真实门禁通过单请求 transport 包装器注入这里，既复用生产适配器，
+        # 又能从结构上限制“最多一次、禁止自动重试”。常规 Worker 仍使用 requests。
+        self._post = requests.post if post is None else post
 
     @property
     def available(self) -> bool:
@@ -73,7 +78,7 @@ class OpenAIResponsesProvider:
             "stream": False,
         }
         try:
-            response = requests.post(
+            response = self._post(
                 f"{self.base_url}/responses",
                 headers={"Authorization": f"Bearer {self.api_key}"},
                 json=payload, timeout=self.timeout_s)
