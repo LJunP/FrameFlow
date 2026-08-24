@@ -1,8 +1,0 @@
-{
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/auth/[action]/route": "app/api/auth/[action]/route.js",
-  "/api/gw/[...path]/route": "app/api/gw/[...path]/route.js",
-  "/batches/[id]/page": "app/batches/[id]/page.js",
-  "/page": "app/page.js",
-  "/login/page": "app/login/page.js"
-}

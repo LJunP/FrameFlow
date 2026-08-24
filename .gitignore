@@ -32,6 +32,8 @@ __MACOSX/
 node_modules/
 dist/
 frameflow-web/.next/
+frameflow-web/.next-dev/
+frameflow-web/.contract-tests/
 coverage/
 
 # Python worker
