@@ -1,0 +1,32 @@
+{
+  "images": [
+    {
+      "component": "app",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "immutableRef": "ghcr.io/example/frameflow/frameflow-app:git-0123456789ab@sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "repository": "ghcr.io/example/frameflow/frameflow-app",
+      "tag": "git-0123456789ab"
+    },
+    {
+      "component": "worker",
+      "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "immutableRef": "ghcr.io/example/frameflow/frameflow-worker:git-0123456789ab@sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "repository": "ghcr.io/example/frameflow/frameflow-worker",
+      "tag": "git-0123456789ab"
+    },
+    {
+      "component": "web",
+      "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "immutableRef": "ghcr.io/example/frameflow/frameflow-web:git-0123456789ab@sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "repository": "ghcr.io/example/frameflow/frameflow-web",
+      "tag": "git-0123456789ab"
+    }
+  ],
+  "release": {
+    "createdAt": "2026-01-01T00:00:00Z",
+    "gitSha": "0123456789abcdef0123456789abcdef01234567",
+    "sourceRun": "example-only",
+    "version": "0.1.0"
+  },
+  "schemaVersion": 1
+}

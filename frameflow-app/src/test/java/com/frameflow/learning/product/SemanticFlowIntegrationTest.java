@@ -39,7 +39,9 @@ import org.testcontainers.utility.DockerImageName;
 class SemanticFlowIntegrationTest {
 
     static final RabbitMQContainer RABBIT = new RabbitMQContainer(
-            DockerImageName.parse("rabbitmq:3.13-management-alpine"));
+            DockerImageName.parse("rabbitmq:4.3.5-management-alpine@sha256:"
+                    + "a1a5dd841347af3e32355fd58ac530e831fd394c49e299f862e2fd4ab331cd79")
+                    .asCompatibleSubstituteFor("rabbitmq"));
 
     static {
         RABBIT.start();

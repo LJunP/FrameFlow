@@ -1,0 +1,11 @@
+.venv/
+tests/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+!requirements*.lock
+.pytest_cache/
+.coverage
+media/
+derived-media/
+Dockerfile*

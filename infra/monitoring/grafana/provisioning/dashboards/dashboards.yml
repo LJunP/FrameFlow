@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: FrameFlow Select
+    orgId: 1
+    folder: FrameFlow Select
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

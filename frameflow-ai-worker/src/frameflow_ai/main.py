@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import os
 
 from minio import Minio
@@ -10,6 +9,7 @@ from minio import Minio
 from . import __version__
 from .config import Config
 from .consume import start_worker
+from .observability import WorkerMetrics, configure_json_logging
 
 
 def make_downloader(cfg: Config):
@@ -26,10 +26,12 @@ def make_downloader(cfg: Config):
 
 
 def main() -> None:
-    logging.basicConfig(level=os.environ.get("FRAMEFLOW_LOG_LEVEL", "INFO"),
-                        format="%(asctime)s %(levelname)s %(name)s %(message)s")
     cfg = Config.from_env()
-    start_worker(cfg, make_downloader(cfg), __version__)
+    # 【F10 阅读顺序】main → observability.WorkerMetrics → consume.on_message。
+    configure_json_logging(cfg.environment, os.environ.get("FRAMEFLOW_LOG_LEVEL", "INFO"))
+    metrics = WorkerMetrics(cfg.environment)
+    metrics.serve(cfg.metrics_host, cfg.metrics_port)
+    start_worker(cfg, make_downloader(cfg), __version__, metrics)
 
 
 if __name__ == "__main__":

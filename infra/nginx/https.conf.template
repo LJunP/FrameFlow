@@ -1,0 +1,88 @@
+map $http_upgrade $frameflow_connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${FRAMEFLOW_DOMAIN} ${FRAMEFLOW_MEDIA_DOMAIN};
+    access_log ${FRAMEFLOW_NGINX_LOG_DIR}/access.log;
+    error_log ${FRAMEFLOW_NGINX_LOG_DIR}/error.log warn;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ${FRAMEFLOW_DOMAIN};
+    access_log ${FRAMEFLOW_NGINX_LOG_DIR}/access.log;
+    error_log ${FRAMEFLOW_NGINX_LOG_DIR}/error.log warn;
+
+    ssl_certificate /etc/letsencrypt/live/${FRAMEFLOW_TLS_CERT_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${FRAMEFLOW_TLS_CERT_NAME}/privkey.pem;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:FrameFlowTLS:10m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    location / {
+        proxy_pass http://127.0.0.1:${FRAMEFLOW_WEB_BIND_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $frameflow_connection_upgrade;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 120s;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ${FRAMEFLOW_MEDIA_DOMAIN};
+    access_log ${FRAMEFLOW_NGINX_LOG_DIR}/access.log;
+    error_log ${FRAMEFLOW_NGINX_LOG_DIR}/error.log warn;
+
+    ssl_certificate /etc/letsencrypt/live/${FRAMEFLOW_TLS_CERT_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${FRAMEFLOW_TLS_CERT_NAME}/privkey.pem;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:FrameFlowTLS:10m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options nosniff always;
+
+    # ★ 核心：媒体域名只反代当前环境的 loopback MinIO，且不重写签名字段。
+    # 若把端口或 Host 指到另一环境，会造成跨环境媒体泄露或所有 presigned URL 失效。
+    location / {
+        client_max_body_size 0;
+        proxy_request_buffering off;
+        proxy_buffering off;
+        proxy_pass http://127.0.0.1:${FRAMEFLOW_MINIO_BIND_PORT};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 900s;
+        proxy_send_timeout 900s;
+    }
+}

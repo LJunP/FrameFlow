@@ -19,6 +19,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
+    <!-- F10: Actuator 的 MeterRegistry 通过 Prometheus 文本协议暴露；
+         业务指标仍使用 Micrometer API，避免把代码绑死在采集后端。 -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
     <!-- F1: DTO 参数校验（@Valid + Bean Validation 注解） -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -125,6 +131,16 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <!-- ★ 核心：本项目没有继承 spring-boot-starter-parent，因此必须显式
+             绑定 repackage；否则 Maven 只产出没有 Main-Class 的普通 JAR，
+             Docker 健康检查前应用就会以 "no main manifest attribute" 退出。 -->
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

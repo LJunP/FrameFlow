@@ -1,0 +1,109 @@
+groups:
+  - name: frameflow-availability
+    rules:
+      - alert: FrameFlowAppDown
+        expr: up{job="frameflow-app"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: frameflow-app
+        annotations:
+          summary: "FrameFlow API 无法被 Prometheus 抓取"
+          runbook: "infra/monitoring/runbooks/app-down.md"
+      - alert: FrameFlowWorkerDown
+        expr: |
+          up{job="frameflow-worker"} == 0
+          or frameflow_worker_ready != 1
+          or absent(frameflow_worker_ready)
+        for: 2m
+        labels:
+          severity: critical
+          service: frameflow-worker
+        annotations:
+          summary: "FrameFlow Worker 指标端点不可达或 Rabbit consumer 未就绪"
+          runbook: "infra/monitoring/runbooks/worker-down.md"
+      - alert: FrameFlowPostgresDown
+        expr: pg_up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgres
+        annotations:
+          summary: "PostgreSQL exporter 无法连接数据库"
+          runbook: "infra/monitoring/runbooks/dependency-down.md#postgresql"
+      - alert: FrameFlowRedisDown
+        expr: redis_up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis 不可用，业务应处于降级直查/限流放行"
+          runbook: "infra/monitoring/runbooks/dependency-down.md#redis"
+      - alert: FrameFlowRabbitMQDown
+        expr: up{job="rabbitmq"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: rabbitmq
+        annotations:
+          summary: "RabbitMQ 官方 Prometheus 指标端点不可达"
+          runbook: "infra/monitoring/runbooks/dependency-down.md#rabbitmq"
+
+  - name: frameflow-sli
+    rules:
+      - alert: FrameFlowHighHttp5xxRatio
+        expr: |
+          sum(rate(http_server_requests_seconds_count{job="frameflow-app",status=~"5.."}[5m]))
+          /
+          clamp_min(sum(rate(http_server_requests_seconds_count{job="frameflow-app"}[5m])), 0.001)
+          > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: frameflow-app
+        annotations:
+          summary: "API 5xx 比例连续 5 分钟超过 5%"
+          runbook: "infra/monitoring/runbooks/api-sli.md"
+      - alert: FrameFlowHighHttpP95Latency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_server_requests_seconds_bucket{job="frameflow-app"}[5m]))
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          service: frameflow-app
+        annotations:
+          summary: "API P95 延迟连续 10 分钟超过 1 秒"
+          runbook: "infra/monitoring/runbooks/api-sli.md"
+      - alert: FrameFlowAnalysisQueueBacklog
+        expr: rabbitmq_detailed_queue_messages_ready{queue="frameflow.analysis.tasks"} > 100
+        for: 10m
+        labels:
+          severity: warning
+          service: rabbitmq
+        annotations:
+          summary: "分析任务待消费消息连续 10 分钟超过 100"
+          runbook: "infra/monitoring/runbooks/queue-backlog.md"
+      - alert: FrameFlowWorkerFailuresBurst
+        expr: |
+          sum(increase(frameflow_worker_messages_total{outcome=~"analysis_error|dead|report_rejected"}[10m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+          service: frameflow-worker
+        annotations:
+          summary: "Worker 10 分钟内失败结果超过 5 条"
+          runbook: "infra/monitoring/runbooks/worker-down.md"
+      - alert: FrameFlowRedisDegradationBurst
+        expr: |
+          sum(increase(frameflow_dependency_degradation_total{dependency="redis"}[5m])) > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: frameflow-app
+        annotations:
+          summary: "Redis 降级路径在 5 分钟内触发超过 5 次"
+          runbook: "infra/monitoring/runbooks/dependency-down.md#redis"

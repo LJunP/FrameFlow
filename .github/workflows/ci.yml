@@ -1,42 +1,246 @@
-name: FrameFlow Select CI (learning skeleton)
+name: FrameFlow Select CI
 
 on:
-  push:
-    branches:
-      - frameflow-select/learning-main
   pull_request:
+  push:
+    branches: [frameflow-select/learning-main]
+  workflow_dispatch:
+    inputs:
+      publish_images:
+        description: Build and publish immutable images after all CI jobs pass
+        type: boolean
+        default: false
+        required: true
+      confirmation:
+        description: Required only for publishing; enter PUBLISH_IMAGES
+        type: string
+        required: false
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
   java:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-java@7a445ee88d4e23b52c33d2c1c1e9292b2f97725 # v4
         with:
           distribution: temurin
           java-version: "17"
-      - run: ./mvnw -B -q verify
+          cache: maven
+      - name: Verify Java (JDK 17 + Testcontainers)
+        run: ./mvnw -B -q verify
 
-  python:
-    runs-on: ubuntu-latest
+  worker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
-          python-version: "3.12"
-      # F4 起 worker 有真实依赖（pika/minio/opencv...），装完整包
-      - run: pip install -e "frameflow-ai-worker[dev]"
-      - run: python -m pytest frameflow-ai-worker/tests -q
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: frameflow-ai-worker/requirements-dev.lock
+      - name: Install exact worker dependencies
+        working-directory: frameflow-ai-worker
+        run: |
+          python -m pip install --requirement requirements-dev.lock
+          python -m pip install --no-deps --editable .
+          python -m pip check
+      - name: Test worker
+        run: python -m pytest frameflow-ai-worker/tests -q
+      - name: Compile worker
+        run: python -m compileall -q frameflow-ai-worker/src
 
   web:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: "20"
-      - run: npm --prefix frameflow-web install
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frameflow-web/package-lock.json
+      - run: npm --prefix frameflow-web ci
+      - name: Reject high or critical production dependency advisories
+        run: npm --prefix frameflow-web audit --omit=dev --audit-level=high --registry=https://registry.npmjs.org
+      - run: npm --prefix frameflow-web run test:contracts
+      - run: npm --prefix frameflow-web run typecheck
       - run: npm --prefix frameflow-web run build
+
+  deploy-config:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Validate F9 templates and isolation
+        run: infra/scripts/validate-deploy-config.sh
+      - name: Test F9 safety scripts and tamper rejection
+        run: infra/scripts/test-f9-scripts.sh
+      - name: Shell syntax
+        run: bash -n infra/scripts/*.sh
+
+  ops-config:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Validate monitoring, backup, and fault harness safety
+        run: |
+          infra/monitoring/scripts/validate-monitoring.sh
+          infra/backup/validate-backup.sh
+          infra/faults/validate-faults.sh
+      - name: Validate official monitoring configs in their release images
+        run: infra/monitoring/scripts/validate-monitoring.sh --docker
+
+  docker-build:
+    needs: [java, worker, web, deploy-config, ops-config]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: app
+            context: .
+            file: frameflow-app/Dockerfile
+          - component: worker
+            context: frameflow-ai-worker
+            file: frameflow-ai-worker/Dockerfile
+          - component: web
+            context: frameflow-web
+            file: frameflow-web/Dockerfile
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+      - name: Build ${{ matrix.component }} image without publishing
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          push: false
+          build-args: |
+            VCS_REF=${{ github.sha }}
+            SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
+
+  publish-images:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_images
+    needs: [java, worker, web, deploy-config, ops-config, docker-build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: image-publish
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Enforce branch and explicit registry-write confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == refs/heads/frameflow-select/learning-main ]]
+          [[ "$CONFIRMATION" == PUBLISH_IMAGES ]]
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve immutable names
+        id: names
+        shell: bash
+        run: |
+          set -euo pipefail
+          prefix="ghcr.io/$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+          version="$(./mvnw -q -DforceStdout help:evaluate -Dexpression=project.version)"
+          version_tag="$(printf '%s' "$version" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9._-' '-' | sed -E 's/^-+|-+$//g')"
+          short_sha="${GITHUB_SHA:0:12}"
+          echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "version_tag=$version_tag" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=git-$short_sha" >> "$GITHUB_OUTPUT"
+      - name: Build once and push app
+        id: app
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: .
+          file: frameflow-app/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.names.outputs.prefix }}/frameflow-app:${{ steps.names.outputs.sha_tag }}
+            ${{ steps.names.outputs.prefix }}/frameflow-app:${{ steps.names.outputs.version_tag }}
+          build-args: |
+            VERSION=${{ steps.names.outputs.version }}
+            VCS_REF=${{ github.sha }}
+            SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
+      - name: Build once and push worker
+        id: worker-image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: frameflow-ai-worker
+          file: frameflow-ai-worker/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.names.outputs.prefix }}/frameflow-worker:${{ steps.names.outputs.sha_tag }}
+            ${{ steps.names.outputs.prefix }}/frameflow-worker:${{ steps.names.outputs.version_tag }}
+          build-args: |
+            VERSION=${{ steps.names.outputs.version }}
+            VCS_REF=${{ github.sha }}
+            SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
+      - name: Build once and push web
+        id: web-image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: frameflow-web
+          file: frameflow-web/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.names.outputs.prefix }}/frameflow-web:${{ steps.names.outputs.sha_tag }}
+            ${{ steps.names.outputs.prefix }}/frameflow-web:${{ steps.names.outputs.version_tag }}
+          build-args: |
+            VERSION=${{ steps.names.outputs.version }}
+            VCS_REF=${{ github.sha }}
+            SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+      - name: Create tag + digest release manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          infra/scripts/generate-image-manifest.sh \
+            --version '${{ steps.names.outputs.version }}' \
+            --git-sha "$GITHUB_SHA" \
+            --source-run "$GITHUB_RUN_ID" \
+            --app-image '${{ steps.names.outputs.prefix }}/frameflow-app:${{ steps.names.outputs.sha_tag }}@${{ steps.app.outputs.digest }}' \
+            --worker-image '${{ steps.names.outputs.prefix }}/frameflow-worker:${{ steps.names.outputs.sha_tag }}@${{ steps.worker-image.outputs.digest }}' \
+            --web-image '${{ steps.names.outputs.prefix }}/frameflow-web:${{ steps.names.outputs.sha_tag }}@${{ steps.web-image.outputs.digest }}' \
+            --output image-manifest.json
+          infra/scripts/validate-image-manifest.sh image-manifest.json --expected-git-sha "$GITHUB_SHA"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: frameflow-image-manifest
+          path: image-manifest.json
+          if-no-files-found: error
+          retention-days: 90

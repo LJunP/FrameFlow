@@ -1,0 +1,78 @@
+{
+  "annotations": {"list": []},
+  "editable": false,
+  "graphTooltip": 1,
+  "id": null,
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "frameflow-prometheus"},
+      "fieldConfig": {"defaults": {"mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"expr": "up{job=~\"frameflow-app|frameflow-worker\"}", "legendFormat": "{{job}} scrape", "refId": "A"}, {"expr": "frameflow_worker_ready", "legendFormat": "worker consumer ready", "refId": "B"}],
+      "title": "应用存活",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "frameflow-prometheus"},
+      "fieldConfig": {"defaults": {"mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+      "id": 2,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"expr": "pg_up or redis_up or up{job=\"rabbitmq\"}", "legendFormat": "{{job}}", "refId": "A"}],
+      "title": "依赖存活",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "frameflow-prometheus"},
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "req/s", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "never", "spanNulls": false, "stacking": {"group": "A", "mode": "none"}, "thresholdsStyle": {"mode": "off"}}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "id": 3,
+      "options": {"legend": {"calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single", "sort": "none"}},
+      "targets": [
+        {"expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"frameflow-app\"}[5m]))", "legendFormat": "HTTP {{status}}", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"frameflow-app\"}[5m])))", "legendFormat": "P95 seconds", "refId": "B"}
+      ],
+      "title": "API 速率与 P95",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "frameflow-prometheus"},
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "never", "spanNulls": false, "stacking": {"group": "A", "mode": "none"}, "thresholdsStyle": {"mode": "off"}}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 100}]}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "id": 4,
+      "options": {"legend": {"calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single", "sort": "none"}},
+      "targets": [
+        {"expr": "rabbitmq_detailed_queue_messages_ready{queue=\"frameflow.analysis.tasks\"}", "legendFormat": "queue ready", "refId": "A"},
+        {"expr": "sum by (outcome) (rate(frameflow_worker_messages_total[5m]))", "legendFormat": "worker {{outcome}}/s", "refId": "B"}
+      ],
+      "title": "队列与 Worker",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "frameflow-loki"},
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 12},
+      "id": 5,
+      "options": {"dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": false, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true},
+      "targets": [{"expr": "{compose_project=~\"$project\", compose_service=~\"$service\"} | json | level=~\"$level\"", "refId": "A"}],
+      "title": "结构化日志",
+      "type": "logs"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["frameflow", "operations", "f10"],
+  "templating": {
+    "list": [
+      {"current": {}, "datasource": {"type": "loki", "uid": "frameflow-loki"}, "definition": "label_values(compose_project)", "hide": 0, "includeAll": false, "label": "Compose project", "multi": false, "name": "project", "options": [], "query": "label_values(compose_project)", "refresh": 1, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"},
+      {"current": {}, "datasource": {"type": "loki", "uid": "frameflow-loki"}, "definition": "label_values({compose_project=~\"$project\"}, compose_service)", "hide": 0, "includeAll": true, "allValue": ".*", "label": "Service", "multi": true, "name": "service", "options": [], "query": "label_values({compose_project=~\"$project\"}, compose_service)", "refresh": 1, "regex": "", "skipUrlSync": false, "sort": 1, "type": "query"},
+      {"current": {"selected": true, "text": ["All"], "value": ["$__all"]}, "hide": 0, "includeAll": true, "allValue": ".*", "label": "Level", "multi": true, "name": "level", "options": [{"selected": true, "text": "All", "value": "$__all"}, {"selected": false, "text": "INFO", "value": "INFO"}, {"selected": false, "text": "WARN", "value": "WARN"}, {"selected": false, "text": "ERROR", "value": "ERROR"}], "query": "INFO,WARN,ERROR", "skipUrlSync": false, "type": "custom"}
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timezone": "browser",
+  "title": "FrameFlow Select / Operations",
+  "uid": "frameflow-operations",
+  "version": 1
+}

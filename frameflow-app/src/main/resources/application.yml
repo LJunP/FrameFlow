@@ -75,10 +75,44 @@ frameflow:
     legacy-model: ${FRAMEFLOW_SEMANTIC_MODEL:gpt-4o-mini}
 
 server:
+  # 宿主机直跑时可绑定 127.0.0.1；容器内保持 0.0.0.0，再由 Compose
+  # 端口映射/Nginx 控制暴露面。之前 .env 有该变量但源码未绑定，实际无效。
+  address: ${FRAMEFLOW_SERVER_ADDRESS:0.0.0.0}
   port: ${FRAMEFLOW_SERVER_PORT:18080}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: frameflow-select
+      environment: ${FRAMEFLOW_ENV:local}
+    distribution:
+      # ★ 核心：Prometheus 的 histogram_quantile 依赖真实 bucket；只发布
+      # 客户端 percentile 无法跨实例聚合，Grafana P95 与延迟告警会失真。
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 100ms,250ms,500ms,1s,2s,5s
+
+logging:
+  structured:
+    # Spring Boot 3.4 原生 Logstash JSON；local 如需人读可显式设为留空/自定义，
+    # 容器环境统一保留单行 JSON 供 Loki 检索。
+    format:
+      console: ${FRAMEFLOW_LOG_FORMAT:logstash}
+    json:
+      add:
+        service: frameflow-app
+        environment: ${FRAMEFLOW_ENV:local}

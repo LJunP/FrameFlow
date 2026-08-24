@@ -1,0 +1,82 @@
+// ★ 核心：Docker daemon 用 RFC5424 syslog driver 把 App/Worker stdout 推到宿主
+// loopback UDP，再由这里接收。Alloy 完全不接触 Docker API，因而不能通过 inspect
+// 读取业务容器环境变量中的 DB/Redis/RabbitMQ/MinIO/Worker Secret。
+loki.relabel "frameflow_syslog" {
+  rule {
+    source_labels = ["__syslog_message_app_name"]
+    regex         = "frameflow-(app|worker)"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__syslog_message_app_name"]
+    regex         = "frameflow-(app|worker)"
+    replacement   = "$1"
+    target_label  = "compose_service"
+  }
+
+  rule {
+    replacement   = sys.env("FRAMEFLOW_ENV")
+    target_label = "environment"
+  }
+
+  forward_to = [loki.process.frameflow.receiver]
+}
+
+loki.source.syslog "frameflow" {
+  listener {
+    address                = "0.0.0.0:1514"
+    protocol               = "udp"
+    syslog_format          = "rfc5424"
+    use_incoming_timestamp = true
+    max_message_length     = 65536
+    udp_queue_size         = 1000
+    labels                 = { transport = "docker-syslog" }
+  }
+
+  relabel_rules = loki.relabel.frameflow_syslog.rules
+  forward_to    = [loki.process.frameflow.receiver]
+}
+
+loki.process "frameflow" {
+  forward_to = [loki.write.local.receiver]
+
+  stage.json {
+    expressions = {
+      level   = "level",
+      logger  = "logger_name",
+      service = "service",
+      event   = "event",
+    }
+  }
+
+  stage.labels {
+    values = {
+      level   = "",
+      service = "",
+      event   = "",
+    }
+  }
+}
+
+// 可选 file source：只有叠加 docker-compose.nginx-logs.yml 并挂入环境专属
+// Nginx 日志目录后才会发现文件；不允许挂载整个宿主 /var/log。
+loki.source.file "nginx" {
+  targets = [{
+    __path__    = "/var/log/frameflow-nginx/*.log",
+    service     = "nginx",
+    environment = sys.env("FRAMEFLOW_ENV"),
+  }]
+  forward_to = [loki.write.local.receiver]
+
+  file_match {
+    enabled     = true
+    sync_period = "10s"
+  }
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

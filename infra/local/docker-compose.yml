@@ -1,76 +1,240 @@
-# 本地开发数据库：与本仓 .env.example / application.yml 默认值对齐。
-# 用法：docker compose -f infra/local/docker-compose.yml up -d
+name: ${COMPOSE_PROJECT_NAME:-frameflow-local}
+
 services:
   postgres:
-    image: postgres:16-alpine
-    container_name: frameflow-local-pg
-    ports:
-      - "54329:5432"   # 故意用非默认端口，避免与本机已有 PostgreSQL 冲突
+    image: postgres:16.9-alpine3.22
     environment:
-      POSTGRES_DB: frameflow
-      POSTGRES_USER: frameflow
-      POSTGRES_PASSWORD: frameflow_local_only   # 仅本机开发值，与 .env.example 一致
-    volumes:
-      - frameflow-local-pg-data:/var/lib/postgresql/data
+      POSTGRES_DB: ${FRAMEFLOW_POSTGRES_DB:-frameflow_local}
+      POSTGRES_USER: ${FRAMEFLOW_DB_USERNAME:-frameflow_local}
+      POSTGRES_PASSWORD: ${FRAMEFLOW_DB_PASSWORD:-frameflow_local_only_db}
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_POSTGRES_PORT:-54329}:5432"
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    networks: [data]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U frameflow -d frameflow"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 20
+    restart: unless-stopped
 
-  # F3 对象存储：S3 兼容 API（9000），控制台（9001）
-  minio:
-    image: minio/minio:latest
-    container_name: frameflow-local-minio
-    ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # Web 控制台（浏览器打开 http://localhost:9001）
+  redis:
+    image: redis:7.4.5-alpine3.21
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${FRAMEFLOW_REDIS_PASSWORD:-frameflow_local_only_redis}"]
     environment:
-      MINIO_ROOT_USER: frameflow
-      MINIO_ROOT_PASSWORD: frameflow_local_only   # 仅本机开发值
-    command: server /data --console-address ":9001"
-    volumes:
-      - frameflow-local-minio-data:/data
+      FRAMEFLOW_REDIS_PASSWORD: ${FRAMEFLOW_REDIS_PASSWORD:-frameflow_local_only_redis}
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_REDIS_PORT:-6379}:6379"
+    volumes: [redis-data:/data]
+    networks: [data]
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$${FRAMEFLOW_REDIS_PASSWORD}\" ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 20
+    restart: unless-stopped
 
-  # F4 消息队列：AMQP（5672），管理台（15672，guest/guest 仅本机）
   rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: frameflow-local-rabbit
-    ports:
-      - "5672:5672"
-      - "15672:15672"   # 管理台 http://localhost:15672
+    # 4.3 is the supported net-new broker baseline. Existing 3.13 data volumes must
+    # migrate through 4.2 first; this Compose file never performs that upgrade implicitly.
+    image: rabbitmq:4.3.5-management-alpine@sha256:a1a5dd841347af3e32355fd58ac530e831fd394c49e299f862e2fd4ab331cd79
     environment:
-      RABBITMQ_DEFAULT_USER: frameflow
-      RABBITMQ_DEFAULT_PASS: frameflow_local_only
+      RABBITMQ_DEFAULT_USER: ${FRAMEFLOW_RABBITMQ_USER:-frameflow_local}
+      RABBITMQ_DEFAULT_PASS: ${FRAMEFLOW_RABBITMQ_PASSWORD:-frameflow_local_only_rabbit}
+      RABBITMQ_DEFAULT_VHOST: ${FRAMEFLOW_RABBITMQ_VHOST:-/frameflow-local}
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_RABBITMQ_PORT:-5672}:5672"
+      - "127.0.0.1:${FRAMEFLOW_RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    expose: ["15692"]
     volumes:
-      - frameflow-local-rabbit-data:/var/lib/rabbitmq
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ../rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    networks: [data]
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 5s
-      timeout: 3s
-      retries: 10
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
 
-  # F5 缓存与限流：Redis 7
-  redis:
-    image: redis:7-alpine
-    container_name: frameflow-local-redis
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${FRAMEFLOW_STORAGE_ACCESS_KEY:-frameflow_local}
+      MINIO_ROOT_PASSWORD: ${FRAMEFLOW_STORAGE_SECRET_KEY:-frameflow_local_only_minio}
+      MINIO_API_CORS_ALLOW_ORIGIN: ${FRAMEFLOW_STORAGE_CORS_ORIGINS:-http://127.0.0.1:3000}
     ports:
-      - "6379:6379"
-    volumes:
-      - frameflow-local-redis-data:/data
+      - "127.0.0.1:${FRAMEFLOW_MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${FRAMEFLOW_MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes: [minio-data:/data]
+    networks: [data, media]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "mc", "ready", "local"]
       interval: 5s
-      timeout: 3s
-      retries: 10
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        until mc alias set frameflow http://minio:9000
+        "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"; do sleep 2; done;
+        mc mb --ignore-existing "frameflow/$${FRAMEFLOW_STORAGE_BUCKET}";
+        mc anonymous set none "frameflow/$${FRAMEFLOW_STORAGE_BUCKET}"
+    environment:
+      MINIO_ROOT_USER: ${FRAMEFLOW_STORAGE_ACCESS_KEY:-frameflow_local}
+      MINIO_ROOT_PASSWORD: ${FRAMEFLOW_STORAGE_SECRET_KEY:-frameflow_local_only_minio}
+      FRAMEFLOW_STORAGE_BUCKET: ${FRAMEFLOW_STORAGE_BUCKET:-frameflow-media-local}
+    depends_on:
+      minio: {condition: service_healthy}
+    networks: [data]
+    restart: "no"
+
+  app:
+    image: frameflow/app:local-0.1.0
+    build:
+      context: ../..
+      dockerfile: frameflow-app/Dockerfile
+      args:
+        VERSION: ${FRAMEFLOW_VERSION:-0.1.0-SNAPSHOT}
+        VCS_REF: ${FRAMEFLOW_GIT_SHA:-local}
+    environment:
+      FRAMEFLOW_ENV: local
+      FRAMEFLOW_DB_URL: jdbc:postgresql://postgres:5432/${FRAMEFLOW_POSTGRES_DB:-frameflow_local}
+      FRAMEFLOW_DB_USERNAME: ${FRAMEFLOW_DB_USERNAME:-frameflow_local}
+      FRAMEFLOW_DB_PASSWORD: ${FRAMEFLOW_DB_PASSWORD:-frameflow_local_only_db}
+      FRAMEFLOW_REDIS_HOST: redis
+      FRAMEFLOW_REDIS_PORT: 6379
+      FRAMEFLOW_REDIS_PASSWORD: ${FRAMEFLOW_REDIS_PASSWORD:-frameflow_local_only_redis}
+      FRAMEFLOW_RABBITMQ_HOST: rabbitmq
+      FRAMEFLOW_RABBITMQ_PORT: 5672
+      FRAMEFLOW_RABBITMQ_USER: ${FRAMEFLOW_RABBITMQ_USER:-frameflow_local}
+      FRAMEFLOW_RABBITMQ_PASSWORD: ${FRAMEFLOW_RABBITMQ_PASSWORD:-frameflow_local_only_rabbit}
+      FRAMEFLOW_RABBITMQ_VHOST: ${FRAMEFLOW_RABBITMQ_VHOST:-/frameflow-local}
+      FRAMEFLOW_STORAGE_ENDPOINT: http://minio:9000
+      FRAMEFLOW_STORAGE_PUBLIC_ENDPOINT: ${FRAMEFLOW_STORAGE_PUBLIC_ENDPOINT:-http://127.0.0.1:9000}
+      FRAMEFLOW_STORAGE_REGION: ${FRAMEFLOW_STORAGE_REGION:-us-east-1}
+      FRAMEFLOW_STORAGE_ACCESS_KEY: ${FRAMEFLOW_STORAGE_ACCESS_KEY:-frameflow_local}
+      FRAMEFLOW_STORAGE_SECRET_KEY: ${FRAMEFLOW_STORAGE_SECRET_KEY:-frameflow_local_only_minio}
+      FRAMEFLOW_STORAGE_BUCKET: ${FRAMEFLOW_STORAGE_BUCKET:-frameflow-media-local}
+      FRAMEFLOW_WORKER_KEY: ${FRAMEFLOW_WORKER_KEY:-frameflow_local_only_worker_key}
+      FRAMEFLOW_ALLOW_EPHEMERAL_RSA_KEY: "true"
+      FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON: ${FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON:-}
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_SERVER_PORT:-18080}:18080"
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+      minio-init: {condition: service_completed_successfully}
+    networks: [backend, data]
+    init: true
+    read_only: true
+    tmpfs: ["/tmp:size=256m,mode=1777"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://127.0.0.1:${FRAMEFLOW_ALLOY_SYSLOG_PORT:-15140}"
+        syslog-format: rfc5424micro
+        tag: frameflow-app
+        mode: non-blocking
+        max-buffer-size: 4m
+        cache-disabled: "false"
+        cache-max-size: 20m
+        cache-max-file: "5"
+    restart: unless-stopped
+
+  worker:
+    image: frameflow/worker:local-0.1.0
+    build:
+      context: ../../frameflow-ai-worker
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${FRAMEFLOW_VERSION:-0.1.0}
+        VCS_REF: ${FRAMEFLOW_GIT_SHA:-local}
+    environment:
+      FRAMEFLOW_ENV: local
+      FRAMEFLOW_RABBITMQ_HOST: rabbitmq
+      FRAMEFLOW_RABBITMQ_PORT: 5672
+      FRAMEFLOW_RABBITMQ_USER: ${FRAMEFLOW_RABBITMQ_USER:-frameflow_local}
+      FRAMEFLOW_RABBITMQ_PASSWORD: ${FRAMEFLOW_RABBITMQ_PASSWORD:-frameflow_local_only_rabbit}
+      FRAMEFLOW_RABBITMQ_VHOST: ${FRAMEFLOW_RABBITMQ_VHOST:-/frameflow-local}
+      FRAMEFLOW_STORAGE_ENDPOINT: http://minio:9000
+      FRAMEFLOW_STORAGE_ACCESS_KEY: ${FRAMEFLOW_STORAGE_ACCESS_KEY:-frameflow_local}
+      FRAMEFLOW_STORAGE_SECRET_KEY: ${FRAMEFLOW_STORAGE_SECRET_KEY:-frameflow_local_only_minio}
+      FRAMEFLOW_STORAGE_BUCKET: ${FRAMEFLOW_STORAGE_BUCKET:-frameflow-media-local}
+      FRAMEFLOW_API_BASE: http://app:18080
+      FRAMEFLOW_WORKER_KEY: ${FRAMEFLOW_WORKER_KEY:-frameflow_local_only_worker_key}
+      FRAMEFLOW_WORKER_PREFETCH: ${FRAMEFLOW_WORKER_PREFETCH:-2}
+      FRAMEFLOW_WORKER_MAX_ATTEMPT: ${FRAMEFLOW_WORKER_MAX_ATTEMPT:-3}
+      FRAMEFLOW_METRICS_HOST: 0.0.0.0
+      FRAMEFLOW_METRICS_PORT: 9108
+      FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON: ${FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON:-}
+    expose: ["9108"]
+    depends_on:
+      app: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+      minio-init: {condition: service_completed_successfully}
+    networks: [backend, data]
+    init: true
+    read_only: true
+    tmpfs: ["/tmp:size=${FRAMEFLOW_WORKER_TMPFS_SIZE:-1g},mode=1777"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://127.0.0.1:${FRAMEFLOW_ALLOY_SYSLOG_PORT:-15140}"
+        syslog-format: rfc5424micro
+        tag: frameflow-worker
+        mode: non-blocking
+        max-buffer-size: 4m
+        cache-disabled: "false"
+        cache-max-size: 20m
+        cache-max-file: "5"
+    restart: unless-stopped
+
+  web:
+    image: frameflow/web:local-0.1.0
+    build:
+      context: ../../frameflow-web
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${FRAMEFLOW_VERSION:-0.1.0}
+        VCS_REF: ${FRAMEFLOW_GIT_SHA:-local}
+    environment:
+      API_BASE: http://app:18080
+      FRAMEFLOW_COOKIE_SECURE: "false"
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_WEB_PORT:-3000}:3000"
+    depends_on:
+      app: {condition: service_healthy}
+    networks: [backend]
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /app/.next/cache:size=128m,mode=1777
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: unless-stopped
+
+networks:
+  backend:
+  # Local learning mode intentionally publishes dependency ports on loopback.
+  # An internal-only bridge has no gateway and Docker cannot install those host
+  # bindings; remote environments keep their data network internal instead.
+  data:
+  media: {internal: true}
 
 volumes:
-  frameflow-local-pg-data:
-  frameflow-local-minio-data:
-  frameflow-local-rabbit-data:
-  frameflow-local-redis-data:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+  minio-data:

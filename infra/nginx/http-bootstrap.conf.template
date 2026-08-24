@@ -1,0 +1,58 @@
+# 仅用于首次 ACME 签发前。拿到证书后必须切换 https.conf.template。
+map $http_upgrade $frameflow_connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${FRAMEFLOW_DOMAIN};
+    access_log ${FRAMEFLOW_NGINX_LOG_DIR}/access.log;
+    error_log ${FRAMEFLOW_NGINX_LOG_DIR}/error.log warn;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:${FRAMEFLOW_WEB_BIND_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $frameflow_connection_upgrade;
+    }
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${FRAMEFLOW_MEDIA_DOMAIN};
+    access_log ${FRAMEFLOW_NGINX_LOG_DIR}/access.log;
+    error_log ${FRAMEFLOW_NGINX_LOG_DIR}/error.log warn;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+    }
+
+    # ★ 核心：presigned URL 的签名包含 Host 与原始 URI，代理不得改 Host/路径/查询串。
+    # 改坏会让浏览器直传稳定返回 SignatureDoesNotMatch，而不是普通 502。
+    location / {
+        client_max_body_size 0;
+        proxy_request_buffering off;
+        proxy_buffering off;
+        proxy_pass http://127.0.0.1:${FRAMEFLOW_MINIO_BIND_PORT};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 900s;
+        proxy_send_timeout 900s;
+    }
+}

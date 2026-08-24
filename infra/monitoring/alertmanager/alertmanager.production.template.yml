@@ -1,0 +1,14 @@
+# 使用 scripts/render-alertmanager-config.sh 渲染；不要提交真实 URL/Token。
+global:
+  resolve_timeout: 2m
+route:
+  receiver: production-webhook
+  group_by: [alertname, service, severity]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+receivers:
+  - name: production-webhook
+    webhook_configs:
+      - url: __FRAMEFLOW_ALERT_WEBHOOK_URL__
+        send_resolved: true

@@ -16,6 +16,7 @@ import pika
 
 from .config import Config
 from .pipeline import AnalysisOutcome, analyze
+from .observability import WorkerMetrics
 from .report import ReportClient, ReportFailed, ReportRejected
 
 log = logging.getLogger(__name__)
@@ -26,7 +27,8 @@ TASK_ROUTING_KEY = "analyze"
 
 
 def on_message(task_body: dict, delivery_attempt: int, cfg: Config,
-               client: ReportClient, download, worker_version: str) -> str:
+               client: ReportClient, download, worker_version: str,
+               metrics: WorkerMetrics | None = None) -> str:
     """处理一条消息，返回 ack 动作：'ack' | 'requeue' | 'dead'。
 
     delivery_attempt 来源约定（★ 修 bug）：消息体里的 deliveryAttempt 字段。
@@ -35,6 +37,19 @@ def on_message(task_body: dict, delivery_attempt: int, cfg: Config,
     否则毒消息上限永远不会触发（曾是被单测掩盖的真 bug）。
     """
     run_id = task_body.get("runId", -1)
+    started = metrics.begin_message() if metrics else 0.0
+
+    def finish(action: str, outcome: str) -> str:
+        if metrics:
+            metrics.finish_message(started, outcome)
+        log.info("worker message completed", extra={
+            "event": "worker_message_completed",
+            "run_id": run_id,
+            "delivery_attempt": delivery_attempt,
+            "outcome": outcome,
+            "worker_version": worker_version,
+        })
+        return action
 
     # 毒消息兜底：超过尝试上限，不再执行检测，直接回写失败并 ack
     if delivery_attempt > cfg.max_delivery_attempt:
@@ -45,27 +60,47 @@ def on_message(task_body: dict, delivery_attempt: int, cfg: Config,
             client.submit(outcome.to_payload())
         except Exception:  # noqa: BLE001 回写失败也 ack：任务已诊断，进入下一步靠人工查 DLQ 报表
             log.exception("毒消息回写失败 runId=%s", run_id)
-        return "ack"
+        return finish("ack", "analysis_error")
 
     try:
         outcome = analyze(task_body, download, worker_version)
         client.submit(outcome.to_payload())
-        return "ack"
+        return finish("ack", "succeeded" if outcome.ok else "analysis_error")
     except ReportRejected as e:
         log.warning("回写被拒绝，转 DLQ: %s", e)
-        return "dead"
+        return finish("dead", "report_rejected")
     except ReportFailed as e:
         log.warning("回写暂不可用，重回队列: %s", e)
-        return "requeue"
+        return finish("requeue", "requeue")
+    except Exception:
+        # 未分类处理异常保持原有 fail-fast 语义，让容器退出并由 Rabbit 重投；
+        # 指标明确记为 invalid_message，不能伪装成视频质检失败。
+        finish("raise", "invalid_message")
+        log.exception("worker message crashed runId=%s", run_id)
+        raise
 
 
 def _handle_message(ch, method, properties, body: bytes,
                      cfg: Config, client: ReportClient, download,
-                     worker_version: str):
+                     worker_version: str, metrics: WorkerMetrics | None = None):
     """消费回调（模块级以便单测 requeue 的重发计数行为）。"""
-    task = json.loads(body)
+    try:
+        task = json.loads(body)
+        if not isinstance(task, dict):
+            raise ValueError("task body must be a JSON object")
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError) as exc:
+        if metrics:
+            started = metrics.begin_message()
+            metrics.finish_message(started, "invalid_message")
+        log.warning("invalid task moved to DLQ", extra={
+            "event": "invalid_task_message", "outcome": "invalid_message"},
+            exc_info=exc)
+        # ★ 核心：畸形 JSON 无法靠重试变好，直接 reject 进入 DLQ；不能让异常
+        # 冒出消费循环造成整进程 crash，也不能回写成视频不合格。
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+        return
     attempt = int(task.get("deliveryAttempt", 1) or 1)
-    action = on_message(task, attempt, cfg, client, download, worker_version)
+    action = on_message(task, attempt, cfg, client, download, worker_version, metrics)
     if action == "ack":
         ch.basic_ack(delivery_tag=method.delivery_tag)
     elif action == "requeue":
@@ -79,12 +114,15 @@ def _handle_message(ch, method, properties, body: bytes,
             properties=pika.BasicProperties(
                 delivery_mode=2,
                 headers={"x-delivery-attempt": attempt + 1}))
+        if metrics:
+            metrics.record_republish()
         ch.basic_ack(delivery_tag=method.delivery_tag)
     else:
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
-def start_worker(cfg: Config, download, worker_version: str):
+def start_worker(cfg: Config, download, worker_version: str,
+                 metrics: WorkerMetrics | None = None):
     """阻塞式消费主循环（main 与测试共用 on_message，循环本身薄）。"""
     client = ReportClient(cfg.api_base, cfg.worker_key)
     conn = pika.BlockingConnection(pika.ConnectionParameters(
@@ -106,11 +144,16 @@ def start_worker(cfg: Config, download, worker_version: str):
     channel.basic_qos(prefetch_count=cfg.prefetch)
 
     def handle(ch, method, properties, body: bytes):
-        _handle_message(ch, method, properties, body, cfg, client, download, worker_version)
+        _handle_message(ch, method, properties, body, cfg, client, download,
+                        worker_version, metrics)
 
     channel.basic_consume(queue=TASK_QUEUE, on_message_callback=handle)
+    if metrics:
+        metrics.set_ready(True)
     log.info("worker 就绪: queue=%s prefetch=%d", TASK_QUEUE, cfg.prefetch)
     try:
         channel.start_consuming()
     finally:
+        if metrics:
+            metrics.set_ready(False)
         conn.close()

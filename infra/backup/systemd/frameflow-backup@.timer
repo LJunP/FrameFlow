@@ -1,0 +1,11 @@
+[Unit]
+Description=FrameFlow Select six-hour backup timer for %i
+
+[Timer]
+OnCalendar=*-*-* 00/6:15:00 UTC
+RandomizedDelaySec=15m
+Persistent=true
+Unit=frameflow-backup@%i.service
+
+[Install]
+WantedBy=timers.target

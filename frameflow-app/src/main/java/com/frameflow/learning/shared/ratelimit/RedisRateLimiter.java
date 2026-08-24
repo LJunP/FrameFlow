@@ -2,10 +2,12 @@ package com.frameflow.learning.shared.ratelimit;
 
 import java.util.List;
 
+import com.frameflow.learning.observability.FrameFlowMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,9 +46,16 @@ public class RedisRateLimiter {
             """, Long.class);
 
     private final StringRedisTemplate redis;
+    private final FrameFlowMetrics metrics;
 
     public RedisRateLimiter(StringRedisTemplate redis) {
+        this(redis, FrameFlowMetrics.isolatedForTest());
+    }
+
+    @Autowired
+    public RedisRateLimiter(StringRedisTemplate redis, FrameFlowMetrics metrics) {
         this.redis = redis;
+        this.metrics = metrics;
     }
 
     /**
@@ -71,6 +80,7 @@ public class RedisRateLimiter {
             // Redis 挂了应该放行并告警，而不是让登录/下单整体瘫痪。
             // 代价是故障窗口内限流失效，这个取舍在导读 §3 详述。
             log.warn("限流器不可用，降级放行: {}", e.getMessage());
+            metrics.recordRedisDegradation(FrameFlowMetrics.RedisOperation.RATE_LIMIT);
             return true;
         }
     }

@@ -1,0 +1,10 @@
+# Java image builds from the repository root; deny everything unless Maven needs it.
+**
+!.mvn/
+!.mvn/**
+!mvnw
+!pom.xml
+!frameflow-app/
+!frameflow-app/pom.xml
+!frameflow-app/src/
+!frameflow-app/src/**

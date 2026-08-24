@@ -1,0 +1,11 @@
+# 安装为 root:frameflow 0640；父目录必须是 root:frameflow 0750。
+# ENV_FILE 含 Secret，也必须是 root:frameflow 0640，供非 root 定时任务读取。
+COMPOSE_FILE=/opt/frameflow/ops/current/infra/production/docker-compose.yml
+ENV_FILE=/etc/frameflow/production/frameflow.env
+PROJECT_NAME=frameflow-production
+POSTGRES_SERVICE=postgres
+POSTGRES_DATABASE=frameflow_production
+POSTGRES_USERNAME=frameflow_production
+MINIO_CLIENT_SERVICE=minio-init
+MINIO_BUCKET=frameflow-media-production
+OUTPUT_DIR=/var/backups/frameflow-production

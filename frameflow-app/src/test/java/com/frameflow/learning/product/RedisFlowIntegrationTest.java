@@ -139,21 +139,32 @@ class RedisFlowIntegrationTest {
         StringRedisTemplate broken = mock(StringRedisTemplate.class);
         when(broken.execute(any(), any(java.util.List.class),
                 any(Object[].class))).thenThrow(new RuntimeException("connection refused"));
-        RedisRateLimiter limiter = new RedisRateLimiter(broken);
+        var registry = new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        var metrics = new com.frameflow.learning.observability.FrameFlowMetrics(registry);
+        RedisRateLimiter limiter = new RedisRateLimiter(broken, metrics);
 
         // Redis 挂了：限流器放行（保护失效优于业务瘫痪——取舍见导读）
         assertThat(limiter.tryAcquire("any", 5, 1.0)).isTrue();
+        assertThat(registry.get("frameflow.dependency.degradation")
+                .tags("dependency", "redis", "operation", "rate_limit")
+                .counter().count()).isEqualTo(1);
     }
 
     @Test
     void progress_cache_falls_back_to_db_when_redis_down() {
         StringRedisTemplate broken = mock(StringRedisTemplate.class);
         when(broken.opsForValue()).thenThrow(new RuntimeException("connection refused"));
+        var registry = new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        var metrics = new com.frameflow.learning.observability.FrameFlowMetrics(registry);
         com.frameflow.learning.product.service.ProgressCacheService cache =
-                new com.frameflow.learning.product.service.ProgressCacheService(broken, objectMapper);
+                new com.frameflow.learning.product.service.ProgressCacheService(
+                        broken, objectMapper, metrics);
 
         Map<String, Integer> loaded = cache.getOrLoad(42L, () -> Map.of("UPLOADED", 7));
         assertThat(loaded).containsEntry("UPLOADED", 7);   // 直查库兜底成功
+        assertThat(registry.get("frameflow.dependency.degradation")
+                .tags("dependency", "redis", "operation", "cache_read")
+                .counter().count()).isEqualTo(1);
     }
 
     // ---------- 工具 ----------

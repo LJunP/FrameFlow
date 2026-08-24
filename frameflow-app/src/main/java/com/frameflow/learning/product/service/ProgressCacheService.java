@@ -5,9 +5,11 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.frameflow.learning.observability.FrameFlowMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -32,10 +34,18 @@ public class ProgressCacheService {
 
     private final StringRedisTemplate redis;
     private final ObjectMapper objectMapper;
+    private final FrameFlowMetrics metrics;
 
     public ProgressCacheService(StringRedisTemplate redis, ObjectMapper objectMapper) {
+        this(redis, objectMapper, FrameFlowMetrics.isolatedForTest());
+    }
+
+    @Autowired
+    public ProgressCacheService(StringRedisTemplate redis, ObjectMapper objectMapper,
+                                FrameFlowMetrics metrics) {
         this.redis = redis;
         this.objectMapper = objectMapper;
+        this.metrics = metrics;
     }
 
     /**
@@ -78,6 +88,7 @@ public class ProgressCacheService {
             // ★ 核心（降级）：缓存层故障绝不能拖垮读路径——直接查库并告警。
             // 这就是 docs/02 "Redis 永远可丢失可重建"的代码落点。
             log.warn("进度缓存不可用，降级直查数据库 batchId={}: {}", batchId, e.getMessage());
+            metrics.recordRedisDegradation(FrameFlowMetrics.RedisOperation.CACHE_READ);
             return dbLoader.get();
         }
     }
@@ -88,6 +99,7 @@ public class ProgressCacheService {
             redis.delete(KEY_PREFIX + batchId);
         } catch (Exception e) {
             log.warn("缓存失效失败（将靠 TTL 自然过期）batchId={}: {}", batchId, e.getMessage());
+            metrics.recordRedisDegradation(FrameFlowMetrics.RedisOperation.CACHE_EVICT);
         }
     }
 
@@ -101,6 +113,7 @@ public class ProgressCacheService {
             redis.opsForValue().set(key, objectMapper.writeValueAsString(value), VALUE_TTL);
         } catch (Exception e) {
             log.warn("缓存写入失败（不影响业务结果）: {}", e.getMessage());
+            metrics.recordRedisDegradation(FrameFlowMetrics.RedisOperation.CACHE_WRITE);
         }
     }
 

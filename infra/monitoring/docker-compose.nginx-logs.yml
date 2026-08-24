@@ -1,0 +1,6 @@
+# 可选叠加：远程宿主机 Nginx 不在 Compose 内时，显式只读挂载日志目录。
+# 使用前必须设置 FRAMEFLOW_NGINX_LOG_DIR 为该环境专属目录，不能挂整个 /var/log。
+services:
+  alloy:
+    volumes:
+      - ${FRAMEFLOW_NGINX_LOG_DIR:?FRAMEFLOW_NGINX_LOG_DIR is required}:/var/log/frameflow-nginx:ro

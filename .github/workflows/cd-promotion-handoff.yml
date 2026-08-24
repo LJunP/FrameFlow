@@ -1,0 +1,140 @@
+name: FrameFlow Promotion Handoff (no remote deploy)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Protected GitHub Environment to prepare
+        type: choice
+        options: [dev, staging, production]
+        required: true
+      source_run_id:
+        description: Successful learning-main CI run containing frameflow-image-manifest
+        type: string
+        required: true
+      confirmation:
+        description: PREPARE_DEV, PREPARE_STAGING, or PREPARE_PRODUCTION
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  prepare-owner-handoff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Enforce explicit protected gate
+        env:
+          TARGET_ENV: ${{ inputs.environment }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]]
+          expected="PREPARE_$(printf '%s' "$TARGET_ENV" | tr '[:lower:]' '[:upper:]')"
+          [[ "$CONFIRMATION" == "$expected" ]] || { echo "confirmation must be $expected" >&2; exit 1; }
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: frameflow-image-manifest
+          path: ${{ runner.temp }}/frameflow-incoming
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bind the handoff to the successful image-publish run
+        id: source
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          INCOMING: ${{ runner.temp }}/frameflow-incoming
+        run: |
+          set -euo pipefail
+          metadata="$RUNNER_TEMP/frameflow-source-run.json"
+          curl --fail --silent --show-error --location \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN_ID" \
+            > "$metadata"
+          python3 - "$metadata" "$INCOMING/image-manifest.json" \
+            "$SOURCE_RUN_ID" "$GITHUB_REPOSITORY" "$GITHUB_OUTPUT" <<'PY'
+          import json
+          import pathlib
+          import re
+          import sys
+
+          metadata_path, manifest_path, source_run_id, repository, output_path = sys.argv[1:]
+          run = json.loads(pathlib.Path(metadata_path).read_text(encoding="utf-8"))
+          manifest = json.loads(pathlib.Path(manifest_path).read_text(encoding="utf-8"))
+          workflow_path = str(run.get("path", "")).split("@", 1)[0]
+          facts = {
+              "run_id": str(run.get("id", "")),
+              "conclusion": run.get("conclusion"),
+              "event": run.get("event"),
+              "head_branch": run.get("head_branch"),
+              "workflow_path": workflow_path,
+              "repository": (run.get("repository") or {}).get("full_name"),
+          }
+          expected = {
+              "run_id": source_run_id,
+              "conclusion": "success",
+              "event": "workflow_dispatch",
+              "head_branch": "frameflow-select/learning-main",
+              "workflow_path": ".github/workflows/ci.yml",
+              "repository": repository,
+          }
+          if facts != expected:
+              raise SystemExit(f"source run provenance mismatch: {facts!r}")
+          git_sha = str(run.get("head_sha", ""))
+          if not re.fullmatch(r"[0-9a-f]{40}", git_sha):
+              raise SystemExit("source run head SHA is invalid")
+          release = manifest.get("release") or {}
+          if release.get("gitSha") != git_sha or str(release.get("sourceRun")) != source_run_id:
+              raise SystemExit("manifest is not bound to the selected source run and head SHA")
+          with pathlib.Path(output_path).open("a", encoding="utf-8") as stream:
+              stream.write(f"git_sha={git_sha}\n")
+          PY
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ steps.source.outputs.git_sha }}
+          fetch-depth: 1
+      - name: Validate and package owner-operated deployment handoff
+        env:
+          TARGET_ENV: ${{ inputs.environment }}
+          MANIFEST_SHA: ${{ steps.source.outputs.git_sha }}
+          INCOMING: ${{ runner.temp }}/frameflow-incoming
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$MANIFEST_SHA" ]]
+          infra/scripts/validate-image-manifest.sh "$INCOMING/image-manifest.json" \
+            --expected-git-sha "$MANIFEST_SHA"
+          root="$TARGET_ENV-bundle"
+          mkdir -p "$root" "$root/docs/guides" "$root/docs/templates"
+          cp "$INCOMING/image-manifest.json" "$root/"
+          infra/scripts/validate-image-manifest.sh "$INCOMING/image-manifest.json" \
+            --emit-env > "$root/release.env"
+          git archive --format=tar "$MANIFEST_SHA" infra | tar -xf - -C "$root"
+          printf '%s\n' "$MANIFEST_SHA" > "$root/OPS_GIT_SHA"
+          (
+            cd "$root"
+            find infra -type f -print0 | LC_ALL=C sort -z | \
+              xargs -0 sha256sum > OPS_SHA256SUMS
+          )
+          cp docs/guides/{F9-源码导读.md,F10-源码导读.md} "$root/docs/guides/"
+          cp docs/templates/F10-事故复盘模板.md "$root/docs/templates/"
+          (
+            cd "$root"
+            find . -type f ! -name HANDOFF_SHA256SUMS -print0 | LC_ALL=C sort -z | \
+              xargs -0 sha256sum > HANDOFF_SHA256SUMS
+            sha256sum --quiet -c HANDOFF_SHA256SUMS
+          )
+          tar -C "$root" -czf "frameflow-$TARGET_ENV-handoff.tar.gz" .
+          echo "The handoff is bound to Git $MANIFEST_SHA and includes a checksum-verified ops bundle plus F9/F10 runbooks; this workflow intentionally performs no SSH, DNS, certificate, Compose, or production operation." >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: frameflow-${{ inputs.environment }}-owner-handoff
+          path: frameflow-${{ inputs.environment }}-handoff.tar.gz
+          if-no-files-found: error
+          retention-days: 30

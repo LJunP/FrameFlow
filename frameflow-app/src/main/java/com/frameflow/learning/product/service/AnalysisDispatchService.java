@@ -10,6 +10,7 @@ import com.frameflow.learning.product.repo.CandidateMapper;
 import com.frameflow.learning.product.repo.CandidateRow;
 import com.frameflow.learning.product.repo.QualityProfileMapper;
 import com.frameflow.learning.product.repo.QualityProfileVersionRow;
+import com.frameflow.learning.observability.FrameFlowMetrics;
 import com.frameflow.learning.shared.error.ApiException;
 import com.frameflow.learning.shared.error.ErrorCode;
 import org.slf4j.Logger;
@@ -32,17 +33,19 @@ public class AnalysisDispatchService {
     private final QualityProfileMapper profiles;
     private final com.frameflow.learning.product.repo.BriefMapper briefs;
     private final RabbitTemplate rabbitTemplate;
+    private final FrameFlowMetrics metrics;
 
     public AnalysisDispatchService(BatchService batchService, CandidateMapper candidates,
                                    AnalysisRunMapper runs, QualityProfileMapper profiles,
                                    com.frameflow.learning.product.repo.BriefMapper briefs,
-                                   RabbitTemplate rabbitTemplate) {
+                                   RabbitTemplate rabbitTemplate, FrameFlowMetrics metrics) {
         this.batchService = batchService;
         this.candidates = candidates;
         this.runs = runs;
         this.profiles = profiles;
         this.briefs = briefs;
         this.rabbitTemplate = rabbitTemplate;
+        this.metrics = metrics;
     }
 
     public record DispatchResult(long batchId, int dispatched, int skipped) {
@@ -101,15 +104,21 @@ public class AnalysisDispatchService {
      * 可安全重新触发。
      */
     private void publishConfirmed(AnalysisTaskMessage message, long candidateId) {
-        Boolean confirmed = rabbitTemplate.invoke(operation -> {
-            operation.convertAndSend(
-                    RabbitConfig.TASK_EXCHANGE, RabbitConfig.TASK_ROUTING_KEY, message);
-            return operation.waitForConfirms(5_000);
-        });
-        if (!Boolean.TRUE.equals(confirmed)) {
-            throw new ApiException(ErrorCode.INTERNAL_ERROR,
-                    "broker 未确认消息, candidateId=" + candidateId);
+        try {
+            Boolean confirmed = rabbitTemplate.invoke(operation -> {
+                operation.convertAndSend(
+                        RabbitConfig.TASK_EXCHANGE, RabbitConfig.TASK_ROUTING_KEY, message);
+                return operation.waitForConfirms(5_000);
+            });
+            if (!Boolean.TRUE.equals(confirmed)) {
+                throw new ApiException(ErrorCode.INTERNAL_ERROR,
+                        "broker 未确认消息, candidateId=" + candidateId);
+            }
+            metrics.recordDispatch(FrameFlowMetrics.DispatchOutcome.CONFIRMED);
+            log.info("已派发分析任务 runId={} candidateId={}", message.runId(), candidateId);
+        } catch (RuntimeException exception) {
+            metrics.recordDispatch(FrameFlowMetrics.DispatchOutcome.FAILED);
+            throw exception;
         }
-        log.info("已派发分析任务 runId={} candidateId={}", message.runId(), candidateId);
     }
 }

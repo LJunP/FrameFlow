@@ -15,6 +15,7 @@ import com.frameflow.learning.product.mq.AnalysisTaskMessage;
 import com.frameflow.learning.product.mq.RabbitConfig;
 import com.frameflow.learning.storage.MinioTestConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -41,7 +42,9 @@ import org.testcontainers.utility.DockerImageName;
 class AnalysisFlowIntegrationTest {
 
     static final RabbitMQContainer RABBIT = new RabbitMQContainer(
-            DockerImageName.parse("rabbitmq:3.13-management-alpine"));
+            DockerImageName.parse("rabbitmq:4.3.5-management-alpine@sha256:"
+                    + "a1a5dd841347af3e32355fd58ac530e831fd394c49e299f862e2fd4ab331cd79")
+                    .asCompatibleSubstituteFor("rabbitmq"));
 
     static {
         RABBIT.start();
@@ -69,6 +72,9 @@ class AnalysisFlowIntegrationTest {
     private RabbitTemplate rabbitTemplate;
 
     @Autowired
+    private MeterRegistry meterRegistry;
+
+    @Autowired
     private org.springframework.amqp.rabbit.connection.ConnectionFactory rabbitConnectionFactory;
 
     @Autowired
@@ -80,6 +86,8 @@ class AnalysisFlowIntegrationTest {
     void dispatch_consume_ingest_end_to_end_with_blocker_finding() throws Exception {
         var ctx = preparedBatch("e2e@example.com", 2);
         long candidateId = uploadOne(ctx, "clip.mp4", 256);
+        double dispatchedBefore = counter("frameflow.analysis.dispatch", "outcome", "confirmed");
+        double ingestedBefore = counter("frameflow.analysis.ingestion", "outcome", "succeeded");
 
         MvcResult analyze = mockMvc.perform(post("/api/v1/batches/" + ctx.batchId + "/analyze")
                         .header("Authorization", bearer(ctx.tokens)))
@@ -127,6 +135,18 @@ class AnalysisFlowIntegrationTest {
         Integer duration = jdbcTemplate.queryForObject(
                 "SELECT duration_ms FROM candidates WHERE id = ?", Integer.class, candidateId);
         assertThat(duration).isEqualTo(3000);
+        // F10 回归：不是只注册孤立 Counter；真实 dispatch/ingest 分支各增长一次。
+        assertThat(counter("frameflow.analysis.dispatch", "outcome", "confirmed"))
+                .isEqualTo(dispatchedBefore + 1);
+        assertThat(counter("frameflow.analysis.ingestion", "outcome", "succeeded"))
+                .isEqualTo(ingestedBefore + 1);
+        String prometheus = mockMvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(prometheus).contains("frameflow_analysis_dispatch_total")
+                .contains("frameflow_analysis_ingestion_total")
+                // management.metrics.distribution.percentiles-histogram 必须真的产 bucket；
+                // 否则 Grafana/告警里的 histogram_quantile 永远没有输入。
+                .contains("http_server_requests_seconds_bucket");
     }
 
     // ---------- 幂等：重复回写不产生重复 Finding ----------
@@ -308,6 +328,10 @@ class AnalysisFlowIntegrationTest {
     // ---------- 工具 ----------
 
     private record Ctx(Map<String, Object> tokens, long batchId) { }
+
+    private double counter(String name, String tag, String value) {
+        return meterRegistry.get(name).tag(tag, value).counter().count();
+    }
 
     private Ctx preparedBatch(String email, int capacity) throws Exception {
         MvcResult reg = mockMvc.perform(post("/api/v1/auth/register")

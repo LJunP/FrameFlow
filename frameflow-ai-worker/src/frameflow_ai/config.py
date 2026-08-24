@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Config:
+    environment: str
     rabbit_host: str
     rabbit_port: int
     rabbit_user: str
@@ -24,10 +25,13 @@ class Config:
     prefetch: int
     # 同一条消息的最大尝试次数（含重投）；超过视为毒消息，回写 ANALYSIS_ERROR 后 ack。
     max_delivery_attempt: int
+    metrics_host: str
+    metrics_port: int
 
     @classmethod
     def from_env(cls) -> "Config":
         return cls(
+            environment=os.environ.get("FRAMEFLOW_ENV", "local"),
             rabbit_host=os.environ.get("FRAMEFLOW_RABBITMQ_HOST", "127.0.0.1"),
             rabbit_port=int(os.environ.get("FRAMEFLOW_RABBITMQ_PORT", "5672")),
             rabbit_user=os.environ.get("FRAMEFLOW_RABBITMQ_USER", "frameflow"),
@@ -41,4 +45,8 @@ class Config:
             worker_key=os.environ.get("FRAMEFLOW_WORKER_KEY", "frameflow-dev-worker-key"),
             prefetch=int(os.environ.get("FRAMEFLOW_WORKER_PREFETCH", "2")),
             max_delivery_attempt=int(os.environ.get("FRAMEFLOW_WORKER_MAX_ATTEMPT", "3")),
+            # 宿主机直跑默认只监听 loopback；容器 Compose 必须显式设 0.0.0.0，
+            # 再由隔离网络抓取，避免开发机把指标端口暴露到局域网。
+            metrics_host=os.environ.get("FRAMEFLOW_METRICS_HOST", "127.0.0.1"),
+            metrics_port=int(os.environ.get("FRAMEFLOW_METRICS_PORT", "9108")),
         )

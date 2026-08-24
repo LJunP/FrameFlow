@@ -1,0 +1,7 @@
+[Unit]
+Description=Renew FrameFlow TLS certificates and reload nginx
+After=network-online.target nginx.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/frameflow-renew-certificates --apply --confirm RENEW_CERTIFICATES

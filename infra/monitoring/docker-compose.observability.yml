@@ -1,0 +1,160 @@
+# 与 infra/{env}/docker-compose.yml 叠加，并使用同一个 COMPOSE_PROJECT_NAME。
+# ★ 核心：观测数据卷沿用 Compose project 前缀隔离；若错误复用 project name，
+# dev/staging 指标与日志会混在一起，告警和审计证据都将失真。
+services:
+  prometheus:
+    image: prom/prometheus:v3.13.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${FRAMEFLOW_PROMETHEUS_RETENTION:-15d}
+      - --web.enable-lifecycle
+    volumes:
+      - ${FRAMEFLOW_MONITORING_ROOT:?FRAMEFLOW_MONITORING_ROOT is required}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ${FRAMEFLOW_MONITORING_ROOT:?FRAMEFLOW_MONITORING_ROOT is required}/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_PROMETHEUS_PORT:-19090}:9090"
+    depends_on:
+      alertmanager:
+        condition: service_started
+    networks: [backend, data]
+    labels:
+      com.frameflow.environment: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+      com.frameflow.role: monitoring
+
+  alertmanager:
+    image: prom/alertmanager:v0.32.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ${FRAMEFLOW_ALERTMANAGER_CONFIG:?FRAMEFLOW_ALERTMANAGER_CONFIG is required}:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_ALERTMANAGER_PORT:-19093}:9093"
+    networks: [backend]
+    labels:
+      com.frameflow.environment: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+      com.frameflow.role: monitoring
+
+  alert-sink:
+    image: python:3.11-alpine
+    profiles: [synthetic-alert-drill]
+    restart: unless-stopped
+    command: ["python", "/opt/frameflow/alert_sink.py"]
+    environment:
+      FRAMEFLOW_ENV: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+      FRAMEFLOW_ALERT_SINK_PORT: "5001"
+    volumes:
+      - ${FRAMEFLOW_MONITORING_ROOT:?FRAMEFLOW_MONITORING_ROOT is required}/scripts/alert_sink.py:/opt/frameflow/alert_sink.py:ro
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_ALERT_SINK_PORT:-19094}:5001"
+    networks: [backend]
+    labels:
+      com.frameflow.environment: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+      com.frameflow.role: monitoring
+
+  grafana:
+    image: grafana/grafana:13.1.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${FRAMEFLOW_GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${FRAMEFLOW_GRAFANA_ADMIN_PASSWORD:?FRAMEFLOW_GRAFANA_ADMIN_PASSWORD is required}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      # 可复现的运维镜像不应在启动时联网下载或更新插件；需要的内置数据源已随镜像提供。
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+    volumes:
+      - ${FRAMEFLOW_MONITORING_ROOT:?FRAMEFLOW_MONITORING_ROOT is required}/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ${FRAMEFLOW_MONITORING_ROOT:?FRAMEFLOW_MONITORING_ROOT is required}/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_GRAFANA_PORT:-13000}:3000"
+    depends_on: [prometheus, loki]
+    networks: [backend]
+    labels:
+      com.frameflow.environment: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+      com.frameflow.role: monitoring
+
+  loki:
+    image: grafana/loki:3.7.4
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/loki.yml"]
+    volumes:
+      - ${FRAMEFLOW_MONITORING_ROOT:?FRAMEFLOW_MONITORING_ROOT is required}/loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki-data:/loki
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_LOKI_PORT:-13100}:3100"
+    networks: [backend]
+    labels:
+      com.frameflow.environment: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+      com.frameflow.role: monitoring
+
+  alloy:
+    image: grafana/alloy:v1.18.0
+    user: "473:473"
+    restart: unless-stopped
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    environment:
+      FRAMEFLOW_ENV: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+    volumes:
+      - ${FRAMEFLOW_MONITORING_ROOT:?FRAMEFLOW_MONITORING_ROOT is required}/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+    # Docker daemon 只向宿主 loopback UDP 发送 App/Worker syslog；没有 Docker socket/API。
+    ports:
+      - "127.0.0.1:${FRAMEFLOW_ALLOY_SYSLOG_PORT:?FRAMEFLOW_ALLOY_SYSLOG_PORT is required}:1514/udp"
+    depends_on: [loki]
+    networks: [backend]
+    read_only: true
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    labels:
+      com.frameflow.environment: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+      com.frameflow.role: monitoring
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.20.1
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: ${FRAMEFLOW_POSTGRES_EXPORTER_DSN:?FRAMEFLOW_POSTGRES_EXPORTER_DSN is required}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [backend, data]
+    labels:
+      com.frameflow.environment: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+      com.frameflow.role: exporter
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.89.0-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+      REDIS_USER: ${FRAMEFLOW_REDIS_EXPORTER_USER:-frameflow_monitor}
+      REDIS_PASSWORD: ${FRAMEFLOW_REDIS_EXPORTER_PASSWORD:?FRAMEFLOW_REDIS_EXPORTER_PASSWORD is required}
+      REDIS_EXPORTER_CONFIG_COMMAND: "-"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [backend, data]
+    labels:
+      com.frameflow.environment: ${FRAMEFLOW_ENV:?FRAMEFLOW_ENV is required}
+      com.frameflow.role: exporter
+
+volumes:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:
+  loki-data:
+  alloy-data:

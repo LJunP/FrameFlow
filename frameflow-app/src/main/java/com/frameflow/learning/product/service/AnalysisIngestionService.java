@@ -7,6 +7,7 @@ import com.frameflow.learning.product.repo.AnalysisRunMapper;
 import com.frameflow.learning.product.repo.AnalysisRunRow;
 import com.frameflow.learning.product.repo.CandidateMapper;
 import com.frameflow.learning.product.repo.FindingMapper;
+import com.frameflow.learning.observability.FrameFlowMetrics;
 import com.frameflow.learning.shared.error.ApiException;
 import com.frameflow.learning.shared.error.ErrorCode;
 import org.springframework.stereotype.Service;
@@ -25,13 +26,16 @@ public class AnalysisIngestionService {
     private final CandidateMapper candidates;
     private final FindingMapper findings;
     private final ProgressCacheService progressCache;
+    private final FrameFlowMetrics metrics;
 
     public AnalysisIngestionService(AnalysisRunMapper runs, CandidateMapper candidates,
-                                    FindingMapper findings, ProgressCacheService progressCache) {
+                                    FindingMapper findings, ProgressCacheService progressCache,
+                                    FrameFlowMetrics metrics) {
         this.runs = runs;
         this.candidates = candidates;
         this.findings = findings;
         this.progressCache = progressCache;
+        this.metrics = metrics;
     }
 
     public record FindingRequest(String detector, String detectorVersion, String dimension,
@@ -64,6 +68,7 @@ public class AnalysisIngestionService {
                 req.workerVersion(),
                 req.ok() ? null : req.errorSummary());
         if (updated == 0) {
+            metrics.recordIngestion(FrameFlowMetrics.IngestionOutcome.DUPLICATE);
             return new IngestionResponse(run.getId(), run.getCandidateId(),
                     candidates.findById(run.getCandidateId()).getStatus(), true);
         }
@@ -74,6 +79,7 @@ public class AnalysisIngestionService {
             candidates.markAnalysisResult(run.getCandidateId(), "ANALYSIS_ERROR",
                     null, null, null, null, null, null);
             progressCache.evict(run.getBatchId());
+            metrics.recordIngestion(FrameFlowMetrics.IngestionOutcome.ANALYSIS_ERROR);
             return new IngestionResponse(run.getId(), run.getCandidateId(),
                     "ANALYSIS_ERROR", false);
         }
@@ -109,6 +115,7 @@ public class AnalysisIngestionService {
                 req.durationMs(), req.width(), req.height(), req.fps(),
                 req.contentHash(), req.phash());
         progressCache.evict(run.getBatchId());
+        metrics.recordIngestion(FrameFlowMetrics.IngestionOutcome.SUCCEEDED);
         return new IngestionResponse(run.getId(), run.getCandidateId(), finalStatus, false);
     }
 }

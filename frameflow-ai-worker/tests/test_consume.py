@@ -2,16 +2,20 @@
 
 from frameflow_ai.config import Config
 from frameflow_ai.consume import on_message
+from frameflow_ai.observability import WorkerMetrics
 from frameflow_ai.report import ReportFailed, ReportRejected
+from prometheus_client import CollectorRegistry
 
 
 def _cfg() -> Config:
     return Config(
+        environment="test",
         rabbit_host="x", rabbit_port=1, rabbit_user="x", rabbit_password="x",
         rabbit_vhost="/frameflow-test",
         storage_endpoint="x", storage_access_key="x", storage_secret_key="x",
         storage_bucket="x", api_base="x", worker_key="x",
-        prefetch=2, max_delivery_attempt=3)
+        prefetch=2, max_delivery_attempt=3,
+        metrics_host="127.0.0.1", metrics_port=9108)
 
 
 class _Client:
@@ -34,8 +38,16 @@ def _ok_analyze(task, download, version):
 def test_happy_path_acks(monkeypatch):
     monkeypatch.setattr("frameflow_ai.consume.analyze", _ok_analyze)
     client = _Client()
-    action = on_message({"runId": 1}, 1, _cfg(), client, None, "t")
+    registry = CollectorRegistry()
+    metrics = WorkerMetrics("test", registry)
+    action = on_message({"runId": 1}, 1, _cfg(), client, None, "t", metrics)
     assert action == "ack" and client.submitted[0]["ok"] is True
+    assert registry.get_sample_value(
+        "frameflow_worker_messages_total",
+        {"environment": "test", "outcome": "succeeded"}) == 1
+    assert registry.get_sample_value(
+        "frameflow_worker_inflight",
+        {"environment": "test"}) == 0
 
 
 def test_report_rejected_goes_to_dlq(monkeypatch):
@@ -65,6 +77,8 @@ def test_requeue_republishes_with_incremented_attempt(monkeypatch):
 
     monkeypatch.setattr("frameflow_ai.consume.analyze", _ok_analyze)
     client = _Client(ReportFailed("timeout"))   # 首次回写失败 → requeue
+    registry = CollectorRegistry()
+    metrics = WorkerMetrics("test", registry)
 
     calls = {}
 
@@ -84,7 +98,7 @@ def test_requeue_republishes_with_incremented_attempt(monkeypatch):
     task = {"runId": 1, "deliveryAttempt": 1}
     consume._handle_message(Ch(), Method(), None,
                             __import__("json").dumps(task).encode(),
-                            _cfg(), client, None, "t")
+                            _cfg(), client, None, "t", metrics)
 
     assert "nack" not in calls, "requeue 不能走裸 nack（不携带计数）"
     exchange, rk, body, props = calls["publish"]
@@ -93,3 +107,32 @@ def test_requeue_republishes_with_incremented_attempt(monkeypatch):
     assert republished["deliveryAttempt"] == 2      # 计数递增
     assert props.headers["x-delivery-attempt"] == 2
     assert calls["ack"] == 7                        # 旧消息 ack，不丢不重
+    assert registry.get_sample_value(
+        "frameflow_worker_republished_messages_total",
+        {"environment": "test"}) == 1
+    assert registry.get_sample_value(
+        "frameflow_worker_messages_total",
+        {"environment": "test", "outcome": "requeue"}) == 1
+
+
+def test_malformed_json_is_counted_and_dead_lettered_without_crashing():
+    from frameflow_ai import consume
+
+    registry = CollectorRegistry()
+    metrics = WorkerMetrics("test", registry)
+    calls = {}
+
+    class Ch:
+        def basic_nack(self, delivery_tag, requeue):
+            calls["nack"] = (delivery_tag, requeue)
+
+    class Method:
+        delivery_tag = 9
+
+    consume._handle_message(
+        Ch(), Method(), None, b"{not-json", _cfg(), _Client(), None, "t", metrics)
+
+    assert calls["nack"] == (9, False)
+    assert registry.get_sample_value(
+        "frameflow_worker_messages_total",
+        {"environment": "test", "outcome": "invalid_message"}) == 1

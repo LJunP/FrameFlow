@@ -55,7 +55,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/ping", "/actuator/health").permitAll()
+                        .requestMatchers("/api/v1/ping").permitAll()
+                        // F10：Prometheus 与容器探针在隔离网络内无用户 JWT。
+                        // 只放行 GET 的 health/prometheus 精确路径；Nginx 不反代
+                        // Actuator，其他管理端点仍保持未暴露 + 默认拒绝。
+                        .requestMatchers(HttpMethod.GET, "/actuator/health/**",
+                                "/actuator/prometheus").permitAll()
                         // 内部接口不走用户 JWT，由 InternalAuthFilter 的
                         // X-Worker-Key 把关（双层：Security 放行 + Filter 验钥）
                         .requestMatchers("/api/v1/internal/**").permitAll()

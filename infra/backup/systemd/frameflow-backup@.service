@@ -1,0 +1,18 @@
+[Unit]
+Description=FrameFlow Select backup for %i
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=frameflow
+Group=frameflow
+SupplementaryGroups=docker
+UMask=0077
+ExecCondition=/usr/bin/test -x /opt/frameflow/ops/current/infra/backup/run-scheduled-backups.sh
+ExecStart=/opt/frameflow/ops/current/infra/backup/run-scheduled-backups.sh --environment %i --config /etc/frameflow/%i/backup.conf --execute
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/backups/frameflow-%i /run/docker.sock
