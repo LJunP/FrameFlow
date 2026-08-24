@@ -15,6 +15,7 @@ import org.springframework.util.unit.DataSize;
 @ConfigurationProperties(prefix = "frameflow.storage")
 public record StorageProperties(
         String endpoint,
+        @DefaultValue("") String publicEndpoint,
         @DefaultValue("us-east-1") String region,
         String accessKey,
         String secretKey,

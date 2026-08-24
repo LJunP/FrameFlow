@@ -20,7 +20,12 @@ from pathlib import Path
 MP4_FTYP_POS = 4  # 'ftyp' 盒类型位于文件头第 4 字节起
 
 
-DEFAULT_FFMPEG_IMAGE = "linuxserver/ffmpeg:latest"
+# ★ 核心：测试夹具也必须可复现。使用 latest 会让同一 Git SHA 在
+# 不同日期拿到不同 ffmpeg，生成字节与探针结果可能漂移。
+DEFAULT_FFMPEG_IMAGE = (
+    "linuxserver/ffmpeg@sha256:"
+    "771895205f3a62023f14e5ca1fe94be8007ecaf8a7c268d9c502de260c213d22"
+)
 
 
 def docker_image_available(image: str) -> bool:

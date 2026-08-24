@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   buildGatewayUpstreamUrl,
   classifyRefreshStatus,
+  resolveSecureCookie,
   safeNextPath,
   sameAuthTeam,
   sameAuthUser,
@@ -60,6 +61,13 @@ test('refresh status separates invalid credentials from transient failures', () 
   assert.equal(classifyRefreshStatus(401), 'unauthenticated');
   assert.equal(classifyRefreshStatus(429), 'transient-error');
   assert.equal(classifyRefreshStatus(503), 'transient-error');
+});
+
+test('secure cookie policy supports local HTTP without silently weakening remote HTTPS', () => {
+  assert.equal(resolveSecureCookie('production', undefined), true);
+  assert.equal(resolveSecureCookie('production', 'false'), false);
+  assert.equal(resolveSecureCookie('development', 'true'), true);
+  assert.throws(() => resolveSecureCookie('production', 'yes'));
 });
 
 test('principal equality changes only when identity or authorization changes', () => {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { classifyRefreshStatus } from '@/lib/security-contracts';
+import { classifyRefreshStatus, resolveSecureCookie } from '@/lib/security-contracts';
 
 // ★ 核心（token 安全策略的服务端半边）：
 // 登录/注册/刷新/登出走这里——refreshToken 只在本路由与浏览器 cookie
@@ -9,6 +9,7 @@ const API_BASE = process.env.API_BASE ?? 'http://127.0.0.1:18080';
 const REFRESH_COOKIE = 'ff_refresh';
 const AUTH_TIMEOUT_MS = 3500;
 const LOGOUT_TIMEOUT_MS = 1800;
+const SECURE_COOKIE = resolveSecureCookie(process.env.NODE_ENV, process.env.FRAMEFLOW_COOKIE_SECURE);
 
 function upstreamUnavailable() {
   return NextResponse.json(
@@ -21,7 +22,7 @@ function setRefreshCookie(resp: NextResponse, refreshToken: string) {
   resp.cookies.set(REFRESH_COOKIE, refreshToken, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: SECURE_COOKIE,
     path: '/api/auth',
     maxAge: 60 * 60 * 24 * 14,
   });
@@ -31,7 +32,7 @@ function clearRefreshCookie(resp: NextResponse) {
   resp.cookies.set(REFRESH_COOKIE, '', {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: SECURE_COOKIE,
     path: '/api/auth',
     maxAge: 0,
   });

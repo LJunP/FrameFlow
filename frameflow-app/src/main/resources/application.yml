@@ -15,6 +15,7 @@ spring:
     redis:
       host: ${FRAMEFLOW_REDIS_HOST:127.0.0.1}
       port: ${FRAMEFLOW_REDIS_PORT:6379}
+      password: ${FRAMEFLOW_REDIS_PASSWORD:}
       # 快速失败：Redis 挂掉时业务走降级分支，不能让请求挂一分钟等超时
       timeout: 500ms
       connect-timeout: 500ms
@@ -23,6 +24,7 @@ spring:
     port: ${FRAMEFLOW_RABBITMQ_PORT:5672}
     username: ${FRAMEFLOW_RABBITMQ_USER:frameflow}
     password: ${FRAMEFLOW_RABBITMQ_PASSWORD:frameflow_local_only}
+    virtual-host: ${FRAMEFLOW_RABBITMQ_VHOST:/}
     # ★ Publisher Confirm：broker 收到才返回（消息不"发出即忘"）
     publisher-confirm-type: correlated
 
@@ -42,9 +44,19 @@ frameflow:
     # ISO-8601 时长：access 15 分钟（盗取窗口），refresh 14 天（免频繁登录）
     access-token-ttl: PT15M
     refresh-token-ttl: P14D
+    # local 可用启动时临时密钥；dev/staging/production 必须设为 false，
+    # 并通过 Docker Secret 文件挂载稳定的 PKCS#8 私钥 + X.509 公钥。
+    allow-ephemeral-rsa-key: ${FRAMEFLOW_ALLOW_EPHEMERAL_RSA_KEY:true}
+    jwt-private-key-pem: '${FRAMEFLOW_JWT_PRIVATE_KEY_PEM:}'
+    jwt-public-key-pem: '${FRAMEFLOW_JWT_PUBLIC_KEY_PEM:}'
+    jwt-private-key-file: ${FRAMEFLOW_JWT_PRIVATE_KEY_FILE:}
+    jwt-public-key-file: ${FRAMEFLOW_JWT_PUBLIC_KEY_FILE:}
   storage:
-    # MinIO（infra/local/docker-compose.yml）；生产用环境变量覆盖
+    # MinIO（infra/local/docker-compose.yml）；生产用环境变量覆盖。
+    # endpoint 是 Java/Worker 所在网络的内部地址；public-endpoint 仅用于签发
+    # 浏览器直传/播放 URL。Compose 中两者必须分开，否则一端必然无法访问。
     endpoint: ${FRAMEFLOW_STORAGE_ENDPOINT:http://127.0.0.1:9000}
+    public-endpoint: ${FRAMEFLOW_STORAGE_PUBLIC_ENDPOINT:}
     region: ${FRAMEFLOW_STORAGE_REGION:us-east-1}
     access-key: ${FRAMEFLOW_STORAGE_ACCESS_KEY:frameflow}
     secret-key: ${FRAMEFLOW_STORAGE_SECRET_KEY:frameflow_local_only}

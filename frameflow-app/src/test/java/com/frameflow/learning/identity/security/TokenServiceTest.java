@@ -18,8 +18,9 @@ import com.nimbusds.jwt.SignedJWT;
  */
 class TokenServiceTest {
 
-    private final RsaKeyProvider keyProvider = new RsaKeyProvider();
-    private final SecurityProperties props = new SecurityProperties(Duration.ofMinutes(15), Duration.ofDays(14));
+    private final SecurityProperties props = new SecurityProperties(
+            Duration.ofMinutes(15), Duration.ofDays(14), "", "", "", "", true);
+    private final RsaKeyProvider keyProvider = new RsaKeyProvider(props);
     private final Clock fixedClock = Clock.fixed(Instant.parse("2026-08-22T12:00:30Z"), ZoneOffset.UTC);
     private final TokenService service = new TokenService(keyProvider, props, fixedClock);
 

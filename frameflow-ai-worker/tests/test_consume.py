@@ -8,6 +8,7 @@ from frameflow_ai.report import ReportFailed, ReportRejected
 def _cfg() -> Config:
     return Config(
         rabbit_host="x", rabbit_port=1, rabbit_user="x", rabbit_password="x",
+        rabbit_vhost="/frameflow-test",
         storage_endpoint="x", storage_access_key="x", storage_secret_key="x",
         storage_bucket="x", api_base="x", worker_key="x",
         prefetch=2, max_delivery_attempt=3)

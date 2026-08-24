@@ -89,6 +89,7 @@ def start_worker(cfg: Config, download, worker_version: str):
     client = ReportClient(cfg.api_base, cfg.worker_key)
     conn = pika.BlockingConnection(pika.ConnectionParameters(
         host=cfg.rabbit_host, port=cfg.rabbit_port,
+        virtual_host=cfg.rabbit_vhost,
         credentials=pika.PlainCredentials(cfg.rabbit_user, cfg.rabbit_password),
     ))
     channel = conn.channel()

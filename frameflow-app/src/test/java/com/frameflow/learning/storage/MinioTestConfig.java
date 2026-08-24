@@ -22,9 +22,12 @@ import java.time.Duration;
 @TestConfiguration(proxyBeanMethods = false)
 public class MinioTestConfig {
 
+    private static final String MINIO_IMAGE = "minio/minio@sha256:"
+            + "14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e";
+
     @Bean(destroyMethod = "stop")
     MinIOContainer minio() {
-        return new MinIOContainer(DockerImageName.parse("minio/minio:latest"));
+        return new MinIOContainer(DockerImageName.parse(MINIO_IMAGE));
     }
 
     /**
@@ -36,7 +39,7 @@ public class MinioTestConfig {
     @Primary
     StoragePort minioTestStoragePort(MinIOContainer minio) {
         StorageProperties props = new StorageProperties(
-                minio.getS3URL(), "us-east-1",
+                minio.getS3URL(), minio.getS3URL(), "us-east-1",
                 minio.getUserName(), minio.getPassword(),
                 "frameflow-test-media",
                 Duration.ofMinutes(30),

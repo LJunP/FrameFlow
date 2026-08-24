@@ -5,6 +5,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.springframework.util.StringUtils;
+
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -53,17 +55,45 @@ public class S3StorageAdapter implements StoragePort {
         // 自建 MinIO 没有泛域名解析，不开这个开关所有请求都会 404。
         S3Configuration pathStyle = S3Configuration.builder().pathStyleAccessEnabled(true).build();
         this.s3 = S3Client.builder()
-                .endpointOverride(URI.create(props.endpoint()))
+                .endpointOverride(validatedEndpoint("endpoint", props.endpoint()))
                 .region(Region.of(props.region()))
                 .credentialsProvider(creds)
                 .serviceConfiguration(pathStyle)
                 .build();
+        // ★ 核心：容器内部访问地址与浏览器直传地址不是同一个网络视角。
+        // Java 在 Compose 里访问 http://minio:9000，但把这个主机名签进
+        // presigned URL 后，用户浏览器无法解析。因此 presigner 必须单独使用
+        // publicEndpoint；改回单 endpoint 会让容器化直传必然在一端失败。
+        String publicEndpoint = StringUtils.hasText(props.publicEndpoint())
+                ? props.publicEndpoint() : props.endpoint();
         this.presigner = S3Presigner.builder()
-                .endpointOverride(URI.create(props.endpoint()))
+                .endpointOverride(validatedEndpoint("public-endpoint", publicEndpoint))
                 .region(Region.of(props.region()))
                 .credentialsProvider(creds)
                 .serviceConfiguration(pathStyle)
                 .build();
+    }
+
+    static URI validatedEndpoint(String name, String raw) {
+        if (!StringUtils.hasText(raw)) {
+            throw new IllegalArgumentException("frameflow.storage." + name + " 不能为空");
+        }
+        URI uri;
+        try {
+            uri = URI.create(raw.trim());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("frameflow.storage." + name + " 不是合法 URI", e);
+        }
+        boolean safeScheme = "http".equalsIgnoreCase(uri.getScheme())
+                || "https".equalsIgnoreCase(uri.getScheme());
+        String path = uri.getPath();
+        boolean rootPath = path == null || path.isBlank() || "/".equals(path);
+        if (!safeScheme || !StringUtils.hasText(uri.getHost()) || uri.getUserInfo() != null
+                || uri.getQuery() != null || uri.getFragment() != null || !rootPath) {
+            throw new IllegalArgumentException("frameflow.storage." + name
+                    + " 必须是无账号、无查询参数且无路径前缀的 http(s) 根地址");
+        }
+        return uri;
     }
 
     @Override

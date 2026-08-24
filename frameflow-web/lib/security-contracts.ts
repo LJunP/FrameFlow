@@ -66,6 +66,22 @@ export function classifyRefreshStatus(status: number): RefreshStatus {
   return 'transient-error';
 }
 
+/**
+ * local 的生产镜像常通过 HTTP 访问，不能仅用 NODE_ENV 决定 Secure Cookie。
+ * 远程 HTTPS 环境显式设 true；local 设 false；非法值直接拒绝启动，
+ * 避免拼写错误悄悄降级 Cookie 安全性。
+ */
+export function resolveSecureCookie(
+  nodeEnv: string | undefined,
+  configured: string | undefined,
+): boolean {
+  if (configured === undefined || configured.trim() === '') return nodeEnv === 'production';
+  const normalized = configured.trim().toLowerCase();
+  if (normalized === 'true') return true;
+  if (normalized === 'false') return false;
+  throw new Error('FRAMEFLOW_COOKIE_SECURE must be true or false');
+}
+
 export function sameAuthUser(
   left: AuthPayload['user'] | null,
   right: AuthPayload['user'],

@@ -12,6 +12,7 @@ class Config:
     rabbit_port: int
     rabbit_user: str
     rabbit_password: str
+    rabbit_vhost: str
     storage_endpoint: str
     storage_access_key: str
     storage_secret_key: str
@@ -31,6 +32,7 @@ class Config:
             rabbit_port=int(os.environ.get("FRAMEFLOW_RABBITMQ_PORT", "5672")),
             rabbit_user=os.environ.get("FRAMEFLOW_RABBITMQ_USER", "frameflow"),
             rabbit_password=os.environ.get("FRAMEFLOW_RABBITMQ_PASSWORD", "frameflow_local_only"),
+            rabbit_vhost=os.environ.get("FRAMEFLOW_RABBITMQ_VHOST", "/"),
             storage_endpoint=os.environ.get("FRAMEFLOW_STORAGE_ENDPOINT", "http://127.0.0.1:9000"),
             storage_access_key=os.environ.get("FRAMEFLOW_STORAGE_ACCESS_KEY", "frameflow"),
             storage_secret_key=os.environ.get("FRAMEFLOW_STORAGE_SECRET_KEY", "frameflow_local_only"),
