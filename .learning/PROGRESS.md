@@ -6,17 +6,26 @@
 
 ## 当前状态
 
-- 已交付：F1–F8 开发切片及 F6.1 平台多模型选择扩展（不等于产品、上线或试点全部完成）
-- 下一正式功能：F9 服务器部署与 CI/CD；当前暂缓。Profile 契约、多模态图像输入、平台模型目录/用户选择、探针缺失值语义等代码阻断已修复，门禁只剩一次经所有者确认的真实 Provider 调用记录
-- 开发状态：F8 已交付；F12 品牌前台与账户团队基础已完成当前工作树回归，等待所有者验收
+- 已交付：F1–F8、F6.1；F9/F10 的本地工程与动态门禁；F11 Pilot-ready
+  工程与合成彩排（不等于远程上线、production 运维或真实试点完成）
+- 当前阶段：本地可完成的开发已推进到 Deploy-ready / Pilot-ready。F9 的 VPS、SSH、
+  DNS、HTTPS 与远程 CI/发布，F10 的 production 告警/恢复，F11 的真实 Provider 与
+  真实试点仍是外部门禁
+- 开发状态：F12 品牌前台与账户团队基础已完成当前工作树回归，等待所有者验收
 - F12 范围：公开首页、认证体验、工作台导航、个人中心、当前团队只读页、业务化质量规则表单（含平台多模态模型选择）
 - F12 导读：[F12 源码导读](../docs/guides/F12-源码导读.md)
 - F12 学习状态：未读（由所有者本人更新）
 - 学习状态：F1–F8、F6.1、F12 均未读（只能由所有者本人更新）
 - 当前门禁事实：合成真 MP4 已跑通 API → MinIO → RabbitMQ → Python Worker → Java 回写 → 排名/聚类 → 人工调整 → 锁定 → JSON/CSV 导出；真实 Provider 按所有者边界尚未调用
 - F6.1 当前事实：平台无密钥模型目录、受保护安全 API、Profile 版本化选择、Worker 精确路由、证据脱敏和前端选择器的自动化均通过；未做真实 Provider 调用
-- 待办：所有者确认真实 Provider 调用并由平台注入目录/Worker Key 后，用 `semantic-profile.json` 与合成视频补一次所选模型的多模态调用记录；通过后再进入 F9
-- 更新日期：2026-08-23
+- F9/F10 当前事实：三种本地镜像与全栈 Smoke 通过；监控、日志、合成告警触达/
+  恢复、PostgreSQL/MinIO 隔离恢复及四类故障 harness 已在 local 实际通过
+- F11 当前事实：合成彩排 `PASS`，310 个候选记录、337 项校验、30 个 hash artifact；
+  `realPilotDecisionEligible=false`，不得作为真实试点结论
+- 下一外部动作：所有者未来明确授权真实 Provider 后，由平台在 Worker 侧注入模型目录
+  与 Key，补真实多模态调用记录；其后由所有者按 F9 Runbook 手工部署，再执行
+  production 运维门禁和真实试点
+- 更新日期：2026-08-24
 
 ## 功能进度
 
@@ -27,16 +36,16 @@
 | F1 工程基线与用户认证 | 已交付 | 未读 | [F1](../docs/guides/F1-源码导读.md) | 17 测试全绿 |
 | F2 项目与质检配置管理 | 已交付 | 未读 | [F2](../docs/guides/F2-源码导读.md) | 30 测试全绿（累计） |
 | F3 批次与视频上传 | 已交付 | 未读 | [F3](../docs/guides/F3-源码导读.md) | 38 测试全绿（累计） |
-| F4 确定性质检流水线 | 已交付 | 未读 | [F4](../docs/guides/F4-源码导读.md) | 当前全量 Java 68 + Worker 77 测试全绿；合成真媒体主链通过 |
+| F4 确定性质检流水线 | 已交付 | 未读 | [F4](../docs/guides/F4-源码导读.md) | 当前全量 Java 76 + Worker 84 测试全绿；合成真媒体主链通过 |
 | F5 缓存与限流（Redis） | 已交付 | 未读 | [F5](../docs/guides/F5-源码导读.md) | 50 测试全绿；降级演练实测 |
 | F6 语义质检（AI Provider） | 已交付（待真实调用） | 未读 | [F6](../docs/guides/F6-源码导读.md) | 多模态帧输入、证据哈希、错误降级和多模型路由已测试；真实调用记录未执行 |
-| F6.1 平台多模型选择 | 已交付（自动化通过） | 未读 | [F6.1](../docs/guides/F6.1-源码导读.md) | 平台托管 Key，用户选 enabled 模型；Java 68、Worker 77、Web 契约 14 全绿 |
+| F6.1 平台多模型选择 | 已交付（自动化通过） | 未读 | [F6.1](../docs/guides/F6.1-源码导读.md) | 平台托管 Key，用户选 enabled 模型；当前全量 Java 76、Worker 84、Web 契约 15 全绿 |
 | F7 聚类排名与 Top-K 优选 | 已交付 | 未读 | [F7](../docs/guides/F7-源码导读.md) | 58+33 全绿 |
 | F8 Web 前端产品化 | 已交付（合成全链回归通过） | 未读 | [F8](../docs/guides/F8-源码导读.md) | 合成真媒体全链与真实浏览器深链通过；不等于真实 Provider/试点价值证明 |
 | F12 品牌前台与账户团队基础 | 回归完成（待验收） | 未读 | [F12](../docs/guides/F12-源码导读.md) | 登录/登出、团队/账户、工作台深链及 390px 焦点管理当前实测通过 |
-| F9 服务器部署与 CI/CD | 暂缓（门禁仅余真实 Provider） | 未读 | — | 真实 Provider 调用需所有者再次确认；物理操作仍需所有者执行 |
-| F10 生产化运维 | 未开始 | 未读 | — | |
-| F11 真实试点验证 | 未开始 | — | — | 价值结论由所有者批准 |
+| F9 服务器部署与 CI/CD | 本地工程与 Smoke 已交付（远程门禁未执行） | 未读 | [F9](../docs/guides/F9-源码导读.md) | 未推 Registry；VPS/SSH/DNS/HTTPS/远程发布由所有者执行 |
+| F10 生产化运维 | 本地工程与动态演练已交付（production 门禁未执行） | 未读 | [F10](../docs/guides/F10-源码导读.md) | 本地 synthetic 告警、隔离恢复、4 类故障通过；不等于 production RTO/RPO |
+| F11 真实试点验证 | Pilot-ready 工程与合成彩排已交付 | — | [F11](../docs/guides/F11-源码导读.md) | 真实 Provider/真实批次/价值结论未执行；只由所有者批准 |
 
 ## 任务明细
 
@@ -119,6 +128,35 @@
 - [x] 合成真 MP4 → 分析 → 排名/重复聚类 → 人工优选 → 锁定 → JSON/CSV 导出当前 PASS（Provider 明确禁用）
 - [ ] 真实 Provider 多模态调用记录：尚未执行，执行前必须按所有者要求再次通知
 - [x] 交付《F8 源码导读》（docs/guides/F8-源码导读.md）
+
+### F9 服务器部署与 CI/CD（本地工程交付 2026-08-24）
+
+- [x] Java/Worker/Web 非 root 多阶段 Dockerfile 与精确依赖构建
+- [x] local、dev、staging、production Compose 模板及环境隔离 fail-closed 校验
+- [x] Nginx HTTP/HTTPS、证书续期、VPS bootstrap、Smoke、晋级与回滚脚本
+- [x] 镜像 version/SHA/Digest manifest 与受保护 CI publish/CD handoff workflow
+- [x] local 全栈镜像构建、Compose 启动、Smoke 与合成产品全链动态回归
+- [x] 交付《F9 源码导读》（docs/guides/F9-源码导读.md）
+- [ ] GitHub runner/GHCR、VPS、SSH、DNS、真实证书、远程部署和 production 回滚
+
+### F10 生产化运维（本地工程与演练交付 2026-08-24）
+
+- [x] Java/Worker 指标、结构化日志、Correlation ID 与真实业务分支接线
+- [x] Prometheus/Grafana/Loki/Alloy/Alertmanager、10 条规则、Dashboard 与 Runbook
+- [x] 本地 `FrameFlowAppDown` firing → synthetic sink → resolved 动态闭环
+- [x] PostgreSQL/MinIO backup → 精确 SHA-256 集合 → 随机隔离恢复与清理
+- [x] MQ 120 条隔离积压、Worker crash、DB down、Redis down 四类 `HARNESS_PASS`
+- [x] 事故复盘模板与《F10 源码导读》
+- [ ] production 外部告警、真实规模 RTO/RPO、异机/历史版本保护和生产恢复
+
+### F11 真实试点验证（Pilot-ready 工程交付 2026-08-24）
+
+- [x] 真实试点方案、数据/合规清单、双人盲评与人工标注协议
+- [x] Manifest/annotation Schema、真实 intake 只读校验器、指标统计与双格式报告器
+- [x] 可复现合成视频/图片/Brief/Profile/异常/重复/300 条压力记录生成器
+- [x] 合成彩排、337 项校验、30 个 hash artifact 与 `realPilotDecisionEligible=false` 门禁
+- [x] 交付《F11 源码导读》（docs/guides/F11-源码导读.md）
+- [ ] 真实 Provider、真实客户媒体、真实人工审核与正/负试点价值结论
 
 ## 技术学习清单
 

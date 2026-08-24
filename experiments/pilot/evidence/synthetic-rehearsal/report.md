@@ -8,7 +8,7 @@
 - rehearsalId：`syn-2411-6794ad834155f195`
 - datasetId：`syn-pilot-20260824-seed-2411`
 - seed：`2411`
-- source commit：`d914f1fb3eeb7089a3b9adc1397b39889eb0d96e`
+- source commit：`62f6c70ddf659cf4aa89088bc8e019b9a6576205`
 - input set SHA-256：`6794ad834155f1957418420ab55da51f4892690981773e1e0d44a260ed1889c8`
 
 ## FACT（已由本地 Evidence 验证）

@@ -1,0 +1,220 @@
+{
+  "schemaVersion": "frameflow.f10.local-dynamic-receipt.v1",
+  "classification": "SYNTHETIC_LOCAL_OPERABILITY",
+  "result": "LOCAL_DYNAMIC_PASS",
+  "environment": "local",
+  "composeProject": "frameflow-local",
+  "codeCommit": "8bf41644646136d303abf496ed7fdb7dbad1f23a",
+  "executionWindow": {
+    "startedAt": "2026-08-24T05:16:23Z",
+    "completedAt": "2026-08-24T06:14:16Z"
+  },
+  "boundaries": {
+    "providerCalls": 0,
+    "customerMediaCount": 0,
+    "productionOperations": false,
+    "remoteCiExecuted": false,
+    "externalAlertReceiverUsed": false,
+    "realRtoRpoEligible": false,
+    "secretMaterialCommitted": false
+  },
+  "finalRegression": {
+    "java": {
+      "jdk": "17.0.18",
+      "tests": 76,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "worker": {
+      "python": "3.11.15",
+      "lockedInstall": true,
+      "pipCheck": "PASS",
+      "numpy": "2.4.6",
+      "tests": 84,
+      "result": "PASS"
+    },
+    "web": {
+      "contractTests": 15,
+      "typecheck": "PASS",
+      "productionBuild": "PASS",
+      "officialProductionDependencyAuditVulnerabilities": 0
+    },
+    "deployScripts": "PASS",
+    "monitoringNativeConfig": "PASS",
+    "backupSafety": "PASS",
+    "faultHarnessSafety": "PASS",
+    "localSmoke": "PASS"
+  },
+  "businessImages": {
+    "app": {
+      "ref": "frameflow/app:local-0.1.0",
+      "imageId": "sha256:dee180c001b089d680a053b7e3d8dd03f91aeabd99f2d73c1790d149ca225899",
+      "runtimeUser": "10001:10001"
+    },
+    "worker": {
+      "ref": "frameflow/worker:local-0.1.0",
+      "imageId": "sha256:4893a67021d32edce480dc6be20f7723b49b18b78babb76d37745541db05068c",
+      "runtimeUser": "10001:10001"
+    },
+    "web": {
+      "ref": "frameflow/web:local-0.1.0",
+      "imageId": "sha256:73fca5a8095431ddaccfb3fe58b56ef7f33f500e1dbe97a55b6b06c16d70870c",
+      "runtimeUser": "node"
+    },
+    "rabbitmq": "rabbitmq:4.3.5-management-alpine@sha256:a1a5dd841347af3e32355fd58ac530e831fd394c49e299f862e2fd4ab331cd79"
+  },
+  "deploymentHardening": {
+    "remoteMinioInternalDataPlusMediaLoopbackProbe": "PASS",
+    "remoteMinioCorsProbe": "PASS",
+    "jwtPrivateKeyAppUidReadProbe": "PASS",
+    "releaseEnvTamperRejectedBeforeDocker": true,
+    "handoffSourceRunAndGitShaBound": true,
+    "handoffOpsBundleTamperRejected": true,
+    "workerReadinessGaugeRequiredBySmoke": true
+  },
+  "observability": {
+    "images": {
+      "prometheus": "prom/prometheus:v3.13.1",
+      "alertmanager": "prom/alertmanager:v0.32.1",
+      "grafana": "grafana/grafana:13.1.0",
+      "loki": "grafana/loki:3.7.4",
+      "alloy": "grafana/alloy:v1.18.0",
+      "postgresExporter": "prometheuscommunity/postgres-exporter:v0.20.1",
+      "redisExporter": "oliver006/redis_exporter:v1.89.0-alpine"
+    },
+    "prometheus": {
+      "targetCount": 7,
+      "allHealthy": true,
+      "jobs": [
+        "frameflow-app",
+        "frameflow-worker",
+        "postgres",
+        "redis",
+        "rabbitmq",
+        "rabbitmq-detailed",
+        "prometheus"
+      ],
+      "workerReady": 1,
+      "activeAlertsAfterRecovery": 0
+    },
+    "grafana": {
+      "prometheusDatasource": "OK",
+      "lokiDatasource": "OK",
+      "dashboard": "FrameFlow Select / Operations"
+    },
+    "logs": {
+      "transport": "docker-syslog-rfc5424micro-over-host-loopback-udp",
+      "dockerApiAccess": false,
+      "dualLoggingCache": true,
+      "alloyRuntimeUser": "473:473",
+      "alloyCapabilitiesDropped": ["ALL"],
+      "alloySocketMountCount": 0,
+      "lokiStreams": 3,
+      "lokiSamples": 39,
+      "composeServices": ["app", "worker"],
+      "payloadServices": ["frameflow-app", "frameflow-worker"]
+    },
+    "syntheticAlertDrill": {
+      "alert": "FrameFlowAppDown",
+      "appStoppedAt": "2026-08-24T05:20:50Z",
+      "firingReceivedAt": "2026-08-24T05:23:09Z",
+      "appRestartedAt": "2026-08-24T05:23:23Z",
+      "resolvedReceivedAt": "2026-08-24T05:24:09Z",
+      "observedFiringSeconds": 142,
+      "observedResolutionSeconds": 51,
+      "receiver": "local-synthetic-webhook"
+    },
+    "externalAlertConfigPermissionProbe": {
+      "numericOwner": "65534:65534",
+      "mode": "0400",
+      "readAndAmtoolCheckAsImageUser": "PASS"
+    }
+  },
+  "backups": {
+    "postgres": {
+      "backupId": "postgres-local-20260824T052449Z",
+      "dumpBytes": 66587,
+      "dumpSha256": "da3d877311bf9aa6991ca9754e7b5d237832d2f859c9407c18c0219be072459e",
+      "restoreListObjectCount": 169,
+      "isolatedRestorePublicTableCount": 18,
+      "isolatedRestoreFlywayRowCount": 6,
+      "hostPortPublished": false,
+      "backupSeconds": 1,
+      "restoreHarnessSeconds": 5,
+      "restoreReceiptSha256": "4d30a71ca88fe148dd398da401235115c87f8f698bb822717a232f226b88317b",
+      "result": "PASS"
+    },
+    "minio": {
+      "backupId": "minio-local-20260824T052450Z",
+      "currentObjectCount": 6,
+      "currentObjectBytes": 1858608,
+      "inventorySha256": "4131f7bc98ab3ee0218f74858dde9db34011d3143873075ccc50b25119b6a13d",
+      "versionHistoryIncluded": false,
+      "byteForByteVerified": true,
+      "hostPortPublished": false,
+      "backupSeconds": 1,
+      "restoreHarnessSeconds": 4,
+      "restoreReceiptSha256": "024716aecef8e60ea531204dbd31ca825e7453cb1a69b127392a36f4338949d3",
+      "result": "PASS"
+    },
+    "scheduledIdentityPermissionProbe": {
+      "runtimeUser": "frameflow",
+      "configAndEnv": "root:frameflow 0640",
+      "stableOpsRoot": "/opt/frameflow/ops/current",
+      "validateOnly": "PASS"
+    },
+    "targetRestoreLiveWriterRejection": {
+      "postgresRejected": true,
+      "minioRejected": true,
+      "mutations": 0
+    }
+  },
+  "faultDrills": [
+    {
+      "scenario": "mq-backlog",
+      "injectedMessages": 120,
+      "durationSeconds": 9,
+      "cleanupVerified": true,
+      "evidenceSha256": "7e2af3d5ddada373b426d779829910febe2b22bc14a9c291e7a5a782a1109810",
+      "result": "HARNESS_PASS"
+    },
+    {
+      "scenario": "worker-crash",
+      "durationSeconds": 14,
+      "cleanupVerified": true,
+      "evidenceSha256": "432a2de04b36125156e6c734a9daea06185c4ac5b5834391891ea353cd5ae60d",
+      "result": "HARNESS_PASS"
+    },
+    {
+      "scenario": "db-unavailable",
+      "durationSeconds": 16,
+      "cleanupVerified": true,
+      "evidenceSha256": "7df0ac5a25a24e3fbab6f488c37b1c4396cf925ff06bc8ec7974d69c85464cc6",
+      "result": "HARNESS_PASS"
+    },
+    {
+      "scenario": "redis-unavailable",
+      "durationSeconds": 17,
+      "cleanupVerified": true,
+      "monitorAclReprovisioned": true,
+      "evidenceSha256": "e8de70635cf003caff53b6fcb4b52350e355cdc099058a6d3df5a614caf7e082",
+      "result": "HARNESS_PASS"
+    }
+  ],
+  "cleanup": {
+    "composeProjectContainers": 0,
+    "composeProjectNetworks": 0,
+    "composeProjectVolumes": 0,
+    "tcpListenerRowsOnFrameFlowTestPorts": 0,
+    "udpListenerRowsOnAlloyTestPort": 0,
+    "servicesLeftRunning": false,
+    "temporaryRuntimeDirectoryRemoved": true,
+    "oneTimePythonEnvironmentRemoved": true
+  },
+  "decision": {
+    "productionOperabilityProven": false,
+    "projectCompleteEligible": false,
+    "pilotValueProvenEligible": false
+  }
+}

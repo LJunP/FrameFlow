@@ -36,8 +36,8 @@
     "metricCandidateCount": 10,
     "stressCandidateCount": 300
   },
-  "durationMs": 4702,
-  "finishedAt": "2026-08-24T04:15:57.614Z",
+  "durationMs": 4971,
+  "finishedAt": "2026-08-24T05:36:11.481Z",
   "outputArtifacts": [
     {
       "path": "experiments/pilot/evidence/synthetic-rehearsal/metrics.json",
@@ -46,17 +46,17 @@
     },
     {
       "path": "experiments/pilot/evidence/synthetic-rehearsal/provenance.json",
-      "sha256": "b3098ad3d75bed700f22ce2be4240e4d2903da29d23b7b5c10ef82516b0584aa",
+      "sha256": "1a37d286728e2ba244473fdacdb6b75e2fd1421a5301f19581e64f9d65e45daf",
       "sizeBytes": 3468
     },
     {
       "path": "experiments/pilot/evidence/synthetic-rehearsal/report.json",
-      "sha256": "7df69cf470d1f638133193cde0132108cbf2b5d82b84d24dbba4679ccfca1a7d",
+      "sha256": "9d9890572a4d46cf3d5ee7a9e5cf1d68ba69019277acef983a2ce86584470d02",
       "sizeBytes": 7123
     },
     {
       "path": "experiments/pilot/evidence/synthetic-rehearsal/report.md",
-      "sha256": "f6d6d5ee4405bab4e904820c14649bc8780957ba2edf820a0045264dd9bdd8de",
+      "sha256": "9d526a555c52720dd2064e7924ee34591a27fc12ec9f93a058bf3c2ab79116e4",
       "sizeBytes": 2631
     },
     {
@@ -191,7 +191,7 @@
     },
     {
       "path": "experiments/pilot/evidence/synthetic-rehearsal/artifact-checksums.sha256",
-      "sha256": "b0f753a1935f53fb320faf9a539bb1d5952dfef70b097721f0d8cde2cba48220",
+      "sha256": "f1cfc8cbca384de5a8aaa3eef369e92d12b83dbefee837a35623554f32802c8a",
       "sizeBytes": 4060
     }
   ],
@@ -209,6 +209,6 @@
   },
   "rehearsalId": "syn-2411-6794ad834155f195",
   "schemaVersion": "frameflow.synthetic-rehearsal-receipt.v1",
-  "startedAt": "2026-08-24T04:15:52.912Z",
+  "startedAt": "2026-08-24T05:36:06.510Z",
   "status": "PASS"
 }

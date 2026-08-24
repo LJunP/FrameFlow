@@ -10,7 +10,7 @@
     "networkProviderCalls": 0,
     "platform": "Darwin",
     "pythonVersion": "3.12.13",
-    "startedAt": "2026-08-24T04:15:52.912Z"
+    "startedAt": "2026-08-24T05:36:06.510Z"
   },
   "inputSetSha256": "6794ad834155f1957418420ab55da51f4892690981773e1e0d44a260ed1889c8",
   "inputs": [
@@ -89,7 +89,7 @@
   "rehearsalId": "syn-2411-6794ad834155f195",
   "schemaVersion": "frameflow.synthetic-rehearsal-provenance.v1",
   "source": {
-    "gitCommit": "d914f1fb3eeb7089a3b9adc1397b39889eb0d96e",
+    "gitCommit": "62f6c70ddf659cf4aa89088bc8e019b9a6576205",
     "note": "Exact rehearsal inputs are content-hashed even when concurrent local work exists.",
     "trackedWorktreeDirtyAtExecution": true
   }

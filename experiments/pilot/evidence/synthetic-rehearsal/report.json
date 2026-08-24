@@ -154,7 +154,7 @@
     "inputSetSha256": "6794ad834155f1957418420ab55da51f4892690981773e1e0d44a260ed1889c8",
     "rehearsalId": "syn-2411-6794ad834155f195",
     "seed": 2411,
-    "sourceCommit": "d914f1fb3eeb7089a3b9adc1397b39889eb0d96e"
+    "sourceCommit": "62f6c70ddf659cf4aa89088bc8e019b9a6576205"
   },
   "sampleLimitations": [
     "Any proportion denominator below 30 is flagged and is not a stable population estimate.",
