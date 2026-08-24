@@ -1,0 +1,214 @@
+{
+  "checks": [
+    {
+      "name": "synthetic.package_validation",
+      "status": "PASS"
+    },
+    {
+      "name": "synthetic.metric_report_json",
+      "status": "PASS"
+    },
+    {
+      "name": "synthetic.metric_report_markdown",
+      "status": "PASS"
+    },
+    {
+      "name": "synthetic.stress_manifest_300_records",
+      "status": "PASS"
+    },
+    {
+      "name": "synthetic.real_provider_disabled",
+      "status": "PASS"
+    },
+    {
+      "name": "synthetic.owner_only_state_absent",
+      "status": "PASS"
+    }
+  ],
+  "classification": "SYNTHETIC_REHEARSAL",
+  "counts": {
+    "batchCount": 2,
+    "candidateRecordCount": 310,
+    "checkCount": 337,
+    "generatedImageCount": 4,
+    "hashedArtifactCount": 30,
+    "materializedMediaCandidateCount": 10,
+    "metricCandidateCount": 10,
+    "stressCandidateCount": 300
+  },
+  "durationMs": 4702,
+  "finishedAt": "2026-08-24T04:15:57.614Z",
+  "outputArtifacts": [
+    {
+      "path": "experiments/pilot/evidence/synthetic-rehearsal/metrics.json",
+      "sha256": "6068ef83af4ed630850f486b2d972c7d16930a59a48bf42258205a8a85d501ce",
+      "sizeBytes": 4365
+    },
+    {
+      "path": "experiments/pilot/evidence/synthetic-rehearsal/provenance.json",
+      "sha256": "b3098ad3d75bed700f22ce2be4240e4d2903da29d23b7b5c10ef82516b0584aa",
+      "sizeBytes": 3468
+    },
+    {
+      "path": "experiments/pilot/evidence/synthetic-rehearsal/report.json",
+      "sha256": "7df69cf470d1f638133193cde0132108cbf2b5d82b84d24dbba4679ccfca1a7d",
+      "sizeBytes": 7123
+    },
+    {
+      "path": "experiments/pilot/evidence/synthetic-rehearsal/report.md",
+      "sha256": "f6d6d5ee4405bab4e904820c14649bc8780957ba2edf820a0045264dd9bdd8de",
+      "sizeBytes": 2631
+    },
+    {
+      "path": "experiments/pilot/evidence/synthetic-rehearsal/validation.json",
+      "sha256": "ea76889164a88d585b9adda32a8c796ccc8062eb959208ae7b82bbbb37f105f4",
+      "sizeBytes": 34313
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/annotations/adjudicated.csv",
+      "sha256": "41f454969762e552f95f7f10edb4d0b94d0a09503a4d403c62c5b5d00848cb64",
+      "sizeBytes": 1569
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/annotations/batch-runtimes.json",
+      "sha256": "e98e0bbe095c5d31b6f4177f9fb9b5a8cd2436b5525b926d041a69c738ece2f6",
+      "sizeBytes": 497
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/annotations/reviewer-a.csv",
+      "sha256": "1980025abda22b1604f02f4133cd531bb20b5dd7ff015f42a6edef1083f6ee7e",
+      "sizeBytes": 504
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/annotations/reviewer-b.csv",
+      "sha256": "6790be749ce0eecf4caecb9d8ba1d31dd7803f1f676e98a3179dd9f7b8f6d3ca",
+      "sizeBytes": 494
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/dataset-summary.json",
+      "sha256": "2678afe9eff88d0f3e230f3bff34c341565a3b67abeedc45ad0aae6b5faf26db",
+      "sizeBytes": 856
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/images/black.png",
+      "sha256": "ec94a5c112aeb28607b4ea068018088ed198e10ac09f6db6dc10a71f800b8347",
+      "sizeBytes": 625
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/images/clean_a.png",
+      "sha256": "29b85b7ef1a22fd0bf4a67cb68acae7eb670d90846dfdd87eddc95282fcfaa3e",
+      "sizeBytes": 19369
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/images/clean_b.png",
+      "sha256": "0ad6f159484382c33c2f64ff44c7442f0e669363549fba1480d1e65846a09c39",
+      "sizeBytes": 2522
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/images/frozen.png",
+      "sha256": "8d2cb7cd4b2340115d5684bc6cc3be9a3b6bbb7840255f2fe1cf68099966c838",
+      "sizeBytes": 630
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/input/brief.md",
+      "sha256": "83f185af69e9041102e8753cf8a1d02ac60b08077808241658b7851ece86060e",
+      "sizeBytes": 383
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/input/profile.json",
+      "sha256": "ed2f4aeca8268cb7a8f59a7a6a09cd31f60cf007c9fefb33f737a653a55b0ded",
+      "sizeBytes": 444
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/input/scenario.json",
+      "sha256": "497cf297a7043c70537157756dc51c36b718f4b935db3eb0258db2799e8617be",
+      "sizeBytes": 445
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/manifest.json",
+      "sha256": "a36d4fa51e44f378f6332886d4eb26f4f0285035a197c62e7c6565bc2eee9df4",
+      "sizeBytes": 153714
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media-probes.json",
+      "sha256": "af97ba12d3477c5da4c2f1eb5844b084acbc0e29bc6051677e419e39b248873e",
+      "sizeBytes": 3834
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/black-frames.mp4",
+      "sha256": "aa0ee780766be1fc468028700a4f3f2bff75f434f2c30401dca0d041812f5c89",
+      "sizeBytes": 22085
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/clean-motion-a-exact-copy.mp4",
+      "sha256": "f20fd5e050add35102f70058994ede776139991bd21b886c438ee12d033ffb41",
+      "sizeBytes": 75758
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/clean-motion-a.mp4",
+      "sha256": "f20fd5e050add35102f70058994ede776139991bd21b886c438ee12d033ffb41",
+      "sizeBytes": 75758
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/clean-motion-b.mp4",
+      "sha256": "027a78deb2e12cb8e8057bad451b1e601779b99bf6691c2399c42d8f9e6925f8",
+      "sizeBytes": 22641
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/frozen-video.mp4",
+      "sha256": "611d6b929ba98f69bad973f97f902fffb50bcf2a5ceb7e864e1d2c547ab6a698",
+      "sizeBytes": 22060
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/invalid-container.mp4",
+      "sha256": "8f9276d714838ff7243158f609dbb17671167ec776fc54ff2a41301ef883e347",
+      "sizeBytes": 2048
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/low-resolution.mp4",
+      "sha256": "df0e3e235f334a7d590ece64df4cae27515efbd1d7dc6be680e14d00fdeb3774",
+      "sizeBytes": 47194
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/silent-video.mp4",
+      "sha256": "7e8e1e37e7946e188d449e4ff360701d5ff558157eaa6a7bcaff7e3cc61a9568",
+      "sizeBytes": 56599
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/too-short.mp4",
+      "sha256": "2c63bbb313c7bc0eae64c49182b8957b67020be5f376d0f18e77d18b4de7ba70",
+      "sizeBytes": 22068
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/media/truncated-container.mp4",
+      "sha256": "1ed44785b952bbfb7264f795e1df14efd4673ef4f623c2a5bfa2429cf3a1de0b",
+      "sizeBytes": 512
+    },
+    {
+      "path": "experiments/pilot/generated/synthetic-rehearsal/stress/candidates-300.csv",
+      "sha256": "342a28865abdca3c40290daabee5ce73f4c3b3ecbdf7dce96068c5246d054ca3",
+      "sizeBytes": 35456
+    },
+    {
+      "path": "experiments/pilot/evidence/synthetic-rehearsal/artifact-checksums.sha256",
+      "sha256": "b0f753a1935f53fb320faf9a539bb1d5952dfef70b097721f0d8cde2cba48220",
+      "sizeBytes": 4060
+    }
+  ],
+  "paths": {
+    "datasetRoot": "experiments/pilot/generated/synthetic-rehearsal",
+    "evidenceRoot": "experiments/pilot/evidence/synthetic-rehearsal",
+    "machineReport": "experiments/pilot/evidence/synthetic-rehearsal/report.json",
+    "markdownReport": "experiments/pilot/evidence/synthetic-rehearsal/report.md"
+  },
+  "policy": {
+    "personalDataCount": 0,
+    "realCustomerMediaCount": 0,
+    "realPilotDecisionEligible": false,
+    "realProviderCallCount": 0
+  },
+  "rehearsalId": "syn-2411-6794ad834155f195",
+  "schemaVersion": "frameflow.synthetic-rehearsal-receipt.v1",
+  "startedAt": "2026-08-24T04:15:52.912Z",
+  "status": "PASS"
+}

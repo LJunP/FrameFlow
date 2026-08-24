@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frameflow.example/schemas/annotation-record.v1.json",
+  "title": "FrameFlow adjudicated pilot annotation row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "candidate_id",
+    "batch_id",
+    "blind_review_id",
+    "machine_disposition",
+    "operational_full_watch",
+    "baseline_full_watch_seconds",
+    "assisted_review_seconds",
+    "selected_for_delivery",
+    "audit_included",
+    "adjudicated_quality",
+    "delivery_obvious_defect"
+  ],
+  "properties": {
+    "candidate_id": {"type": "string", "minLength": 1},
+    "batch_id": {"type": "string", "minLength": 1},
+    "blind_review_id": {"type": "string", "minLength": 1},
+    "machine_disposition": {
+      "enum": [
+        "ANALYZED",
+        "AUTO_REJECT",
+        "DUPLICATE_EXCLUDED",
+        "REVIEW_REQUIRED",
+        "ANALYSIS_ERROR",
+        "INVALID"
+      ]
+    },
+    "operational_full_watch": {"type": ["boolean", "null"]},
+    "baseline_full_watch_seconds": {"type": ["number", "null"], "minimum": 0},
+    "assisted_review_seconds": {"type": ["number", "null"], "minimum": 0},
+    "selected_for_delivery": {"type": ["boolean", "null"]},
+    "audit_included": {"type": ["boolean", "null"]},
+    "adjudicated_quality": {
+      "enum": ["EXCELLENT", "ACCEPTABLE", "DEFECTIVE", "UNREVIEWABLE", null]
+    },
+    "delivery_obvious_defect": {"type": ["boolean", "null"]},
+    "review_notes": {"type": ["string", "null"]}
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frameflow.example/schemas/pilot-manifest.v1.json",
+  "title": "FrameFlow pilot dataset manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "classification",
+    "datasetId",
+    "createdAt",
+    "dataPolicy",
+    "providerExecution",
+    "brief",
+    "profile",
+    "batches"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "frameflow.pilot-manifest.v1"
+    },
+    "classification": {
+      "enum": ["SYNTHETIC_REHEARSAL", "REAL_PILOT"]
+    },
+    "datasetId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "seed": {
+      "type": ["integer", "null"]
+    },
+    "dataPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "containsRealCustomerMedia",
+        "containsPersonalData",
+        "rightsBasis",
+        "retentionClass"
+      ],
+      "properties": {
+        "containsRealCustomerMedia": {"type": "boolean"},
+        "containsPersonalData": {"type": "boolean"},
+        "rightsBasis": {
+          "enum": ["SYNTHETIC_GENERATED", "OWNER_CONFIRMED_RIGHTS"]
+        },
+        "retentionClass": {
+          "enum": ["REGENERABLE", "PILOT_RESTRICTED"]
+        },
+        "approvalReference": {"type": ["string", "null"]},
+        "deletionDueAt": {"type": ["string", "null"], "format": "date-time"}
+      }
+    },
+    "providerExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "realCallsAllowed", "callEvidenceReferences"],
+      "properties": {
+        "mode": {"enum": ["DISABLED", "FAKE", "OWNER_APPROVED_REAL"]},
+        "realCallsAllowed": {"type": "boolean"},
+        "callEvidenceReferences": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "brief": {"$ref": "#/$defs/fileReference"},
+    "profile": {"$ref": "#/$defs/fileReference"},
+    "batches": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/batch"}
+    }
+  },
+  "$defs": {
+    "fileReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sizeBytes", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sizeBytes": {"type": "integer", "minimum": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "batch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["batchId", "purpose", "metricScope", "capacity", "candidates"],
+      "properties": {
+        "batchId": {"type": "string", "minLength": 1},
+        "purpose": {"enum": ["METRIC_REHEARSAL", "MANIFEST_STRESS"]},
+        "metricScope": {"type": "boolean"},
+        "capacity": {"type": "integer", "minimum": 1, "maximum": 300},
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 300,
+          "items": {"$ref": "#/$defs/candidate"}
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidateId",
+        "media",
+        "materialization",
+        "containsCustomerData",
+        "containsPersonalData",
+        "expectedAnomalies"
+      ],
+      "properties": {
+        "candidateId": {"type": "string", "minLength": 1},
+        "media": {"$ref": "#/$defs/fileReference"},
+        "materialization": {"enum": ["MATERIALIZED", "REFERENCE_REUSE"]},
+        "containsCustomerData": {"type": "boolean"},
+        "containsPersonalData": {"type": "boolean"},
+        "duplicateOf": {"type": ["string", "null"]},
+        "expectedAnomalies": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "TOO_SHORT",
+              "BLACK_FRAMES",
+              "FROZEN_VIDEO",
+              "NO_AUDIO",
+              "LOW_RESOLUTION",
+              "INVALID_CONTAINER",
+              "TRUNCATED_CONTAINER",
+              "EXACT_DUPLICATE"
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"classification": {"const": "SYNTHETIC_REHEARSAL"}}
+      },
+      "then": {
+        "properties": {
+          "dataPolicy": {
+            "properties": {
+              "containsRealCustomerMedia": {"const": false},
+              "containsPersonalData": {"const": false},
+              "rightsBasis": {"const": "SYNTHETIC_GENERATED"},
+              "retentionClass": {"const": "REGENERABLE"}
+            }
+          },
+          "providerExecution": {
+            "properties": {
+              "mode": {"enum": ["DISABLED", "FAKE"]},
+              "realCallsAllowed": {"const": false},
+              "callEvidenceReferences": {"maxItems": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"classification": {"const": "REAL_PILOT"}}
+      },
+      "then": {
+        "properties": {
+          "dataPolicy": {
+            "properties": {
+              "containsRealCustomerMedia": {"const": true},
+              "rightsBasis": {"const": "OWNER_CONFIRMED_RIGHTS"},
+              "retentionClass": {"const": "PILOT_RESTRICTED"},
+              "approvalReference": {"type": "string", "minLength": 1},
+              "deletionDueAt": {"type": "string", "format": "date-time"}
+            }
+          },
+          "providerExecution": {
+            "properties": {
+              "mode": {"const": "OWNER_APPROVED_REAL"},
+              "realCallsAllowed": {"const": true},
+              "callEvidenceReferences": {"minItems": 1}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

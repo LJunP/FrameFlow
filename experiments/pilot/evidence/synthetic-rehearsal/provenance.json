@@ -1,0 +1,96 @@
+{
+  "classification": "SYNTHETIC_REHEARSAL",
+  "execution": {
+    "applicationServicesStarted": 0,
+    "mediaTool": {
+      "image": "linuxserver/ffmpeg@sha256:771895205f3a62023f14e5ca1fe94be8007ecaf8a7c268d9c502de260c213d22",
+      "imageId": "sha256:771895205f3a62023f14e5ca1fe94be8007ecaf8a7c268d9c502de260c213d22",
+      "runner": "docker"
+    },
+    "networkProviderCalls": 0,
+    "platform": "Darwin",
+    "pythonVersion": "3.12.13",
+    "startedAt": "2026-08-24T04:15:52.912Z"
+  },
+  "inputSetSha256": "6794ad834155f1957418420ab55da51f4892690981773e1e0d44a260ed1889c8",
+  "inputs": [
+    {
+      "path": "scripts/pilot/pilotlib.py",
+      "sha256": "17e4e911b4a083d418c72022d875314874cff0f6ff1dfce9f2cadfe9fe3f08a7",
+      "sizeBytes": 7609
+    },
+    {
+      "path": "scripts/pilot/jsonschema_subset.py",
+      "sha256": "db7fa937f455c4eb1485893102bd7ee3b79984ca2df9e658ced0df71cd99ce38",
+      "sizeBytes": 7844
+    },
+    {
+      "path": "scripts/pilot/generate_synthetic_dataset.py",
+      "sha256": "3871a2828a0edaee58febec3fb3609ee4c6f525aacefeeeb90db3486e8eac016",
+      "sizeBytes": 23877
+    },
+    {
+      "path": "scripts/pilot/validate_pilot_package.py",
+      "sha256": "a809d1d1ad7cc4d4346b35429b4955923bd7e7f565f4efb22974c3e673d3a7b9",
+      "sizeBytes": 14289
+    },
+    {
+      "path": "scripts/pilot/validate_real_pilot_intake.py",
+      "sha256": "2d0d75f6933fad47305f8848cf6145f2027887ede5e3ad30050cfc1e7c4b5b22",
+      "sizeBytes": 9008
+    },
+    {
+      "path": "scripts/pilot/calculate_metrics.py",
+      "sha256": "bfd1281c7b3804dd45fa21d969f0d8708bbc581444cd1d5e4c2d41f7cb1261ec",
+      "sizeBytes": 21466
+    },
+    {
+      "path": "scripts/pilot/generate_report.py",
+      "sha256": "830e6b3f1428f337e6d76dd5d77e3525bc033cef57b55ec644cc1352d5c05ac4",
+      "sizeBytes": 11202
+    },
+    {
+      "path": "scripts/pilot/run_synthetic_rehearsal.py",
+      "sha256": "119850d0db2dd0e241af625efff2230d72d886d9d5213d885a895492c50746f1",
+      "sizeBytes": 10536
+    },
+    {
+      "path": "experiments/pilot/scenarios/synthetic-rehearsal/scenario.json",
+      "sha256": "497cf297a7043c70537157756dc51c36b718f4b935db3eb0258db2799e8617be",
+      "sizeBytes": 445
+    },
+    {
+      "path": "experiments/pilot/scenarios/synthetic-rehearsal/brief.md",
+      "sha256": "83f185af69e9041102e8753cf8a1d02ac60b08077808241658b7851ece86060e",
+      "sizeBytes": 383
+    },
+    {
+      "path": "experiments/pilot/scenarios/synthetic-rehearsal/profile.json",
+      "sha256": "ed2f4aeca8268cb7a8f59a7a6a09cd31f60cf007c9fefb33f737a653a55b0ded",
+      "sizeBytes": 444
+    },
+    {
+      "path": "experiments/pilot/schemas/pilot-manifest.schema.json",
+      "sha256": "280f973dc7e98e962c2e5cc239479c09d8ef6a887b606abe803f8e250a155941",
+      "sizeBytes": 5782
+    },
+    {
+      "path": "experiments/pilot/schemas/annotation-record.schema.json",
+      "sha256": "76f6f9c8b76e2a585b703de42c09c9dce52013ba55c6357e599946a7c63f948b",
+      "sizeBytes": 1503
+    }
+  ],
+  "policy": {
+    "personalData": false,
+    "realCustomerMedia": false,
+    "realPilotDecisionEligible": false,
+    "realProviderCallsAllowed": false
+  },
+  "rehearsalId": "syn-2411-6794ad834155f195",
+  "schemaVersion": "frameflow.synthetic-rehearsal-provenance.v1",
+  "source": {
+    "gitCommit": "d914f1fb3eeb7089a3b9adc1397b39889eb0d96e",
+    "note": "Exact rehearsal inputs are content-hashed even when concurrent local work exists.",
+    "trackedWorktreeDirtyAtExecution": true
+  }
+}

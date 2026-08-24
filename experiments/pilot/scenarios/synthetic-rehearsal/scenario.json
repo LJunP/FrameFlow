@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "frameflow.synthetic-pilot-scenario.v1",
+  "classification": "SYNTHETIC_REHEARSAL",
+  "datasetId": "syn-pilot-20260824-seed-2411",
+  "seed": 2411,
+  "fixedDatasetTimestamp": "2026-08-24T00:00:00Z",
+  "providerMode": "DISABLED",
+  "realCustomerMedia": false,
+  "containsPersonalData": false,
+  "metricBatchId": "SYN-METRIC-001",
+  "stressBatchId": "SYN-STRESS-300",
+  "stressCandidateCount": 300,
+  "confidenceLevel": 0.95
+}

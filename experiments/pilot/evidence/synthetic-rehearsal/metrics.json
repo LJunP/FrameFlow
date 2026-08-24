@@ -1,0 +1,122 @@
+{
+  "classification": "SYNTHETIC_REHEARSAL",
+  "metrics": {
+    "batchProcessingTime": {
+      "definition": "rankingReadyAt - uploadCompletedAt, in seconds",
+      "maxSeconds": 42.0,
+      "medianSeconds": 42.0,
+      "minSeconds": 42.0,
+      "missingBatchCount": 1,
+      "observedBatchCount": 1,
+      "reason": "MISSING_BATCH_TIMESTAMPS_EXCLUDED"
+    },
+    "blindReviewAgreement": {
+      "cohenKappa": 0.689655172413793,
+      "definition": "Cohen's kappa and raw agreement on independent blind quality labels",
+      "missingOrUnpairedCount": 1,
+      "overlapCount": 9,
+      "rawAgreement": 0.7777777777777778,
+      "reason": null,
+      "reviewerAMissingCount": 0,
+      "reviewerBMissingCount": 1,
+      "sampleSizeCaution": true
+    },
+    "falseKillRate": {
+      "complete": true,
+      "confidenceInterval": {
+        "confidence": 0.95,
+        "high": 0.8499610108478504,
+        "low": 0.15003898915214958,
+        "method": "WILSON_SCORE_TWO_SIDED"
+      },
+      "definition": "adjudicated EXCELLENT or ACCEPTABLE among audited AUTO_REJECT candidates",
+      "denominator": 4,
+      "limitations": [
+        "Duplicate exclusions are not quality rejections and are excluded.",
+        "The estimate represents the population only for a census or pre-registered equal-probability sample."
+      ],
+      "missingCount": 0,
+      "numerator": 2,
+      "reason": null,
+      "sampleSizeCaution": true,
+      "value": 0.5
+    },
+    "fullWatchAvoidanceRate": {
+      "complete": true,
+      "confidenceInterval": {
+        "confidence": 0.95,
+        "high": 0.763406909487436,
+        "low": 0.23659309051256405,
+        "method": "WILSON_SCORE_TWO_SIDED"
+      },
+      "definition": "candidates without an operational full watch / candidates with observed operational-watch data; blind audit watches are excluded from operational workload",
+      "denominator": 10,
+      "limitations": [
+        "Missing operational-watch values are excluded and reported separately."
+      ],
+      "missingCount": 0,
+      "numerator": 5,
+      "reason": null,
+      "sampleSizeCaution": true,
+      "value": 0.5
+    },
+    "manualViewingTimeSavingsRate": {
+      "assistedSeconds": 7.5,
+      "baselineSeconds": 18.5,
+      "candidateCount": 10,
+      "complete": true,
+      "confidenceInterval": {
+        "confidence": 0.95,
+        "high": 0.8580645161290322,
+        "iterations": 5000,
+        "low": 0.32000000000000006,
+        "method": "PAIRED_CANDIDATE_BOOTSTRAP_PERCENTILE",
+        "seed": 2411
+      },
+      "definition": "1 - sum(assisted operational review seconds) / sum(baseline full-watch seconds)",
+      "limitations": [
+        "Blind-audit time is excluded from both baseline and assisted operational workload.",
+        "The paired bootstrap quantifies candidate sampling variation, not workflow measurement bias.",
+        "Negative values are retained when assisted review takes longer than baseline."
+      ],
+      "missingCount": 0,
+      "reason": null,
+      "sampleSizeCaution": true,
+      "savedSeconds": 11.0,
+      "value": 0.5945945945945945
+    },
+    "missRate": {
+      "complete": true,
+      "confidenceInterval": {
+        "confidence": 0.95,
+        "high": 0.9054687942657693,
+        "low": 0.09453120573423074,
+        "method": "WILSON_SCORE_TWO_SIDED"
+      },
+      "definition": "delivered candidates with an adjudicated obvious defect / observed delivered candidates",
+      "denominator": 2,
+      "limitations": [
+        "Post-delivery defects require the pre-registered defect taxonomy and adjudication."
+      ],
+      "missingCount": 0,
+      "numerator": 1,
+      "reason": null,
+      "sampleSizeCaution": true,
+      "value": 0.5
+    }
+  },
+  "sampleLimitations": [
+    "Any proportion denominator below 30 is flagged and is not a stable population estimate.",
+    "Confidence intervals quantify sampling uncertainty only; they do not correct selection bias or label error.",
+    "Missing values are never imputed; observed-only estimates expose their missing counts.",
+    "Synthetic rehearsal values validate calculations, not customer behaviour or model quality."
+  ],
+  "schemaVersion": "frameflow.pilot-metrics.v1",
+  "scope": {
+    "batchCount": 1,
+    "candidateCount": 10,
+    "confidenceLevel": 0.95
+  },
+  "status": "DESCRIPTIVE_METRICS_ONLY",
+  "valueConclusionAuthorized": false
+}

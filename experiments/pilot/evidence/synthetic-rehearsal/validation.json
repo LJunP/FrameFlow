@@ -1,0 +1,1381 @@
+{
+  "checks": [
+    {
+      "name": "schema.pilot_manifest.draft_2020_12",
+      "status": "PASS"
+    },
+    {
+      "name": "schema.annotation.draft_2020_12",
+      "status": "PASS"
+    },
+    {
+      "name": "schema.pilot_manifest.runtime_validation",
+      "status": "PASS"
+    },
+    {
+      "name": "manifest.schema_version",
+      "status": "PASS"
+    },
+    {
+      "name": "manifest.classification",
+      "status": "PASS"
+    },
+    {
+      "name": "policy.no_real_customer_media",
+      "status": "PASS"
+    },
+    {
+      "name": "policy.no_real_provider",
+      "status": "PASS"
+    },
+    {
+      "name": "brief.synthetic_banner",
+      "status": "PASS"
+    },
+    {
+      "name": "profile.semantic_disabled",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "candidateCount": 10
+      },
+      "name": "batch.SYN-METRIC-001.capacity_matches",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-001.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-002.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-003.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-004.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-005.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-006.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-007.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-008.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-009.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-C-010.data_classification",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "candidateCount": 300
+      },
+      "name": "batch.SYN-STRESS-300.capacity_matches",
+      "status": "PASS"
+    },
+    {
+      "name": "batch.SYN-STRESS-300.not_metric_scope",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-001.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-002.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-003.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-004.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-005.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-006.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-007.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-008.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-009.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-010.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-011.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-012.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-013.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-014.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-015.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-016.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-017.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-018.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-019.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-020.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-021.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-022.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-023.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-024.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-025.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-026.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-027.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-028.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-029.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-030.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-031.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-032.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-033.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-034.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-035.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-036.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-037.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-038.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-039.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-040.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-041.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-042.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-043.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-044.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-045.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-046.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-047.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-048.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-049.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-050.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-051.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-052.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-053.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-054.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-055.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-056.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-057.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-058.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-059.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-060.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-061.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-062.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-063.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-064.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-065.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-066.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-067.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-068.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-069.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-070.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-071.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-072.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-073.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-074.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-075.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-076.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-077.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-078.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-079.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-080.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-081.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-082.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-083.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-084.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-085.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-086.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-087.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-088.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-089.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-090.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-091.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-092.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-093.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-094.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-095.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-096.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-097.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-098.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-099.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-100.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-101.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-102.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-103.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-104.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-105.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-106.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-107.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-108.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-109.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-110.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-111.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-112.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-113.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-114.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-115.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-116.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-117.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-118.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-119.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-120.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-121.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-122.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-123.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-124.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-125.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-126.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-127.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-128.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-129.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-130.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-131.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-132.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-133.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-134.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-135.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-136.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-137.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-138.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-139.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-140.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-141.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-142.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-143.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-144.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-145.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-146.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-147.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-148.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-149.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-150.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-151.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-152.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-153.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-154.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-155.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-156.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-157.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-158.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-159.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-160.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-161.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-162.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-163.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-164.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-165.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-166.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-167.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-168.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-169.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-170.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-171.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-172.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-173.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-174.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-175.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-176.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-177.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-178.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-179.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-180.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-181.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-182.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-183.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-184.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-185.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-186.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-187.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-188.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-189.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-190.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-191.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-192.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-193.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-194.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-195.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-196.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-197.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-198.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-199.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-200.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-201.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-202.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-203.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-204.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-205.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-206.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-207.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-208.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-209.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-210.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-211.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-212.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-213.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-214.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-215.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-216.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-217.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-218.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-219.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-220.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-221.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-222.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-223.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-224.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-225.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-226.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-227.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-228.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-229.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-230.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-231.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-232.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-233.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-234.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-235.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-236.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-237.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-238.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-239.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-240.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-241.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-242.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-243.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-244.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-245.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-246.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-247.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-248.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-249.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-250.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-251.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-252.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-253.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-254.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-255.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-256.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-257.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-258.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-259.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-260.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-261.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-262.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-263.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-264.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-265.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-266.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-267.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-268.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-269.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-270.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-271.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-272.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-273.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-274.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-275.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-276.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-277.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-278.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-279.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-280.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-281.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-282.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-283.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-284.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-285.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-286.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-287.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-288.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-289.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-290.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-291.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-292.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-293.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-294.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-295.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-296.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-297.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-298.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-299.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "candidate.SYN-STRESS-C-300.data_classification",
+      "status": "PASS"
+    },
+    {
+      "name": "stress.maximum_capacity_records",
+      "status": "PASS"
+    },
+    {
+      "name": "metric.fixture_candidate_count",
+      "status": "PASS"
+    },
+    {
+      "name": "schema.annotation.required_columns",
+      "status": "PASS"
+    },
+    {
+      "name": "annotations.metric_scope_exact",
+      "status": "PASS"
+    },
+    {
+      "name": "annotations.unique_blind_ids",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "rowCount": 10
+      },
+      "name": "schema.annotation.runtime_validation",
+      "status": "PASS"
+    },
+    {
+      "name": "blind_packet.reviewer-a.csv.scope_exact",
+      "status": "PASS"
+    },
+    {
+      "name": "blind_packet.reviewer-a.csv.machine_output_hidden",
+      "status": "PASS"
+    },
+    {
+      "name": "blind_packet.reviewer-b.csv.scope_exact",
+      "status": "PASS"
+    },
+    {
+      "name": "blind_packet.reviewer-b.csv.machine_output_hidden",
+      "status": "PASS"
+    },
+    {
+      "name": "stress.csv.unique_300",
+      "status": "PASS"
+    },
+    {
+      "name": "media.invalid_container_probe_fails",
+      "status": "PASS"
+    },
+    {
+      "name": "media.valid_fixture_probes_succeed",
+      "status": "PASS"
+    },
+    {
+      "name": "images.four_valid_png_signatures",
+      "status": "PASS"
+    },
+    {
+      "name": "media.exact_duplicate_bytes",
+      "status": "PASS"
+    }
+  ],
+  "classification": "SYNTHETIC_REHEARSAL",
+  "counts": {
+    "batchCount": 2,
+    "candidateRecordCount": 310,
+    "checkCount": 337,
+    "materializedMediaCandidateCount": 10,
+    "metricCandidateCount": 10,
+    "stressCandidateCount": 300
+  },
+  "portableSchemas": [
+    "experiments/pilot/schemas/pilot-manifest.schema.json",
+    "experiments/pilot/schemas/annotation-record.schema.json"
+  ],
+  "schemaEngineLimitations": [
+    "The bundled engine executes every keyword currently present in the committed Schemas and rejects unsupported new keywords.",
+    "It is not a full JSON Schema conformance implementation; external production tooling should also validate with a certified Draft 2020-12 engine."
+  ],
+  "schemaVersion": "frameflow.pilot-package-validation.v1",
+  "status": "PASS",
+  "validator": "SCHEMA_DRIVEN_DRAFT_2020_12_SUBSET_PLUS_INVARIANTS"
+}

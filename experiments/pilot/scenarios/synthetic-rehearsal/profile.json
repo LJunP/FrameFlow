@@ -1,0 +1,29 @@
+{
+  "dimensions": {
+    "duration": {
+      "max": 5,
+      "min": 1,
+      "severity": "BLOCKER"
+    },
+    "fps": {
+      "min": 20,
+      "severity": "BLOCKER"
+    },
+    "resolution": {
+      "minHeight": 180,
+      "minWidth": 320,
+      "severity": "BLOCKER"
+    }
+  },
+  "duplicates": {
+    "hammingThreshold": 6
+  },
+  "semantic": {
+    "enabled": false
+  },
+  "weights": {
+    "duration": 10,
+    "fps": 10,
+    "resolution": 10
+  }
+}

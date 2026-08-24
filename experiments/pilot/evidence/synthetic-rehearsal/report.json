@@ -1,0 +1,184 @@
+{
+  "classification": "SYNTHETIC_REHEARSAL",
+  "dataset": {
+    "anomalyCounts": {
+      "BLACK_FRAMES": 1,
+      "EXACT_DUPLICATE": 1,
+      "FROZEN_VIDEO": 1,
+      "INVALID_CONTAINER": 1,
+      "LOW_RESOLUTION": 1,
+      "NO_AUDIO": 1,
+      "TOO_SHORT": 1,
+      "TRUNCATED_CONTAINER": 1
+    },
+    "classification": "SYNTHETIC_REHEARSAL",
+    "datasetId": "syn-pilot-20260824-seed-2411",
+    "generatedImageCount": 4,
+    "materializedMediaCount": 10,
+    "mediaTool": {
+      "image": "linuxserver/ffmpeg@sha256:771895205f3a62023f14e5ca1fe94be8007ecaf8a7c268d9c502de260c213d22",
+      "imageId": "sha256:771895205f3a62023f14e5ca1fe94be8007ecaf8a7c268d9c502de260c213d22",
+      "runner": "docker"
+    },
+    "metricCandidateCount": 10,
+    "providerCalls": 0,
+    "realCustomerMediaCount": 0,
+    "schemaVersion": "frameflow.synthetic-pilot-summary.v1",
+    "seed": 2411,
+    "stressCandidateCount": 300,
+    "stressExecutionMode": "MANIFEST_VALIDATION_ONLY"
+  },
+  "decision": {
+    "ownerApprovalRequired": true,
+    "realPilotValueDecisionEligible": false,
+    "reason": "SYNTHETIC_DATA_AND_NO_REAL_PROVIDER_OR_CUSTOMER_WORKFLOW"
+  },
+  "facts": [
+    "本地已生成合成视频、关键帧图片、Brief、Profile、标注、重复/异常媒体与 300 记录压力 manifest。",
+    "Package validator 已检查 hash、路径约束、盲评字段隔离、异常媒体 probe 与真实 Provider 禁用策略。",
+    "指标包含零分母守卫与缺失计数；时长节省使用成对 bootstrap 区间，二元比例使用 Wilson 区间。",
+    "300 记录压力批次只验证 manifest/工具容量；它没有上传到应用，也不是吞吐量测量。",
+    "处理时长是合成场景输入，不是应用墙钟实测。"
+  ],
+  "inferences": [
+    "F11 本地数据契约、标注、指标与报告链已具备接收合规授权真实试点包的工程条件。",
+    "非平凡合成比例和 Reviewer 分歧实际覆盖了警告/裁决路径，没有制造全绿结果。"
+  ],
+  "metrics": {
+    "batchProcessingTime": {
+      "definition": "rankingReadyAt - uploadCompletedAt, in seconds",
+      "maxSeconds": 42.0,
+      "medianSeconds": 42.0,
+      "minSeconds": 42.0,
+      "missingBatchCount": 1,
+      "observedBatchCount": 1,
+      "reason": "MISSING_BATCH_TIMESTAMPS_EXCLUDED"
+    },
+    "blindReviewAgreement": {
+      "cohenKappa": 0.689655172413793,
+      "definition": "Cohen's kappa and raw agreement on independent blind quality labels",
+      "missingOrUnpairedCount": 1,
+      "overlapCount": 9,
+      "rawAgreement": 0.7777777777777778,
+      "reason": null,
+      "reviewerAMissingCount": 0,
+      "reviewerBMissingCount": 1,
+      "sampleSizeCaution": true
+    },
+    "falseKillRate": {
+      "complete": true,
+      "confidenceInterval": {
+        "confidence": 0.95,
+        "high": 0.8499610108478504,
+        "low": 0.15003898915214958,
+        "method": "WILSON_SCORE_TWO_SIDED"
+      },
+      "definition": "adjudicated EXCELLENT or ACCEPTABLE among audited AUTO_REJECT candidates",
+      "denominator": 4,
+      "limitations": [
+        "Duplicate exclusions are not quality rejections and are excluded.",
+        "The estimate represents the population only for a census or pre-registered equal-probability sample."
+      ],
+      "missingCount": 0,
+      "numerator": 2,
+      "reason": null,
+      "sampleSizeCaution": true,
+      "value": 0.5
+    },
+    "fullWatchAvoidanceRate": {
+      "complete": true,
+      "confidenceInterval": {
+        "confidence": 0.95,
+        "high": 0.763406909487436,
+        "low": 0.23659309051256405,
+        "method": "WILSON_SCORE_TWO_SIDED"
+      },
+      "definition": "candidates without an operational full watch / candidates with observed operational-watch data; blind audit watches are excluded from operational workload",
+      "denominator": 10,
+      "limitations": [
+        "Missing operational-watch values are excluded and reported separately."
+      ],
+      "missingCount": 0,
+      "numerator": 5,
+      "reason": null,
+      "sampleSizeCaution": true,
+      "value": 0.5
+    },
+    "manualViewingTimeSavingsRate": {
+      "assistedSeconds": 7.5,
+      "baselineSeconds": 18.5,
+      "candidateCount": 10,
+      "complete": true,
+      "confidenceInterval": {
+        "confidence": 0.95,
+        "high": 0.8580645161290322,
+        "iterations": 5000,
+        "low": 0.32000000000000006,
+        "method": "PAIRED_CANDIDATE_BOOTSTRAP_PERCENTILE",
+        "seed": 2411
+      },
+      "definition": "1 - sum(assisted operational review seconds) / sum(baseline full-watch seconds)",
+      "limitations": [
+        "Blind-audit time is excluded from both baseline and assisted operational workload.",
+        "The paired bootstrap quantifies candidate sampling variation, not workflow measurement bias.",
+        "Negative values are retained when assisted review takes longer than baseline."
+      ],
+      "missingCount": 0,
+      "reason": null,
+      "sampleSizeCaution": true,
+      "savedSeconds": 11.0,
+      "value": 0.5945945945945945
+    },
+    "missRate": {
+      "complete": true,
+      "confidenceInterval": {
+        "confidence": 0.95,
+        "high": 0.9054687942657693,
+        "low": 0.09453120573423074,
+        "method": "WILSON_SCORE_TWO_SIDED"
+      },
+      "definition": "delivered candidates with an adjudicated obvious defect / observed delivered candidates",
+      "denominator": 2,
+      "limitations": [
+        "Post-delivery defects require the pre-registered defect taxonomy and adjudication."
+      ],
+      "missingCount": 0,
+      "numerator": 1,
+      "reason": null,
+      "sampleSizeCaution": true,
+      "value": 0.5
+    }
+  },
+  "provenance": {
+    "datasetId": "syn-pilot-20260824-seed-2411",
+    "inputSetSha256": "6794ad834155f1957418420ab55da51f4892690981773e1e0d44a260ed1889c8",
+    "rehearsalId": "syn-2411-6794ad834155f195",
+    "seed": 2411,
+    "sourceCommit": "d914f1fb3eeb7089a3b9adc1397b39889eb0d96e"
+  },
+  "sampleLimitations": [
+    "Any proportion denominator below 30 is flagged and is not a stable population estimate.",
+    "Confidence intervals quantify sampling uncertainty only; they do not correct selection bias or label error.",
+    "Missing values are never imputed; observed-only estimates expose their missing counts.",
+    "Synthetic rehearsal values validate calculations, not customer behaviour or model quality."
+  ],
+  "schemaVersion": "frameflow.pilot-report.v1",
+  "status": "SYNTHETIC_REHEARSAL_DESCRIPTIVE_REPORT_COMPLETE",
+  "unknowns": [
+    "真实客户批次构成、权利/同意记录与留存义务。",
+    "真实 Provider 的输出质量、延迟与成本；当前没有发生真实调用。",
+    "Operator 实际观看行为、误杀率、交付后漏检率与端到端处理时长。",
+    "真实试点是否能在足够分母下满足预注册成功阈值。"
+  ],
+  "validation": {
+    "counts": {
+      "batchCount": 2,
+      "candidateRecordCount": 310,
+      "checkCount": 337,
+      "materializedMediaCandidateCount": 10,
+      "metricCandidateCount": 10,
+      "stressCandidateCount": 300
+    },
+    "status": "PASS"
+  }
+}
