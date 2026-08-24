@@ -7,8 +7,11 @@ exec python3 - "$@" <<'PY'
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import pathlib
 import re
+import stat
 import sys
 from urllib.parse import urlparse
 
@@ -28,9 +31,13 @@ REMOTE_REQUIRED = (
     "FRAMEFLOW_ALERT_SINK_PORT", "FRAMEFLOW_ALLOY_SYSLOG_PORT",
     "FRAMEFLOW_NGINX_LOG_DIR",
     "FRAMEFLOW_JWT_PRIVATE_KEY_HOST_FILE", "FRAMEFLOW_JWT_PUBLIC_KEY_HOST_FILE",
+    "FRAMEFLOW_WORKER_PROVIDER_ENV_FILE",
     "FRAMEFLOW_TLS_CERT_NAME", "FRAMEFLOW_CERTBOT_EMAIL",
 )
 IMAGE_RE = re.compile(r"^[a-z0-9][a-z0-9._/-]*(?::[A-Za-z0-9_.-]+)@sha256:[0-9a-f]{64}$")
+PROVIDER_KEY_RE = re.compile(r"^[A-Za-z0-9._~+/=:-]{16,}$")
+PROVIDER_ENV_NAME_RE = re.compile(r"^[A-Z_][A-Z0-9_]*$")
+SUPPORTED_SEMANTIC_PROVIDERS = {"openai-compat", "openai-responses"}
 
 
 def die(message: str) -> None:
@@ -66,6 +73,73 @@ def require(data: dict[str, str], key: str) -> str:
     return value
 
 
+def validate_provider_injection(data: dict[str, str], template: bool) -> None:
+    """把无密钥目录与 Worker-only Secret 文件绑定，且不执行任一 env value。"""
+    raw_catalog = data.get("FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON", "").strip()
+    provider_path_text = data.get("FRAMEFLOW_WORKER_PROVIDER_ENV_FILE", "").strip()
+    required_keys: set[str] = set()
+
+    if raw_catalog:
+        try:
+            catalog = json.loads(raw_catalog)
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise ValueError("FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON is not valid JSON") from exc
+        if not isinstance(catalog, dict) or set(catalog) != {"defaultModelId", "models"}:
+            die("semantic model catalog root does not match the strict contract")
+        models = catalog.get("models")
+        if not isinstance(models, list) or not models:
+            die("semantic model catalog models must be a non-empty array")
+        for index, model in enumerate(models):
+            if not isinstance(model, dict):
+                die(f"semantic model catalog models[{index}] must be an object")
+            provider = model.get("provider")
+            if provider not in SUPPORTED_SEMANTIC_PROVIDERS:
+                die(f"semantic model catalog models[{index}] uses an unsupported provider")
+            enabled = model.get("enabled")
+            if not isinstance(enabled, bool):
+                die(f"semantic model catalog models[{index}].enabled must be boolean")
+            env_name = model.get("apiKeyEnv")
+            if not isinstance(env_name, str) or not PROVIDER_ENV_NAME_RE.fullmatch(env_name):
+                die(f"semantic model catalog models[{index}].apiKeyEnv is invalid")
+            if enabled:
+                required_keys.add(env_name)
+        if not required_keys:
+            die("semantic model catalog must have at least one enabled model key")
+
+    if provider_path_text and not pathlib.Path(provider_path_text).is_absolute():
+        die("FRAMEFLOW_WORKER_PROVIDER_ENV_FILE must be an absolute path")
+    if template:
+        return
+
+    # 空目录允许纯离线部署，但 Compose 的真实 Provider 必须使用共享目录。否则
+    # Worker-only legacy model 与 Java 展示的 fallback model 可能漂移。
+    if not raw_catalog:
+        if provider_path_text and pathlib.Path(provider_path_text).exists():
+            die("Worker Provider env file requires a shared semantic model catalog")
+        return
+    elif not provider_path_text:
+        die("enabled semantic catalog requires FRAMEFLOW_WORKER_PROVIDER_ENV_FILE")
+
+    provider_path = pathlib.Path(provider_path_text)
+    try:
+        metadata = provider_path.lstat()
+    except FileNotFoundError as exc:
+        raise ValueError("Worker Provider env file not found") from exc
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+        die("Worker Provider env file must be a regular non-symlink file")
+    if stat.S_IMODE(metadata.st_mode) != 0o600:
+        die("Worker Provider env file mode must be 0600")
+    if metadata.st_uid != os.geteuid():
+        die("Worker Provider env file must be owned by the deploying user")
+
+    provider_values = read_env(provider_path)
+    if set(provider_values) != required_keys:
+        die("Worker Provider env file keys must exactly match the enabled catalog")
+    for key, value in provider_values.items():
+        if not PROVIDER_KEY_RE.fullmatch(value):
+            die(f"{key} must be a non-empty provider token without shell metacharacters")
+
+
 def validate(environment: str, path: pathlib.Path, template: bool) -> dict[str, str]:
     data = read_env(path)
     if environment not in VALID_ENVS:
@@ -84,6 +158,8 @@ def validate(environment: str, path: pathlib.Path, template: bool) -> dict[str, 
     for key, wanted in expected.items():
         if require(data, key) != wanted:
             die(f"{key} must be {wanted!r}")
+
+    validate_provider_injection(data, template)
 
     if environment == "local":
         return data

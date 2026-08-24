@@ -15,7 +15,8 @@ import os
 
 from .model_catalog import (ModelCatalogError, ModelSelectionError,
                             load_model_catalog)
-from .providers import (FakeProvider, OpenAICompatProvider, ProviderDisabled,
+from .providers import (FakeProvider, OpenAICompatProvider,
+                        OpenAIResponsesProvider, ProviderDisabled,
                         ProviderError, SemanticProvider, SemanticRequest)
 
 log = logging.getLogger(__name__)
@@ -35,7 +36,17 @@ def build_provider(model_id: object = None) -> SemanticProvider:
     # ★ 核心：modelId 只在平台下发的 enabled 白名单中解析。未知、禁用或
     # 目录损坏都抛给编排层形成 ERROR，绝不偷偷换成 default/legacy/Fake。
     selected = load_model_catalog().select(model_id)
-    return OpenAICompatProvider(
+    # ★ 核心：provider 字段决定 wire protocol；即使 baseUrl 与 model 相同，
+    # Chat Completions 和 Responses 的路径、图片块与输出结构也不能混用。
+    provider_type = {
+        "openai-compat": OpenAICompatProvider,
+        "openai-responses": OpenAIResponsesProvider,
+    }.get(selected.provider)
+    if provider_type is None:
+        # 正常目录解析已在更早处拒绝未知值；这里保留纵深防御，避免未来
+        # 绕过解析器的调用静默落到错误协议。
+        raise ModelCatalogError("模型目录 provider 不受支持")
+    return provider_type(
         base_url=selected.base_url,
         api_key=os.environ.get(selected.api_key_env, ""),
         model=selected.model,

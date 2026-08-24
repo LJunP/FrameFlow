@@ -17,7 +17,9 @@
 - F12 学习状态：未读（由所有者本人更新）
 - 学习状态：F1–F8、F6.1、F12 均未读（只能由所有者本人更新）
 - 当前门禁事实：合成真 MP4 已跑通 API → MinIO → RabbitMQ → Python Worker → Java 回写 → 排名/聚类 → 人工调整 → 锁定 → JSON/CSV 导出；真实 Provider 按所有者边界尚未调用
-- F6.1 当前事实：平台无密钥模型目录、受保护安全 API、Profile 版本化选择、Worker 精确路由、证据脱敏和前端选择器的自动化均通过；未做真实 Provider 调用
+- F6.1 当前事实：平台无密钥模型目录、受保护安全 API、Profile 版本化选择、
+  Chat Completions/Responses 精确路由、Worker-only Secret 注入、证据脱敏和前端
+  选择器的自动化均通过；未做真实 Provider 调用
 - F9/F10 当前事实：三种本地镜像与全栈 Smoke 通过；监控、日志、合成告警触达/
   恢复、PostgreSQL/MinIO 隔离恢复及四类故障 harness 已在 local 实际通过
 - F11 当前事实：合成彩排 `PASS`，310 个候选记录、337 项校验、30 个 hash artifact；
@@ -36,10 +38,10 @@
 | F1 工程基线与用户认证 | 已交付 | 未读 | [F1](../docs/guides/F1-源码导读.md) | 17 测试全绿 |
 | F2 项目与质检配置管理 | 已交付 | 未读 | [F2](../docs/guides/F2-源码导读.md) | 30 测试全绿（累计） |
 | F3 批次与视频上传 | 已交付 | 未读 | [F3](../docs/guides/F3-源码导读.md) | 38 测试全绿（累计） |
-| F4 确定性质检流水线 | 已交付 | 未读 | [F4](../docs/guides/F4-源码导读.md) | 当前全量 Java 76 + Worker 84 测试全绿；合成真媒体主链通过 |
+| F4 确定性质检流水线 | 已交付 | 未读 | [F4](../docs/guides/F4-源码导读.md) | 当前全量 Java 77 + Worker 95 测试全绿；合成真媒体主链通过 |
 | F5 缓存与限流（Redis） | 已交付 | 未读 | [F5](../docs/guides/F5-源码导读.md) | 50 测试全绿；降级演练实测 |
 | F6 语义质检（AI Provider） | 已交付（待真实调用） | 未读 | [F6](../docs/guides/F6-源码导读.md) | 多模态帧输入、证据哈希、错误降级和多模型路由已测试；真实调用记录未执行 |
-| F6.1 平台多模型选择 | 已交付（自动化通过） | 未读 | [F6.1](../docs/guides/F6.1-源码导读.md) | 平台托管 Key，用户选 enabled 模型；当前全量 Java 76、Worker 84、Web 契约 15 全绿 |
+| F6.1 平台多模型选择 | 已交付（自动化通过） | 未读 | [F6.1](../docs/guides/F6.1-源码导读.md) | 平台托管 Key，用户选 enabled 模型；Chat Completions/Responses 均已离线适配；Java 77、Worker 95、Web 契约 15 全绿 |
 | F7 聚类排名与 Top-K 优选 | 已交付 | 未读 | [F7](../docs/guides/F7-源码导读.md) | 58+33 全绿 |
 | F8 Web 前端产品化 | 已交付（合成全链回归通过） | 未读 | [F8](../docs/guides/F8-源码导读.md) | 合成真媒体全链与真实浏览器深链通过；不等于真实 Provider/试点价值证明 |
 | F12 品牌前台与账户团队基础 | 回归完成（待验收） | 未读 | [F12](../docs/guides/F12-源码导读.md) | 登录/登出、团队/账户、工作台深链及 390px 焦点管理当前实测通过 |
@@ -96,11 +98,12 @@
 ### F6 语义质检（AI Provider）（开发完成 2026-08-22；F6.1 增量 2026-08-23）
 
 - [x] T1 Provider SPI + Fake Provider（稳定哈希，评测可复现）
-- [x] T2 OpenAI 兼容多模态适配器（最多 3 张真实 JPEG 以 `image_url` 发送；无 Key → 语义 ERROR）
+- [x] T2 Chat Completions 多模态适配器（最多 3 张真实 JPEG 以 `image_url` 发送；无 Key → 语义 ERROR）
 - [x] T3 语义 Finding 证据束落库 + REVIEW_REQUIRED（BLOCKER 双侧强制降级）
 - [x] T4 离线评测集 + 指标报告（基线已存档 eval/reports/）
 - [x] T5 关键帧/提示词预算控制（MAX_KEYFRAMES=3、prompt 截断）
 - [x] T6 平台模型目录 + 受保护安全 API + Profile `modelId` 快照 + Worker 白名单路由 + Web 选择器
+- [x] T7 Responses API 多模态适配器 + `input_image/output_text` 契约 + Worker-only `0600` Secret 注入
 - [x] 交付《F6 源码导读》（docs/guides/F6-源码导读.md）
 - [x] 交付《F6.1 源码导读》（docs/guides/F6.1-源码导读.md）
 - [ ] 真实 Provider 调用记录（待所有者确认与受控 Provider 配置）
@@ -133,6 +136,7 @@
 
 - [x] Java/Worker/Web 非 root 多阶段 Dockerfile 与精确依赖构建
 - [x] local、dev、staging、production Compose 模板及环境隔离 fail-closed 校验
+- [x] 动态 Provider Key 通过精确键集 env-file 只注入 Worker；隐藏采集与权限负例通过
 - [x] Nginx HTTP/HTTPS、证书续期、VPS bootstrap、Smoke、晋级与回滚脚本
 - [x] 镜像 version/SHA/Digest manifest 与受保护 CI publish/CD handoff workflow
 - [x] local 全栈镜像构建、Compose 启动、Smoke 与合成产品全链动态回归

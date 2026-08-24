@@ -1,0 +1,15 @@
+{
+  "defaultModelId": "opencode-go-luna-v1",
+  "models": [
+    {
+      "id": "opencode-go-luna-v1",
+      "label": "GPT 5.6 Luna",
+      "description": "OpenCode Go Responses API 多模态复核候选；真实调用前须完成密钥轮换与所有者授权",
+      "provider": "openai-responses",
+      "model": "gpt-5.6-luna",
+      "baseUrl": "https://opencode.ai/zen/go/v1",
+      "apiKeyEnv": "FRAMEFLOW_MODEL_OPENCODE_GO_LUNA_V1_API_KEY",
+      "enabled": true
+    }
+  ]
+}

@@ -25,7 +25,8 @@ public class SemanticModelCatalogService {
     private static final Set<String> MODEL_FIELDS = Set.of(
             "id", "label", "description", "provider", "model",
             "baseUrl", "apiKeyEnv", "enabled");
-    private static final Set<String> SUPPORTED_PROVIDERS = Set.of("openai-compat");
+    private static final Set<String> SUPPORTED_PROVIDERS = Set.of(
+            "openai-compat", "openai-responses");
     private static final Pattern MODEL_ID = Pattern.compile("[a-z0-9][a-z0-9._-]{0,63}");
     private static final Pattern ENV_NAME = Pattern.compile("[A-Z_][A-Z0-9_]*");
     private static final String FALLBACK_ID = "platform-default";
@@ -125,7 +126,8 @@ public class SemanticModelCatalogService {
         if (!SUPPORTED_PROVIDERS.contains(provider)) {
             // ★ 核心：Java 目录和 Worker 路由必须使用同一白名单；否则接口会把一个
             // Worker 必然拒绝的模型展示成可选项，直到任务运行时才失败。
-            throw invalid(path + ".provider", "当前仅支持 openai-compat");
+            throw invalid(path + ".provider",
+                    "当前仅支持 openai-compat 或 openai-responses");
         }
         String model = requireText(node.get("model"), path + ".model");
         String baseUrl = requireText(node.get("baseUrl"), path + ".baseUrl");

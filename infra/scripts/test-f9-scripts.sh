@@ -36,6 +36,90 @@ printf 'UNUSED_VALUE=$(touch %s)\n' "$marker" >> "$actual_env"
 "$script_dir/check-env-isolation.sh" --environment dev --env-file "$actual_env" >/dev/null
 [[ ! -e $marker ]]
 
+# 真实 Provider 的目录不含 Key；Key 只通过 0600 Worker env-file 注入。
+provider_env="$temp_root/worker-provider.env"
+provider_token="synthetic-provider-token-7Jm9vQ2xT4pL8sR6"
+(umask 077; printf 'FRAMEFLOW_MODEL_TEST_RESPONSES_KEY=%s\n' "$provider_token" >"$provider_env")
+python3 - "$actual_env" "$provider_env" <<'PY'
+import json, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+catalog = {
+    "defaultModelId": "responses-test-v1",
+    "models": [{
+        "id": "responses-test-v1", "label": "Responses test",
+        "description": "offline protocol fixture", "provider": "openai-responses",
+        "model": "vision-test", "baseUrl": "https://provider.example/v1",
+        "apiKeyEnv": "FRAMEFLOW_MODEL_TEST_RESPONSES_KEY", "enabled": True,
+    }],
+}
+replacements = {
+    "FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON=":
+        "FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON=" + json.dumps(catalog, separators=(",", ":")),
+    "FRAMEFLOW_WORKER_PROVIDER_ENV_FILE=/etc/frameflow/dev/worker-provider.env":
+        "FRAMEFLOW_WORKER_PROVIDER_ENV_FILE=" + sys.argv[2],
+}
+text = path.read_text(encoding="utf-8")
+for old, new in replacements.items():
+    if old not in text:
+        raise SystemExit(f"missing fixture line: {old}")
+    text = text.replace(old, new, 1)
+path.write_text(text, encoding="utf-8")
+PY
+"$script_dir/check-env-isolation.sh" --environment dev --env-file "$actual_env" >/dev/null
+
+# Compose 展开后只有 Worker 能看到 token；App/Web 即使目录公开也拿不到 Secret。
+docker compose --env-file "$actual_env" -f "$repo_root/infra/dev/docker-compose.yml" \
+  config --format json | python3 -c '
+import json, sys
+token = sys.argv[1]
+services = json.load(sys.stdin)["services"]
+worker_values = services["worker"].get("environment", {}).values()
+if token not in worker_values:
+    raise SystemExit("Worker Provider token was not injected")
+for service in ("app", "web"):
+    if token in services[service].get("environment", {}).values():
+        raise SystemExit(f"Provider token leaked into {service}")
+' "$provider_token"
+
+chmod 0644 "$provider_env"
+if "$script_dir/check-env-isolation.sh" --environment dev --env-file "$actual_env" >/dev/null 2>&1; then
+  echo "expected permissive Provider env-file mode to fail" >&2
+  exit 1
+fi
+chmod 0600 "$provider_env"
+
+bad_provider_env="$temp_root/bad-worker-provider.env"
+(umask 077; printf 'UNDECLARED_PROVIDER_KEY=%s\n' "$provider_token" >"$bad_provider_env")
+bad_provider_config="$temp_root/bad-provider-config.env"
+sed "s|FRAMEFLOW_WORKER_PROVIDER_ENV_FILE=$provider_env|FRAMEFLOW_WORKER_PROVIDER_ENV_FILE=$bad_provider_env|" \
+  "$actual_env" >"$bad_provider_config"
+if "$script_dir/check-env-isolation.sh" --environment dev --env-file "$bad_provider_config" >/dev/null 2>&1; then
+  echo "expected undeclared Worker Provider key to fail" >&2
+  exit 1
+fi
+
+captured_provider_env="$temp_root/captured-worker-provider.env"
+printf 'synthetic-luna-token-4Ds8mN2qP7yV5tK9\n' |
+  "$script_dir/capture-provider-secrets.sh" \
+    --catalog "$repo_root/experiments/fixtures/pre-f9-correctness/model-catalog.opencode-go-luna.example.json" \
+    --output "$captured_provider_env" >/dev/null 2>/dev/null
+python3 - "$captured_provider_env" <<'PY'
+import pathlib, stat, sys
+path = pathlib.Path(sys.argv[1])
+if stat.S_IMODE(path.stat().st_mode) != 0o600:
+    raise SystemExit("captured Provider env-file is not 0600")
+line = path.read_text(encoding="utf-8").splitlines()
+if len(line) != 1 or not line[0].startswith("FRAMEFLOW_MODEL_OPENCODE_GO_LUNA_V1_API_KEY="):
+    raise SystemExit("captured Provider env-file has an unexpected key set")
+PY
+if printf 'another-synthetic-token-4Ds8mN2qP7y\n' |
+  "$script_dir/capture-provider-secrets.sh" \
+    --catalog "$repo_root/experiments/fixtures/pre-f9-correctness/model-catalog.opencode-go-luna.example.json" \
+    --output "$captured_provider_env" >/dev/null 2>&1; then
+  echo "expected Provider secret overwrite without confirmation to fail" >&2
+  exit 1
+fi
+
 bad_keys="$temp_root/bad-keys.env"
 cp "$actual_env" "$bad_keys"
 python3 - "$bad_keys" <<'PY'

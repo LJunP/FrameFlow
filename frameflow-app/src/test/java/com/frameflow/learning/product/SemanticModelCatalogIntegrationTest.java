@@ -34,7 +34,7 @@ class SemanticModelCatalogIntegrationTest {
     private static final String CATALOG_JSON = """
             {"defaultModelId":"balanced","models":[
               {"id":"balanced","label":"均衡模型","description":"推荐默认档",
-               "provider":"openai-compat","model":"vendor-balanced",
+               "provider":"openai-responses","model":"vendor-balanced",
                "baseUrl":"https://private-balanced.example/v1",
                "apiKeyEnv":"FRAMEFLOW_MODEL_BALANCED_API_KEY","enabled":true},
               {"id":"premium","label":"高质量模型","description":"暂未开放",
@@ -70,6 +70,7 @@ class SemanticModelCatalogIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.defaultModelId").value("balanced"))
                 .andExpect(jsonPath("$.models.length()").value(2))
+                .andExpect(jsonPath("$.models[0].provider").value("openai-responses"))
                 .andExpect(jsonPath("$.models[0].enabled").value(true))
                 .andExpect(jsonPath("$.models[1].enabled").value(false))
                 .andReturn();

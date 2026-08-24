@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+**/worker-provider.env
 *.pem
 *.key
 *.p12

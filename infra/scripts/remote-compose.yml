@@ -160,6 +160,11 @@ services:
 
   worker:
     image: ${FRAMEFLOW_WORKER_IMAGE:?digest-pinned FRAMEFLOW_WORKER_IMAGE is required}
+    # Provider Secret 属于 Worker 运行边界。文件内容会成为 Worker 环境变量，
+    # 但不会进入 App/Web；check-env-isolation.sh 在部署前校验路径、0600 与精确键集。
+    env_file:
+      - path: ${FRAMEFLOW_WORKER_PROVIDER_ENV_FILE:-/dev/null}
+        required: false
     environment:
       FRAMEFLOW_ENV: ${FRAMEFLOW_ENV:?required}
       FRAMEFLOW_RABBITMQ_HOST: rabbitmq

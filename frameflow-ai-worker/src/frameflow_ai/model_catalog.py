@@ -17,7 +17,8 @@ from urllib.parse import urlsplit
 CATALOG_ENV = "FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON"
 LEGACY_MODEL_ID = "platform-default"
 LEGACY_API_KEY_ENV = "FRAMEFLOW_SEMANTIC_API_KEY"
-SUPPORTED_PROVIDER = "openai-compat"
+LEGACY_PROVIDER = "openai-compat"
+SUPPORTED_PROVIDERS = (LEGACY_PROVIDER, "openai-responses")
 
 _TOP_LEVEL_FIELDS = {"defaultModelId", "models"}
 _MODEL_FIELDS = {
@@ -129,8 +130,9 @@ def parse_model_catalog(payload: object) -> SemanticModelCatalog:
         seen_ids.add(model_id)
 
         provider = _required_string(raw_model, "provider", where)
-        if provider != SUPPORTED_PROVIDER:
-            raise ModelCatalogError(f"{where}.provider 仅支持 {SUPPORTED_PROVIDER}")
+        if provider not in SUPPORTED_PROVIDERS:
+            supported = "、".join(SUPPORTED_PROVIDERS)
+            raise ModelCatalogError(f"{where}.provider 仅支持 {supported}")
         api_key_env = _required_string(raw_model, "apiKeyEnv", where)
         if not _ENV_NAME.fullmatch(api_key_env):
             raise ModelCatalogError(f"{where}.apiKeyEnv 不是合法环境变量名")
@@ -172,7 +174,7 @@ def _legacy_catalog(env: Mapping[str, str]) -> SemanticModelCatalog:
             id=LEGACY_MODEL_ID,
             label="平台默认模型",
             description="兼容既有 FRAMEFLOW_SEMANTIC_* 配置",
-            provider=SUPPORTED_PROVIDER,
+            provider=LEGACY_PROVIDER,
             model=model,
             base_url=env.get("FRAMEFLOW_SEMANTIC_BASE_URL", "").rstrip("/"),
             api_key_env=LEGACY_API_KEY_ENV,

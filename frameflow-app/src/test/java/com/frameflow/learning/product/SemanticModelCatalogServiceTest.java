@@ -43,6 +43,34 @@ class SemanticModelCatalogServiceTest {
     }
 
     @Test
+    void responses_provider_is_accepted_and_projects_only_safe_fields() throws Exception {
+        SemanticModelCatalogService catalog = catalog("""
+                {"defaultModelId":"responses-vision","models":[
+                  {"id":"responses-vision","label":"Responses 视觉模型","description":"受控验证入口",
+                   "provider":"openai-responses","model":"gpt-5.6-luna",
+                   "baseUrl":"https://private-responses.example/v1",
+                   "apiKeyEnv":"FRAMEFLOW_RESPONSES_API_KEY","enabled":true}
+                ]}
+                """);
+
+        assertThat(catalog.defaultModelId()).isEqualTo("responses-vision");
+        assertThat(catalog.isEnabled("responses-vision")).isTrue();
+        assertThat(catalog.safeCatalog().models()).singleElement().satisfies(model -> {
+            assertThat(model.provider()).isEqualTo("openai-responses");
+            assertThat(model.model()).isEqualTo("gpt-5.6-luna");
+            assertThat(model.enabled()).isTrue();
+        });
+
+        String responseJson = objectMapper.writeValueAsString(catalog.safeCatalog());
+        assertThat(responseJson)
+                .contains("\"provider\":\"openai-responses\"")
+                .doesNotContain("baseUrl")
+                .doesNotContain("apiKeyEnv")
+                .doesNotContain("FRAMEFLOW_RESPONSES_API_KEY")
+                .doesNotContain("private-responses.example");
+    }
+
+    @Test
     void empty_catalog_keeps_legacy_single_model_compatible() {
         SemanticModelCatalogService catalog = new SemanticModelCatalogService(
                 new SemanticModelCatalogProperties("", "legacy-vision-model"), objectMapper);
@@ -90,7 +118,9 @@ class SemanticModelCatalogServiceTest {
                 ]}
                 """))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("当前仅支持 openai-compat");
+                .hasMessage("FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON 配置无效: "
+                        + "$.models[0].provider 当前仅支持 "
+                        + "openai-compat 或 openai-responses");
 
         assertThatThrownBy(() -> catalog("""
                 {"defaultModelId":"balanced","models":[

@@ -158,6 +158,11 @@ services:
       args:
         VERSION: ${FRAMEFLOW_VERSION:-0.1.0}
         VCS_REF: ${FRAMEFLOW_GIT_SHA:-local}
+    # ★ 核心：模型 Key 通过 Worker 专属 env-file 注入；Java/Web 永远不会继承。
+    # 空目录时默认 /dev/null，保持离线开发无需创建假 Secret。
+    env_file:
+      - path: ${FRAMEFLOW_WORKER_PROVIDER_ENV_FILE:-/dev/null}
+        required: false
     environment:
       FRAMEFLOW_ENV: local
       FRAMEFLOW_RABBITMQ_HOST: rabbitmq

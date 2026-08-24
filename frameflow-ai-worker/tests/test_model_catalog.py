@@ -14,7 +14,8 @@ from frameflow_ai.model_catalog import (
     load_model_catalog,
     parse_model_catalog,
 )
-from frameflow_ai.providers import OpenAICompatProvider
+from frameflow_ai.providers import (OpenAICompatProvider,
+                                    OpenAIResponsesProvider)
 
 
 def _catalog() -> dict:
@@ -51,6 +52,16 @@ def _catalog() -> dict:
                 "apiKeyEnv": "FRAMEFLOW_MODEL_RETIRED_KEY",
                 "enabled": False,
             },
+            {
+                "id": "responses",
+                "label": "Responses 协议",
+                "description": "Responses API 视觉模型",
+                "provider": "openai-responses",
+                "model": "vision-responses-v1",
+                "baseUrl": "https://responses.internal.example/v1",
+                "apiKeyEnv": "FRAMEFLOW_MODEL_RESPONSES_KEY",
+                "enabled": True,
+            },
         ],
     }
 
@@ -84,9 +95,11 @@ def test_router_selects_default_and_explicit_models_from_allowlist(monkeypatch):
     _install_catalog(monkeypatch)
     monkeypatch.setenv("FRAMEFLOW_MODEL_BALANCED_KEY", "balanced-secret")
     monkeypatch.setenv("FRAMEFLOW_MODEL_QUALITY_KEY", "quality-secret")
+    monkeypatch.setenv("FRAMEFLOW_MODEL_RESPONSES_KEY", "responses-secret")
 
     default_provider = semantic.build_provider()
     quality_provider = semantic.build_provider("quality")
+    responses_provider = semantic.build_provider("responses")
 
     assert isinstance(default_provider, OpenAICompatProvider)
     assert (default_provider.model_id, default_provider.model) == (
@@ -95,6 +108,10 @@ def test_router_selects_default_and_explicit_models_from_allowlist(monkeypatch):
     assert (quality_provider.model_id, quality_provider.model) == (
         "quality", "vision-quality-v5")
     assert quality_provider.api_key == "quality-secret"
+    assert isinstance(responses_provider, OpenAIResponsesProvider)
+    assert (responses_provider.model_id, responses_provider.model) == (
+        "responses", "vision-responses-v1")
+    assert responses_provider.api_key == "responses-secret"
 
 
 def test_unknown_model_produces_one_error_per_dimension_without_call(monkeypatch):
@@ -209,11 +226,13 @@ def test_catalog_default_model_must_be_enabled():
         parse_model_catalog(payload)
 
 
-def test_catalog_provider_only_accepts_openai_compat():
+def test_catalog_provider_rejects_unknown_protocol():
     payload = copy.deepcopy(_catalog())
     payload["models"][0]["provider"] = "fake"
 
-    with pytest.raises(ModelCatalogError, match="仅支持 openai-compat"):
+    with pytest.raises(
+            ModelCatalogError,
+            match="仅支持 openai-compat、openai-responses"):
         parse_model_catalog(payload)
 
 
