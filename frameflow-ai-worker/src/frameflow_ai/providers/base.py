@@ -45,12 +45,16 @@ class SemanticResult:
     raw_output: str                    # 模型原始回复
     provider: str
     provider_version: str
+    model_id: str | None = None        # 平台逻辑模型 ID（稳定、可供审计）
+    model: str | None = None           # Provider 实际收到的模型名
     degraded: bool = False             # True=降级产物（禁用/失败）
 
 
 class SemanticProvider(Protocol):
     name: str
     version: str
+    model_id: str
+    model: str
 
     def analyze(self, request: SemanticRequest) -> SemanticResult:
         ...

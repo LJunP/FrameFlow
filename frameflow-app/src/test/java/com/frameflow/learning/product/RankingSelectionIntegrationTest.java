@@ -150,6 +150,42 @@ class RankingSelectionIntegrationTest {
         assertThat(latest.getResponse().getContentAsString()).isNotEmpty();
     }
 
+    @Test
+    void semantic_unknown_and_error_do_not_deduct_but_violate_does() throws Exception {
+        var ctx = preparedBatch();
+        long unknown = uploadAndIngestSemantic(ctx, "unknown.mp4", "sem-u",
+                "0000000000000000", "UNKNOWN");
+        long error = uploadAndIngestSemantic(ctx, "error.mp4", "sem-e",
+                "ffffffffffffffff", "ERROR");
+        long violate = uploadAndIngestSemantic(ctx, "violate.mp4", "sem-v",
+                "aaaaaaaaaaaaaaaa", "VIOLATE");
+
+        mockMvc.perform(post("/api/v1/batches/" + ctx.batchId + "/rank")
+                        .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.ranked").value(3));
+        MvcResult latest = mockMvc.perform(
+                        get("/api/v1/batches/" + ctx.batchId + "/ranking/latest")
+                                .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) ((Map<String, Object>)
+                objectMapper.readValue(latest.getResponse().getContentAsString(), Map.class))
+                .get("entries");
+        var byId = new java.util.HashMap<Long, Map<String, Object>>();
+        for (Map<String, Object> entry : entries) {
+            byId.put(((Number) entry.get("candidateId")).longValue(), entry);
+        }
+
+        assertThat(byId.get(unknown).get("score")).isEqualTo(100);
+        assertThat(byId.get(error).get("score")).isEqualTo(100);
+        assertThat(byId.get(violate).get("score")).isEqualTo(83);
+        assertThat(byId.get(unknown).get("breakdown").toString()).contains("\"deductions\": []");
+        assertThat(byId.get(error).get("breakdown").toString()).contains("\"deductions\": []");
+        assertThat(byId.get(violate).get("breakdown").toString())
+                .contains("\"verdict\": \"VIOLATE\"");
+    }
+
     // ---------- 人工叠加 + 锁定 + 导出 ----------
 
     @Test
@@ -243,7 +279,7 @@ class RankingSelectionIntegrationTest {
                 .header("Authorization", auth).contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("name", "s" + UUID.randomUUID()
                         .toString().substring(0, 6),
-                        "spec", "{\"weights\":{\"resolution\":10},"
+                        "spec", "{\"weights\":{\"resolution\":10,\"prompt_alignment\":17},"
                                 + "\"duplicates\":{\"hammingThreshold\":6}}"))))
                 .andExpect(status().isCreated()).andReturn());
         long batchId = idOf(mockMvc.perform(post("/api/v1/batches")
@@ -282,6 +318,21 @@ class RankingSelectionIntegrationTest {
                 "durationMs", 8000, "width", 1080, "height", 1920, "fps", 30.0,
                 "contentHash", contentHash, "phash", phash,
                 "findings", findings));
+        return candidateId;
+    }
+
+    private long uploadAndIngestSemantic(Ctx ctx, String fileName, String contentHash,
+                                         String phash, String verdict) throws Exception {
+        long candidateId = upload(ctx, fileName);
+        ingest(candidateId, ctx.batchId, Map.of(
+                "runId", runOf(candidateId), "workerVersion", "w", "ok", true,
+                "durationMs", 8000, "width", 1080, "height", 1920, "fps", 30.0,
+                "contentHash", contentHash, "phash", phash,
+                "findings", List.of(Map.of(
+                        "detector", "semantic", "detectorVersion", "1",
+                        "dimension", "prompt_alignment", "passed", false,
+                        "severity", "WARNING", "verdict", verdict,
+                        "evidence", "{}", "message", "semantic " + verdict))));
         return candidateId;
     }
 

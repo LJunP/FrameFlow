@@ -14,6 +14,8 @@ from .base import SemanticRequest, SemanticResult, SemanticVerdict
 class FakeProvider:
     name = "semantic-fake"
     version = "1"
+    model_id = "fake"
+    model = "deterministic-fake-v1"
 
     def analyze(self, request: SemanticRequest) -> SemanticResult:
         verdicts = []
@@ -35,4 +37,5 @@ class FakeProvider:
                   f"dimensions={request.dimensions}")
         return SemanticResult(verdicts=verdicts, prompt_snapshot=prompt,
                               raw_output="[fake-provider deterministic output]",
-                              provider=self.name, provider_version=self.version)
+                              provider=self.name, provider_version=self.version,
+                              model_id=self.model_id, model=self.model)

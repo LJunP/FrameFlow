@@ -77,8 +77,11 @@ def parse_ffprobe_output(data: dict) -> ProbeResult:
     fps = None
     if video:
         width, height = video.get("width"), video.get("height")
-        rate = video.get("avg_frame_rate") or video.get("r_frame_rate") or "0/0"
-        fps = _parse_rate(rate)
+        # avg_frame_rate="0/0" 是常见的“无有效平均值”，字符串本身却为真；
+        # 必须先解析，再决定是否回退 r_frame_rate。
+        fps = _parse_rate(video.get("avg_frame_rate") or "0/0")
+        if fps is None:
+            fps = _parse_rate(video.get("r_frame_rate") or "0/0")
     return ProbeResult(duration_ms, width, height, fps, audio is not None)
 
 

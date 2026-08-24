@@ -56,6 +56,11 @@ frameflow:
   worker:
     # 内部回写接口共享密钥（生产必须用环境变量覆盖）
     result-key: ${FRAMEFLOW_WORKER_KEY:frameflow-dev-worker-key}
+  semantic:
+    # 平台统一托管的模型目录。JSON 中只写 Key 的环境变量名，绝不写 Key 本身；
+    # 空目录保持 F6 单模型配置兼容，模型名继续读取 FRAMEFLOW_SEMANTIC_MODEL。
+    model-catalog-json: '${FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON:}'
+    legacy-model: ${FRAMEFLOW_SEMANTIC_MODEL:gpt-4o-mini}
 
 server:
   port: ${FRAMEFLOW_SERVER_PORT:18080}

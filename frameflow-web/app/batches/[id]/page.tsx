@@ -8,8 +8,12 @@ import type { Batch, Candidate, PageOf, RegisterCandidateResponse, SelectionSumm
 
 const STATUS_CLASS: Record<string, string> = {
   UPLOADED: 'ok', ANALYZED: 'ok', PENDING_UPLOAD: '', ANALYZING: 'warn',
-  REVIEW_REQUIRED: 'warn', AUTO_REJECT: 'bad', ANALYSIS_ERROR: 'bad', INVALID: 'bad',
+  REVIEW_REQUIRED: 'warn', AUTO_REJECT: 'bad', ANALYSIS_ERROR: 'system', INVALID: 'bad',
 };
+
+function statusLabel(status: string) {
+  return status === 'ANALYSIS_ERROR' ? '系统异常 · ANALYSIS_ERROR' : status;
+}
 
 export default function BatchPage() {
   const { id } = useParams<{ id: string }>();
@@ -48,7 +52,11 @@ export default function BatchPage() {
     return () => clearInterval(timer);
   }, [batch, load]);
 
-  if (!batch) return <p className="loading">加载中…</p>;
+  if (!batch) {
+    return message
+      ? <div className="card"><div className="notice bad">{message}</div><p style={{ marginTop: 12 }}><Link href="/workspace">← 返回工作台</Link></p></div>
+      : <p className="loading">加载中…</p>;
+  }
 
   async function upload() {
     const file = fileRef.current?.files?.[0];
@@ -69,7 +77,7 @@ export default function BatchPage() {
       );
       setMessage(
         done.status === 'UPLOADED'
-          ? '✓ 上传成功，已入队待分析'
+          ? '✓ 上传成功；关闭批次后可触发分析'
           : `✗ 文件被判无效：${done.probeError}`,
       );
       if (fileRef.current) fileRef.current.value = '';
@@ -103,7 +111,7 @@ export default function BatchPage() {
         <p className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           {Object.entries(batch.candidateCounts).map(([k, v]) => (
             <span key={k} className={`badge ${STATUS_CLASS[k] ?? ''}`}>
-              {k} {v}
+              {statusLabel(k)} {v}
             </span>
           ))}
           {Object.keys(batch.candidateCounts).length === 0 && <span className="muted">还没有候选</span>}
@@ -184,7 +192,7 @@ export default function BatchPage() {
                   <td className="mono">{c.id}</td>
                   <td>{c.fileName}</td>
                   <td>
-                    <span className={`badge ${STATUS_CLASS[c.status] ?? ''}`}>{c.status}</span>
+                    <span className={`badge ${STATUS_CLASS[c.status] ?? ''}`}>{statusLabel(c.status)}</span>
                   </td>
                   <td className="muted">{(c.sizeBytes / 1024 / 1024).toFixed(1)}MB</td>
                   <td className="muted" style={{ maxWidth: 260 }}>

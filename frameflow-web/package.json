@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "NEXT_DIST_DIR=.next-dev next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:contracts": "tsc -p tsconfig.contracts.json && node --test .contract-tests/tests/*.test.js",
+    "typecheck": "tsc --noEmit --incremental false"
   },
   "dependencies": {
     "next": "15.3.3",

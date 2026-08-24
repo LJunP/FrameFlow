@@ -127,6 +127,36 @@ paths:
       summary: 取指定版本
       responses:
         "200": { description: 版本详情 }
+  /api/v1/semantic-models:
+    get:
+      tags: [quality-profile]
+      summary: 已登录用户读取平台托管的多模态模型安全目录
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 仅含可公开模型元数据，不含路由地址、Key 环境变量名或 Key
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [defaultModelId, models]
+                properties:
+                  defaultModelId: { type: string }
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required: [id, label, description, provider, model, enabled]
+                      properties:
+                        id: { type: string }
+                        label: { type: string }
+                        description: { type: string }
+                        provider: { type: string }
+                        model: { type: string }
+                        enabled: { type: boolean }
   /api/v1/batches:
     post:
       tags: [batch]
@@ -195,9 +225,9 @@ paths:
   /api/v1/candidates/{id}/content-url:
     get:
       tags: [analysis]
-      summary: 候选媒体的短时效播放地址（审阅页视频源）
+      summary: 候选媒体的短时效播放地址、候选状态与入口校验错误（审阅页）
       responses:
-        "200": { description: 预签名 GET URL 与过期时间 }
+        "200": { description: 预签名 GET URL、过期时间、候选状态与入口校验错误 }
   /api/v1/batches/{id}/rank:
     post:
       tags: [ranking]
@@ -263,3 +293,9 @@ paths:
       summary: 重放死信到主队列（OWNER）
       responses:
         "200": { description: 重放数量 }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

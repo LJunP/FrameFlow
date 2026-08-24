@@ -1,7 +1,9 @@
 """spec 规则判定单测。"""
 
+import pytest
+
 from frameflow_ai.detectors import rules
-from frameflow_ai.detectors.probe import ProbeResult
+from frameflow_ai.detectors.probe import DetectorError, ProbeResult
 
 
 def _probe(**kw) -> ProbeResult:
@@ -32,12 +34,22 @@ def test_unconfigured_dimensions_skipped():
     assert findings == []
 
 
-def test_unknown_duration_is_not_passed():
-    # 探不到时长 → 不判合格也不凭空判不合格？——确定性规则下
-    # "无法测量"就是不合格（证据里 durationMs=None），交给人工复核去纠错
+def test_configured_duration_without_measurement_is_detector_error():
     spec = {"dimensions": {"duration": {"min": 5}}}
-    findings = rules.evaluate(spec, _probe(duration_ms=None))
-    assert not findings[0].passed
+    with pytest.raises(DetectorError, match="duration"):
+        rules.evaluate(spec, _probe(duration_ms=None))
+
+
+def test_configured_resolution_without_measurement_is_detector_error():
+    spec = {"dimensions": {"resolution": {"minWidth": 720, "minHeight": 1280}}}
+    with pytest.raises(DetectorError, match="resolution"):
+        rules.evaluate(spec, _probe(width=1080, height=None))
+
+
+def test_configured_fps_without_measurement_is_detector_error():
+    spec = {"dimensions": {"fps": {"min": 24}}}
+    with pytest.raises(DetectorError, match="fps"):
+        rules.evaluate(spec, _probe(fps=None))
 
 
 def test_resolution_and_fps():

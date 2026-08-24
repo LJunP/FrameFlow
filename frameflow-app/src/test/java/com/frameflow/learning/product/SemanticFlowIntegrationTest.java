@@ -124,6 +124,47 @@ class SemanticFlowIntegrationTest {
     }
 
     @Test
+    void semantic_detector_without_verdict_is_normalized_to_reviewable_error() throws Exception {
+        var ctx = preparedBatch("sem-missing-verdict@example.com");
+        AnalysisTaskMessage task = dispatchAndReceive(ctx);
+
+        // 模拟旧/异常 Worker：detector 已明确是 semantic，却遗漏 verdict，
+        // 并伪造 passed=true + BLOCKER；接收端必须收敛成安全的 ERROR。
+        ingest(task, List.of(Map.of(
+                "detector", "semantic", "detectorVersion", "legacy",
+                "dimension", "prompt_alignment", "passed", true,
+                "severity", "BLOCKER", "evidence", "{}", "message", "missing verdict")));
+
+        assertCandidateStatus(task.candidateId(), "REVIEW_REQUIRED");
+        Map<String, Object> stored = jdbcTemplate.queryForMap(
+                "SELECT passed, severity, verdict FROM findings WHERE candidate_id = ?",
+                task.candidateId());
+        org.assertj.core.api.Assertions.assertThat(stored.get("passed")).isEqualTo(false);
+        org.assertj.core.api.Assertions.assertThat(stored.get("severity")).isEqualTo("WARNING");
+        org.assertj.core.api.Assertions.assertThat(stored.get("verdict")).isEqualTo("ERROR");
+    }
+
+    @Test
+    void semantic_invalid_verdict_is_normalized_to_reviewable_error() throws Exception {
+        var ctx = preparedBatch("sem-invalid-verdict@example.com");
+        AnalysisTaskMessage task = dispatchAndReceive(ctx);
+
+        ingest(task, List.of(Map.of(
+                "detector", "semantic", "detectorVersion", "broken",
+                "dimension", "prompt_alignment", "passed", true,
+                "severity", "BLOCKER", "verdict", "UNSUPPORTED",
+                "evidence", "{}", "message", "invalid verdict")));
+
+        assertCandidateStatus(task.candidateId(), "REVIEW_REQUIRED");
+        Map<String, Object> stored = jdbcTemplate.queryForMap(
+                "SELECT passed, severity, verdict FROM findings WHERE candidate_id = ?",
+                task.candidateId());
+        org.assertj.core.api.Assertions.assertThat(stored.get("passed")).isEqualTo(false);
+        org.assertj.core.api.Assertions.assertThat(stored.get("severity")).isEqualTo("WARNING");
+        org.assertj.core.api.Assertions.assertThat(stored.get("verdict")).isEqualTo("ERROR");
+    }
+
+    @Test
     void semantic_all_pass_stays_analyzed() throws Exception {
         var ctx = preparedBatch("sem-pass@example.com");
         AnalysisTaskMessage task = dispatchAndReceive(ctx);

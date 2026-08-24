@@ -1,6 +1,7 @@
 package com.frameflow.learning.product.service;
 
 import java.util.List;
+import java.util.Set;
 
 import com.frameflow.learning.product.repo.AnalysisRunMapper;
 import com.frameflow.learning.product.repo.AnalysisRunRow;
@@ -16,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class AnalysisIngestionService {
+
+    private static final Set<String> SEMANTIC_VERDICTS =
+            Set.of("PASS", "VIOLATE", "UNKNOWN", "ERROR");
 
     private final AnalysisRunMapper runs;
     private final CandidateMapper candidates;
@@ -78,19 +82,20 @@ public class AnalysisIngestionService {
         boolean needsReview = false;
         for (FindingRequest f : req.findings()) {
             // ★ 红线（docs/01 §8.2）：语义 Finding 禁止 BLOCKER——
-            // 模型意见没有"生杀大权"，防御性地在接收端再拦一道：
-            // 就算被恶意/错误客户端标成 BLOCKER，也强制降级为 WARNING。
-            String severity = f.severity();
-            boolean semantic = f.verdict() != null;
-            if (semantic && "BLOCKER".equals(severity)) {
-                severity = "WARNING";
-            }
+            // 模型意见没有"生杀大权"。旧/异常 Worker 可能只带
+            // detector=semantic 而遗漏 verdict，不能因此被当成确定性 BLOCKER。
+            boolean semantic = "semantic".equals(f.detector()) || f.verdict() != null;
+            String verdict = semantic && (f.verdict() == null
+                    || !SEMANTIC_VERDICTS.contains(f.verdict()))
+                    ? "ERROR" : f.verdict();
+            String severity = semantic ? "WARNING" : f.severity();
+            boolean passed = semantic ? "PASS".equals(verdict) : f.passed();
             findings.insert(run.getId(), run.getCandidateId(), f.detector(),
-                    f.detectorVersion(), f.dimension(), f.passed(), severity,
-                    f.timecodeMs(), f.evidence(), f.message(), f.verdict());
-            blocker |= !f.passed() && "BLOCKER".equals(severity);
+                    f.detectorVersion(), f.dimension(), passed, severity,
+                    f.timecodeMs(), f.evidence(), f.message(), verdict);
+            blocker |= !passed && "BLOCKER".equals(severity);
             // 语义 VIOLATE/UNKNOWN/ERROR 都进人工复核（REVIEW_REQUIRED）
-            needsReview |= semantic && !"PASS".equals(f.verdict());
+            needsReview |= semantic && !"PASS".equals(verdict);
         }
         String finalStatus;
         if (blocker) {

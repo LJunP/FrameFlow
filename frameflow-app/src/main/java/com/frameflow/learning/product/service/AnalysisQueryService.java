@@ -46,7 +46,8 @@ public class AnalysisQueryService {
         java.time.Duration ttl = java.time.Duration.ofMinutes(15);
         return new com.frameflow.learning.product.web.AnalysisDtos.ContentUrlResponse(
                 storage.presignGet(candidate.getObjectKey(), ttl),
-                java.time.OffsetDateTime.now(clock).plus(ttl).toString());
+                java.time.OffsetDateTime.now(clock).plus(ttl).toString(),
+                candidate.getStatus(), candidate.getProbeError());
     }
 
     public List<FindingResponse> findingsOf(long userId, long candidateId) {

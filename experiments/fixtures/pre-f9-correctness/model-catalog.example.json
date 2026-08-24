@@ -1,0 +1,25 @@
+{
+  "defaultModelId": "balanced-v1",
+  "models": [
+    {
+      "id": "balanced-v1",
+      "label": "均衡模型",
+      "description": "平台推荐的日常多模态复核模型",
+      "provider": "openai-compat",
+      "model": "replace-with-balanced-vision-model",
+      "baseUrl": "https://provider.example/v1",
+      "apiKeyEnv": "FRAMEFLOW_MODEL_BALANCED_V1_API_KEY",
+      "enabled": true
+    },
+    {
+      "id": "quality-v1",
+      "label": "高质量模型",
+      "description": "面向复杂画面、成本更高的多模态复核模型",
+      "provider": "openai-compat",
+      "model": "replace-with-quality-vision-model",
+      "baseUrl": "https://provider.example/v1",
+      "apiKeyEnv": "FRAMEFLOW_MODEL_QUALITY_V1_API_KEY",
+      "enabled": true
+    }
+  ]
+}

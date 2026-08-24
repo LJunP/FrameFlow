@@ -257,7 +257,15 @@ class ProductFlowIntegrationTest {
 
         // 正常创建：v1 随创建发布
         long profileId = createProfile(owner, "电商竖版标准",
-                "{\"dimensions\":{\"duration\":{\"min\":8,\"max\":30}},\"weights\":{\"semantic\":0.4}}");
+                "{\"dimensions\":{"
+                        + "\"duration\":{\"min\":8.5,\"max\":30,\"severity\":\"WARNING\"},"
+                        + "\"resolution\":{\"minWidth\":720,\"minHeight\":1280},"
+                        + "\"fps\":{\"min\":23.976,\"severity\":\"INFO\"}},"
+                        + "\"semantic\":{\"enabled\":true,\"dimensions\":["
+                        + "\"prompt_alignment\",\"quality_impression\"]},"
+                        + "\"weights\":{\"duration\":10,\"prompt_alignment\":12,"
+                        + "\"future_dimension\":7},"
+                        + "\"duplicates\":{\"hammingThreshold\":6}}");
 
         mockMvc.perform(get("/api/v1/quality-profiles").header("Authorization", bearer(owner)))
                 .andExpect(status().isOk())
@@ -292,9 +300,61 @@ class ProductFlowIntegrationTest {
     }
 
     @Test
+    void profile_schema_rejects_unsafe_shapes_on_create_and_publish() throws Exception {
+        var owner = registerOwner("qp-schema@example.com");
+        List<String> invalidSpecs = List.of(
+                "{not-json",
+                "[]",
+                "{\"v\":1}",
+                "{\"dimensions\":[]}",
+                "{\"dimensions\":{\"unknown\":{}}}",
+                "{\"dimensions\":{\"duration\":{}}}",
+                "{\"dimensions\":{\"duration\":{\"min\":-1}}}",
+                "{\"dimensions\":{\"duration\":{\"min\":10,\"max\":5}}}",
+                "{\"dimensions\":{\"duration\":{\"min\":\"5\"}}}",
+                "{\"dimensions\":{\"duration\":{\"min\":5,\"severity\":\"FATAL\"}}}",
+                "{\"dimensions\":{\"duration\":{\"min\":5,\"extra\":true}}}",
+                "{\"dimensions\":{\"resolution\":{\"minWidth\":720}}}",
+                "{\"dimensions\":{\"resolution\":{\"minWidth\":720.0,\"minHeight\":1280}}}",
+                "{\"dimensions\":{\"resolution\":{\"minWidth\":0,\"minHeight\":1280}}}",
+                "{\"dimensions\":{\"fps\":{}}}",
+                "{\"dimensions\":{\"fps\":{\"min\":0}}}",
+                "{\"dimensions\":{\"fps\":{\"min\":241}}}",
+                "{\"semantic\":{\"enabled\":\"true\"}}",
+                "{\"semantic\":{\"enabled\":true,\"dimensions\":\"prompt_alignment\"}}",
+                "{\"semantic\":{\"enabled\":true,\"dimensions\":[\"other\"]}}",
+                "{\"semantic\":{\"enabled\":true,\"dimensions\":["
+                        + "\"prompt_alignment\",\"prompt_alignment\"]}}",
+                "{\"semantic\":{\"enabled\":true,\"provider\":\"unsafe\"}}",
+                "{\"weights\":{\"duration\":-1}}",
+                "{\"weights\":{\"duration\":0.5}}",
+                "{\"weights\":{\"duration\":101}}",
+                "{\"weights\":{\"duration\":\"10\"}}",
+                "{\"duplicates\":{}}",
+                "{\"duplicates\":{\"hammingThreshold\":6.0}}",
+                "{\"duplicates\":{\"hammingThreshold\":-1}}",
+                "{\"duplicates\":{\"hammingThreshold\":65}}",
+                "{\"duplicates\":{\"hammingThreshold\":6,\"mode\":\"unsafe\"}}"
+        );
+
+        for (int i = 0; i < invalidSpecs.size(); i++) {
+            assertCreateProfileInvalid(owner, "bad-create-" + i, invalidSpecs.get(i));
+        }
+
+        long profileId = createProfile(owner, "发布校验基线", "{\"dimensions\":{}}");
+        for (String invalidSpec : invalidSpecs) {
+            assertPublishProfileInvalid(owner, profileId, invalidSpec);
+        }
+        mockMvc.perform(get("/api/v1/quality-profiles/" + profileId + "/versions")
+                        .header("Authorization", bearer(owner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
     void version_number_never_reused_even_if_inserted_externally() throws Exception {
         var owner = registerOwner("vr@example.com");
-        long profileId = createProfile(owner, "并发版本", "{\"v\":1}");
+        long profileId = createProfile(owner, "并发版本", "{\"dimensions\":{}}");
 
         // 模拟并发：绕过服务直接占了 v2（服务此时只看到 v1）
         Long ownerUserId = jdbcTemplate.queryForObject(
@@ -307,7 +367,7 @@ class ProductFlowIntegrationTest {
         mockMvc.perform(post("/api/v1/quality-profiles/" + profileId + "/versions")
                         .header("Authorization", bearer(owner))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"spec\":\"{\\\"v\\\":3}\"}"))
+                        .content("{\"spec\":\"{\\\"duplicates\\\":{\\\"hammingThreshold\\\":8}}\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.versionNo").value(3));
 
@@ -320,7 +380,7 @@ class ProductFlowIntegrationTest {
     void foreign_team_profile_is_404() throws Exception {
         var ownerA = registerOwner("qpa@example.com");
         var ownerB = registerOwner("qpb@example.com");
-        long profileOfA = createProfile(ownerA, "A的标准", "{\"v\":1}");
+        long profileOfA = createProfile(ownerA, "A的标准", "{\"dimensions\":{}}");
 
         mockMvc.perform(get("/api/v1/quality-profiles/" + profileOfA + "/versions")
                         .header("Authorization", bearer(ownerB)))
@@ -377,6 +437,27 @@ class ProductFlowIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn();
         return idOf(result);
+    }
+
+    private void assertCreateProfileInvalid(Map<String, Object> tokens, String name,
+                                            String specJson) throws Exception {
+        mockMvc.perform(post("/api/v1/quality-profiles")
+                        .header("Authorization", bearer(tokens))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                Map.of("name", name, "spec", specJson))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_SPEC"));
+    }
+
+    private void assertPublishProfileInvalid(Map<String, Object> tokens, long profileId,
+                                             String specJson) throws Exception {
+        mockMvc.perform(post("/api/v1/quality-profiles/" + profileId + "/versions")
+                        .header("Authorization", bearer(tokens))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("spec", specJson))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_SPEC"));
     }
 
     private long idOf(MvcResult result) throws Exception {

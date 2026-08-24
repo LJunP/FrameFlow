@@ -197,9 +197,12 @@ public class RankingService {
             if (f.isPassed() || "BLOCKER".equals(f.getSeverity())) {
                 continue;   // 通过项不扣分；BLOCKER 已被资格门挡住，不会出现在这
             }
-            boolean unknownSemantic = f.getVerdict() != null && "UNKNOWN".equals(f.getVerdict());
-            if (unknownSemantic) {
-                continue;   // ★ 模型"不确定"不是候选的错：不扣分，交给人工复核
+            boolean inconclusiveSemantic = "UNKNOWN".equals(f.getVerdict())
+                    || "ERROR".equals(f.getVerdict());
+            if (inconclusiveSemantic) {
+                // ★ 核心：模型不确定或 Provider 故障都不是候选的错；
+                // UNKNOWN/ERROR 只触发人工复核，仅 VIOLATE 语义结论可扣分。
+                continue;
             }
             int weight = weights.getOrDefault(f.getDimension(), DEFAULT_WEIGHT);
             score -= weight;

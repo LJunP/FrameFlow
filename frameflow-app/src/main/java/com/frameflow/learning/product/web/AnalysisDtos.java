@@ -12,6 +12,12 @@ public final class AnalysisDtos {
                                   String verdict) {
     }
 
-    public record ContentUrlResponse(String url, String expiresAt) {
+    /**
+     * 审阅页需要同时知道媒体地址和候选终态。
+     * ★ 核心：ANALYSIS_ERROR 必须由服务端状态驱动展示，不能因为 Finding 为空
+     * 就被前端误写成“未分析或全部通过”；probeError 仅解释入口校验失败。
+     */
+    public record ContentUrlResponse(String url, String expiresAt,
+                                     String status, String probeError) {
     }
 }

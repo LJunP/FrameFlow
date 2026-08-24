@@ -21,6 +21,19 @@ def test_detector_error_is_analysis_error_not_blocker(monkeypatch):
     assert "findings" not in payload and payload["errorSummary"]
 
 
+def test_missing_configured_measurement_is_analysis_error_not_blocker(monkeypatch):
+    monkeypatch.setattr(
+        pipeline, "probe", lambda _p: ProbeResult(8000, 1080, 1920, None, True))
+    task = {"runId": 8, "objectKey": "k",
+            "profileSpec": '{"dimensions":{"fps":{"min":24}}}'}
+
+    outcome = pipeline.analyze(task, lambda _key, _local: None, "test")
+
+    assert outcome.ok is False
+    assert "fps" in outcome.error_summary
+    assert "findings" not in outcome.to_payload()
+
+
 def test_happy_path_payload_shape(monkeypatch):
     monkeypatch.setattr(pipeline, "probe",
                         lambda _p: ProbeResult(8000, 1080, 1920, 30.0, True))

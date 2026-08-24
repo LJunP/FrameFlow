@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
-from .probe import DETECTOR_VERSION, ProbeResult
+from .probe import DETECTOR_VERSION, DetectorError, ProbeResult
 
 DETECTOR_ID = "spec-rules"
 
@@ -67,8 +67,10 @@ def _severity_of(rule: dict, default: str = "BLOCKER") -> str:
 def _check_duration(rule: dict, p: ProbeResult) -> Finding:
     minimum = rule.get("min")
     maximum = rule.get("max")   # 单位：秒
-    seconds = p.duration_ms / 1000 if p.duration_ms is not None else None
-    ok = seconds is not None and (
+    if p.duration_ms is None:
+        raise DetectorError("已启用 duration 规则，但 ffprobe 未提供可用时长")
+    seconds = p.duration_ms / 1000
+    ok = (
         (minimum is None or seconds >= minimum)
         and (maximum is None or seconds <= maximum)
     )
@@ -77,14 +79,16 @@ def _check_duration(rule: dict, p: ProbeResult) -> Finding:
         passed=ok,
         severity=_severity_of(rule),
         evidence={"durationMs": p.duration_ms, "min": minimum, "max": maximum},
-        message=f"时长 {seconds if seconds is not None else '未知'}s，要求 [{minimum},{maximum}]s",
+        message=f"时长 {seconds}s，要求 [{minimum},{maximum}]s",
     )
 
 
 def _check_resolution(rule: dict, p: ProbeResult) -> Finding:
     min_w = rule.get("minWidth")
     min_h = rule.get("minHeight")
-    ok = p.width is not None and p.height is not None and (
+    if p.width is None or p.height is None:
+        raise DetectorError("已启用 resolution 规则，但 ffprobe 未提供完整宽高")
+    ok = (
         (min_w is None or p.width >= min_w)
         and (min_h is None or p.height >= min_h)
     )
@@ -100,7 +104,9 @@ def _check_resolution(rule: dict, p: ProbeResult) -> Finding:
 
 def _check_fps(rule: dict, p: ProbeResult) -> Finding:
     minimum = rule.get("min")
-    ok = p.fps is not None and (minimum is None or p.fps >= minimum)
+    if p.fps is None:
+        raise DetectorError("已启用 fps 规则，但 ffprobe 未提供可用帧率")
+    ok = minimum is None or p.fps >= minimum
     return Finding(
         dimension="fps",
         passed=ok,

@@ -1,10 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useApi } from '@/lib/api';
-import type { Brief, Profile, Project } from '@/lib/types';
+import type { Brief, Profile, Project, SemanticModelCatalog } from '@/lib/types';
+import {
+  defaultQualityProfileDraft,
+  serializeQualityProfileDraft,
+  validateQualityProfileDraft,
+  type QualityProfileDraft,
+} from '@/lib/quality-profile';
+import {
+  listEnabledSemanticModels,
+  parseSemanticModelCatalog,
+  resolveSemanticModelId,
+} from '@/lib/semantic-models';
+
+type SemanticModelLoadState = 'loading' | 'ready' | 'error';
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>();
@@ -15,10 +28,28 @@ export default function ProjectPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [briefText, setBriefText] = useState('');
   const [profileName, setProfileName] = useState('');
-  const [profileSpec, setProfileSpec] = useState('{"dimensions":{"duration":{"min":5,"max":30}},"weights":{"duration":10}}');
+  const [profileDraft, setProfileDraft] = useState<QualityProfileDraft>(defaultQualityProfileDraft);
+  const [profileErrors, setProfileErrors] = useState<string[]>([]);
+  const [semanticModelCatalog, setSemanticModelCatalog] = useState<SemanticModelCatalog | null>(null);
+  const [semanticModelLoadState, setSemanticModelLoadState] = useState<SemanticModelLoadState>('loading');
+  const [semanticModelLoadError, setSemanticModelLoadError] = useState('');
+  const semanticModelRequestId = useRef(0);
   const [batchProfileId, setBatchProfileId] = useState<number | ''>('');
   const [capacity, setCapacity] = useState(50);
   const [message, setMessage] = useState('');
+
+  const enabledSemanticModels = useMemo(
+    () => listEnabledSemanticModels(semanticModelCatalog),
+    [semanticModelCatalog],
+  );
+  const selectedSemanticModel = enabledSemanticModels.find(
+    (entry) => entry.id === profileDraft.semanticModelId,
+  ) ?? null;
+  const semanticModelSelectionBlocked = profileDraft.semanticEnabled && (
+    semanticModelLoadState !== 'ready'
+    || enabledSemanticModels.length === 0
+    || selectedSemanticModel === null
+  );
 
   const load = useCallback(async () => {
     try {
@@ -30,11 +61,51 @@ export default function ProjectPage() {
     }
   }, [api, id]);
 
+  // ★ 核心：模型目录只能来自平台 API；加载失败时清空可用目录并锁住 AI Profile 提交，绝不在浏览器补一个假选项。
+  const loadSemanticModels = useCallback(async () => {
+    const requestId = ++semanticModelRequestId.current;
+    setSemanticModelLoadState('loading');
+    setSemanticModelLoadError('');
+    setSemanticModelCatalog(null);
+    try {
+      const response = await api.get<unknown>('/semantic-models');
+      const catalog = parseSemanticModelCatalog(response);
+      if (!catalog) throw new Error('平台返回的模型目录格式不正确');
+      if (requestId !== semanticModelRequestId.current) return;
+      setSemanticModelCatalog(catalog);
+      setProfileDraft((current) => ({
+        ...current,
+        semanticModelId: resolveSemanticModelId(catalog, current.semanticModelId),
+      }));
+      setSemanticModelLoadState('ready');
+    } catch (err) {
+      if (requestId !== semanticModelRequestId.current) return;
+      setSemanticModelCatalog(null);
+      setSemanticModelLoadError(
+        err instanceof Error && err.message === '平台返回的模型目录格式不正确'
+          ? err.message
+          : '平台模型目录暂时不可用，请稍后重试',
+      );
+      setSemanticModelLoadState('error');
+    }
+  }, [api]);
+
   useEffect(() => {
     load();
   }, [load]);
 
-  if (!project) return <p className="loading">加载中…</p>;
+  useEffect(() => {
+    void loadSemanticModels();
+    return () => {
+      semanticModelRequestId.current += 1;
+    };
+  }, [loadSemanticModels]);
+
+  if (!project) {
+    return message
+      ? <div className="card"><div className="notice bad">{message}</div><p style={{ marginTop: 12 }}><Link href="/workspace">← 返回工作台</Link></p></div>
+      : <p className="loading">加载中…</p>;
+  }
 
   return (
     <>
@@ -96,36 +167,134 @@ export default function ProjectPage() {
         )}
       </div>
 
-      <div className="card">
-        <h2>创建质检标准（Profile，创建即发布 v1，之后只可追加版本）</h2>
+      <div className="card quality-editor-card">
+        <div className="card-head">
+          <div>
+            <p className="card-kicker">QUALITY PROFILE</p>
+            <h2>创建质检标准</h2>
+          </div>
+          <span className="badge">创建即发布 v1</span>
+        </div>
+        <p className="muted quality-editor-intro">用业务语言设置视频边界。系统会在提交时生成内部规则，普通用户无需编写 JSON。</p>
         <form
-          className="row"
+          className="quality-editor"
           onSubmit={async (e) => {
             e.preventDefault();
+            const errors = validateQualityProfileDraft(
+              profileName,
+              profileDraft,
+              enabledSemanticModels.map((entry) => entry.id),
+            );
+            setProfileErrors(errors);
+            if (errors.length) return;
             setMessage('');
             try {
-              await api.post('/quality-profiles', { name: profileName, spec: profileSpec });
+              await api.post('/quality-profiles', {
+                name: profileName.trim(),
+                description: null,
+                spec: serializeQualityProfileDraft(profileDraft),
+              });
               setProfileName('');
+              setProfileDraft({
+                ...defaultQualityProfileDraft,
+                semanticDimensions: { ...defaultQualityProfileDraft.semanticDimensions },
+                weights: { ...defaultQualityProfileDraft.weights },
+                semanticModelId: resolveSemanticModelId(semanticModelCatalog, ''),
+              });
               await load();
             } catch (err) {
               setMessage(String(err instanceof Error ? err.message : err));
             }
           }}
         >
-          <input placeholder="标准名（如：电商竖版）" value={profileName} required onChange={(e) => setProfileName(e.target.value)} />
-          <input
-            style={{ flex: 1, minWidth: 240 }}
-            className="mono"
-            placeholder='spec JSON，如 {"dimensions":{"duration":{"min":5,"max":30}}}'
-            value={profileSpec}
-            onChange={(e) => setProfileSpec(e.target.value)}
-          />
-          <button className="btn">创建</button>
+          <label className="quality-name-field">标准名称<input value={profileName} required placeholder="例如：电商竖版" onChange={(e) => setProfileName(e.target.value)} /></label>
+          <fieldset>
+            <legend>视频时长</legend>
+            <div className="quality-fields">
+              <label>最短秒数<input type="number" min="0" value={profileDraft.minDurationSeconds} onChange={(e) => setProfileDraft((d) => ({ ...d, minDurationSeconds: e.target.value === '' ? '' : Number(e.target.value) }))} /></label>
+              <label>最长秒数<input type="number" min="0" value={profileDraft.maxDurationSeconds} onChange={(e) => setProfileDraft((d) => ({ ...d, maxDurationSeconds: e.target.value === '' ? '' : Number(e.target.value) }))} /></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>画面规格</legend>
+            <div className="quality-fields">
+              <label>最小宽度 px<input type="number" min="1" value={profileDraft.minWidth} placeholder="可选" onChange={(e) => setProfileDraft((d) => ({ ...d, minWidth: e.target.value === '' ? '' : Number(e.target.value) }))} /></label>
+              <label>最小高度 px<input type="number" min="1" value={profileDraft.minHeight} placeholder="可选" onChange={(e) => setProfileDraft((d) => ({ ...d, minHeight: e.target.value === '' ? '' : Number(e.target.value) }))} /></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>帧率检查</legend>
+            <label className="quality-toggle"><input type="checkbox" checked={profileDraft.fpsEnabled} onChange={(e) => setProfileDraft((d) => ({ ...d, fpsEnabled: e.target.checked }))} />启用最低帧率检查</label>
+            {profileDraft.fpsEnabled && <label>最低帧率 fps<input type="number" min="1" max="240" value={profileDraft.minFps} onChange={(e) => setProfileDraft((d) => ({ ...d, minFps: e.target.value === '' ? '' : Number(e.target.value) }))} /></label>}
+          </fieldset>
+          <fieldset>
+            <legend>AI 辅助人工复核</legend>
+            <label className="quality-toggle"><input type="checkbox" checked={profileDraft.semanticEnabled} onChange={(e) => {
+              const semanticEnabled = e.target.checked;
+              setProfileDraft((d) => ({
+                ...d,
+                semanticEnabled,
+                semanticModelId: semanticEnabled
+                  ? resolveSemanticModelId(semanticModelCatalog, d.semanticModelId)
+                  : d.semanticModelId,
+              }));
+            }} />启用 AI 提示（不自动淘汰）</label>
+            {profileDraft.semanticEnabled && (
+              <div className="semantic-model-picker">
+                <label htmlFor="semantic-model-id">
+                  平台多模态模型
+                  <select
+                    id="semantic-model-id"
+                    value={profileDraft.semanticModelId}
+                    disabled={semanticModelLoadState !== 'ready' || enabledSemanticModels.length === 0}
+                    required
+                    onChange={(e) => setProfileDraft((d) => ({ ...d, semanticModelId: e.target.value }))}
+                  >
+                    <option value="" disabled>
+                      {semanticModelLoadState === 'loading' ? '正在加载平台模型…' : '请选择可用模型'}
+                    </option>
+                    {enabledSemanticModels.map((entry) => (
+                      <option key={entry.id} value={entry.id}>{entry.label} · {entry.model}</option>
+                    ))}
+                  </select>
+                </label>
+                <p className="field-help">模型由平台统一接入和托管；这里只选择用途，不需要配置 API Key 或接口地址。</p>
+                {semanticModelLoadState === 'loading' && (
+                  <div className="notice system" role="status">正在从平台读取可用模型，加载完成前不能创建启用 AI 的标准。</div>
+                )}
+                {semanticModelLoadState === 'error' && (
+                  <div className="notice bad" role="alert">
+                    可用模型加载失败：{semanticModelLoadError || '未知错误'}。为避免保存无法执行的配置，已暂停创建。
+                    <button className="btn secondary small semantic-model-retry" type="button" onClick={() => void loadSemanticModels()}>重新加载模型</button>
+                  </div>
+                )}
+                {semanticModelLoadState === 'ready' && enabledSemanticModels.length === 0 && (
+                  <div className="notice bad" role="alert">平台当前没有启用的多模态模型，暂时不能创建启用 AI 的标准。</div>
+                )}
+                {semanticModelLoadState === 'ready' && enabledSemanticModels.length > 0 && !selectedSemanticModel && (
+                  <div className="notice system" role="status">平台未提供可用的默认模型，请明确选择一个模型后再创建。</div>
+                )}
+                {selectedSemanticModel && (
+                  <div className="semantic-model-detail" aria-live="polite">
+                    <strong>{selectedSemanticModel.label}</strong>
+                    <p>{selectedSemanticModel.description}</p>
+                    <dl>
+                      <div><dt>接入协议</dt><dd>{selectedSemanticModel.provider}</dd></div>
+                      <div><dt>实际模型</dt><dd className="mono">{selectedSemanticModel.model}</dd></div>
+                    </dl>
+                  </div>
+                )}
+                <div className="quality-checks"><label><input type="checkbox" checked={profileDraft.semanticDimensions.promptAlignment} onChange={(e) => setProfileDraft((d) => ({ ...d, semanticDimensions: { ...d.semanticDimensions, promptAlignment: e.target.checked } }))} />Brief 对齐</label><label><input type="checkbox" checked={profileDraft.semanticDimensions.qualityImpression} onChange={(e) => setProfileDraft((d) => ({ ...d, semanticDimensions: { ...d.semanticDimensions, qualityImpression: e.target.checked } }))} />画面观感</label><label><input type="checkbox" checked={profileDraft.semanticDimensions.policyViolation} onChange={(e) => setProfileDraft((d) => ({ ...d, semanticDimensions: { ...d.semanticDimensions, policyViolation: e.target.checked } }))} />内容缺陷</label></div>
+              </div>
+            )}
+          </fieldset>
+          <fieldset>
+            <legend>评分与近重复</legend>
+            <div className="quality-fields"><label>近重复灵敏度<input type="number" min="0" max="64" value={profileDraft.duplicateHammingThreshold} onChange={(e) => setProfileDraft((d) => ({ ...d, duplicateHammingThreshold: Number(e.target.value) }))} /></label><span className="field-help">数值越小越严格；用于识别相似画面。</span></div>
+          </fieldset>
+          {profileErrors.length > 0 && <div className="notice bad" role="alert"><ul>{profileErrors.map((error) => <li key={error}>{error}</li>)}</ul></div>}
+          <div className="quality-editor-footer"><span className="muted">已有 {profiles.length} 个标准</span><button className="btn" disabled={semanticModelSelectionBlocked}>创建并发布标准 ↗</button></div>
         </form>
-        <p className="muted" style={{ marginTop: 6 }}>
-          已有 {profiles.length} 个标准：
-          {profiles.map((p) => ` ${p.name}(v${p.latestVersion ?? '—'})`)}
-        </p>
       </div>
 
       <div className="card">

@@ -171,7 +171,7 @@ class AnalysisFlowIntegrationTest {
     @Test
     void worker_failure_is_analysis_error_not_auto_reject() throws Exception {
         var ctx = preparedBatch("err@example.com", 2);
-        uploadOne(ctx, "broken.mp4", 256);
+        long candidateId = uploadOne(ctx, "broken.mp4", 256);
         mockMvc.perform(post("/api/v1/batches/" + ctx.batchId + "/analyze")
                 .header("Authorization", bearer(ctx.tokens))).andExpect(status().isAccepted());
         Message raw = rabbitTemplate.receive(RabbitConfig.TASK_QUEUE, 5000);
@@ -186,6 +186,12 @@ class AnalysisFlowIntegrationTest {
                                 "errorSummary", "ffprobe 进程退出码 1: moov atom not found"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.candidateStatus").value("ANALYSIS_ERROR"));
+
+        // 审阅页契约必须把系统故障终态带回去；Finding 为空不能被解释成通过。
+        mockMvc.perform(get("/api/v1/candidates/" + candidateId + "/content-url")
+                        .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ANALYSIS_ERROR"));
 
         Integer findings = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM findings WHERE candidate_id = ?", Integer.class, task.candidateId());

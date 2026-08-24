@@ -1,5 +1,8 @@
 """F6 Provider 与语义模块测试。"""
 
+import base64
+from pathlib import Path
+
 import numpy as np
 
 from frameflow_ai.providers import (FakeProvider, OpenAICompatProvider,
@@ -36,7 +39,9 @@ def test_fake_provider_differs_by_candidate():
 
 # ---------- OpenAI 兼容适配器 ----------
 
-def test_openai_compat_disabled_without_key():
+def test_openai_compat_disabled_without_key(monkeypatch):
+    monkeypatch.delenv("FRAMEFLOW_SEMANTIC_BASE_URL", raising=False)
+    monkeypatch.delenv("FRAMEFLOW_SEMANTIC_API_KEY", raising=False)
     provider = OpenAICompatProvider(base_url="", api_key="")
     assert provider.available is False
     try:
@@ -46,12 +51,109 @@ def test_openai_compat_disabled_without_key():
         assert "禁用" in str(e)
 
 
+def test_openai_compat_sends_at_most_three_jpegs_byte_for_byte(monkeypatch):
+    captured = {}
+
+    class StubResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"choices": [{"message": {"content":
+                    '{"dimension":"prompt_alignment","verdict":"PASS","reason":"ok"}'}}]}
+
+    def fake_post(url, headers, json, timeout):
+        captured.update(url=url, headers=headers, payload=json, timeout=timeout)
+        return StubResponse()
+
+    monkeypatch.setattr("frameflow_ai.providers.openai_compat.requests.post", fake_post)
+    source_jpegs = [b"\xff\xd8frame-1\xff\xd9", b"\xff\xd8frame-2\xff\xd9",
+                    b"\xff\xd8frame-3\xff\xd9", b"\xff\xd8frame-4\xff\xd9"]
+    request = SemanticRequest(
+        brief_content="brief", frames_jpeg=source_jpegs,
+        frame_timecodes_ms=[0, 100, 200, 300],
+        dimensions=["prompt_alignment"], candidate_hint="c1")
+
+    result = OpenAICompatProvider(
+        base_url="https://provider.example/v1", api_key="test-key").analyze(request)
+
+    assert result.verdicts[0].verdict == "PASS"
+    content = captured["payload"]["messages"][0]["content"]
+    assert content[0]["type"] == "text"
+    assert "关键帧数量: 3" in content[0]["text"]
+    image_blocks = [block for block in content if block["type"] == "image_url"]
+    assert len(image_blocks) == 3
+    decoded = []
+    for block in image_blocks:
+        data_url = block["image_url"]["url"]
+        assert data_url.startswith("data:image/jpeg;base64,")
+        decoded.append(base64.b64decode(data_url.split(",", 1)[1], validate=True))
+    assert decoded == source_jpegs[:3]
+
+
+def test_openai_compat_invalid_success_payload_is_provider_error(monkeypatch):
+    class StubResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"choices": []}
+
+    monkeypatch.setattr(
+        "frameflow_ai.providers.openai_compat.requests.post",
+        lambda *args, **kwargs: StubResponse())
+    provider = OpenAICompatProvider(
+        base_url="https://provider.example/v1", api_key="test-key")
+
+    from frameflow_ai.providers.base import ProviderError
+    try:
+        provider.analyze(_request())
+        raise AssertionError("无效成功响应必须转换为 ProviderError")
+    except ProviderError as e:
+        assert "响应格式无效" in str(e)
+
+
 # ---------- 语义编排 ----------
 
 def test_semantic_disabled_when_spec_off():
     assert semantic.run_semantic({"semantic": {"enabled": False}},
                                  "brief", "video.mp4", [], [], None) == []
     assert semantic.run_semantic({}, "brief", "video.mp4", [], [], None) == []
+
+
+def test_semantic_explicit_empty_dimensions_stays_disabled():
+    class MustNotRun:
+        name, version = "must-not-run", "0"
+
+        def analyze(self, request):
+            raise AssertionError("显式空维度时不得调用 Provider")
+
+    assert semantic.run_semantic(
+        {"semantic": {"enabled": True, "dimensions": []}},
+        "brief", "video.mp4", [], [], MustNotRun()) == []
+
+
+def test_build_provider_defaults_to_real_and_missing_key_becomes_error(monkeypatch):
+    monkeypatch.delenv("FRAMEFLOW_SEMANTIC_PROVIDER", raising=False)
+    monkeypatch.delenv("FRAMEFLOW_SEMANTIC_BASE_URL", raising=False)
+    monkeypatch.delenv("FRAMEFLOW_SEMANTIC_API_KEY", raising=False)
+
+    provider = semantic.build_provider()
+    assert isinstance(provider, OpenAICompatProvider)
+    assert provider.available is False
+
+    findings = semantic.run_semantic(
+        {"semantic": {"enabled": True, "dimensions": ["prompt_alignment"]}},
+        "brief", "video.mp4", [], [], None)
+    assert len(findings) == 1
+    assert findings[0]["verdict"] == "ERROR"
+    assert findings[0]["severity"] == "WARNING"
+    assert "semantic-openai-compat" in findings[0]["evidence"]
+
+
+def test_build_provider_uses_fake_only_when_explicit(monkeypatch):
+    monkeypatch.setenv("FRAMEFLOW_SEMANTIC_PROVIDER", "fake")
+    assert isinstance(semantic.build_provider(), FakeProvider)
 
 
 def _frames(n=5):
@@ -71,6 +173,7 @@ def test_semantic_findings_carry_evidence_bundle():
     assert f["severity"] == "WARNING"          # 红线：语义永不出 BLOCKER
     assert "prompt" in f["evidence"]           # 证据束：prompt 快照
     assert "rawOutput" in f["evidence"]        # 证据束：模型原始输出
+    assert "keyframeSha256" in f["evidence"]   # 模型实际收到的帧可按哈希核对
 
 
 def test_provider_failure_degrades_to_error_verdict():
@@ -102,7 +205,7 @@ def test_keyframes_budget_capped():
 # ---------- 评测 ----------
 
 def test_evaluation_report_structure_and_reproducibility():
-    cases = load_dataset("eval/dataset.json")
+    cases = load_dataset(Path(__file__).resolve().parents[1] / "eval" / "dataset.json")
     r1 = evaluate(FakeProvider(), cases)
     r2 = evaluate(FakeProvider(), cases)
     assert r1.to_dict() == r2.to_dict()        # 完全可复现

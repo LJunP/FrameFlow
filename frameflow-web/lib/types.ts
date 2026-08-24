@@ -7,6 +7,13 @@ export interface AuthPayload {
   refreshToken?: string; // 仅登录/注册响应携带，由代理写入 HttpOnly cookie
 }
 
+export interface TeamMember {
+  userId: number;
+  email: string;
+  displayName: string;
+  role: 'OWNER' | 'OPERATOR' | 'REVIEWER' | 'VIEWER';
+}
+
 export interface PageOf<T> {
   items: T[];
   page: number;
@@ -36,6 +43,21 @@ export interface Profile {
   name: string;
   description: string | null;
   latestVersion: number | null;
+}
+
+/** 平台公开给用户选择的模型元数据；密钥和 endpoint 永远不进入浏览器契约。 */
+export interface SemanticModelOption {
+  id: string;
+  label: string;
+  description: string;
+  provider: string;
+  model: string;
+  enabled: boolean;
+}
+
+export interface SemanticModelCatalog {
+  defaultModelId: string;
+  models: SemanticModelOption[];
 }
 
 export interface Batch {

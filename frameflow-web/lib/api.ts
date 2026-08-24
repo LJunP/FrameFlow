@@ -3,7 +3,11 @@
 // 统一请求层：同源代理（/api/gw/*）+ 401 自动刷新一次后重试
 
 import { useAuth } from './auth-context';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { classifyRefreshStatus } from './security-contracts';
 import type { AuthPayload } from './types';
+
+const REFRESH_CLIENT_TIMEOUT_MS = 5000;
 
 // ★ 核心：单飞刷新（single-flight）——React 开发模式 StrictMode 会双挂载
 // effect，静默刷新若并发触发两次，第二次拿已被第一次轮换吊销的旧 token
@@ -15,10 +19,18 @@ export function refreshSession(): Promise<AuthPayload | null> {
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       try {
-        const resp = await fetch('/api/auth/refresh', { method: 'POST' });
-        return resp.ok ? ((await resp.json()) as AuthPayload) : null;
-      } catch {
-        return null;
+        const resp = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          signal: AbortSignal.timeout(REFRESH_CLIENT_TIMEOUT_MS),
+        });
+        const status = classifyRefreshStatus(resp.status);
+        if (status === 'authenticated') return (await resp.json()) as AuthPayload;
+        if (status === 'unauthenticated') return null;
+        const detail = await resp.json().catch(() => ({}));
+        throw new Error(detail.message || '会话服务暂时不可用，请重试');
+      } catch (reason) {
+        if (reason instanceof Error && reason.message.includes('会话服务')) throw reason;
+        throw new Error('会话服务暂时不可用，请重试');
       } finally {
         refreshInFlight = null;
       }
@@ -28,15 +40,21 @@ export function refreshSession(): Promise<AuthPayload | null> {
 }
 
 export function useApi() {
-  const { accessToken, setAccessToken } = useAuth();
+  const { accessToken, setSession, clearSession } = useAuth();
+  const tokenRef = useRef(accessToken);
 
-  async function request<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
+  useEffect(() => {
+    tokenRef.current = accessToken;
+  }, [accessToken]);
+
+  // ★ 核心：页面会把 API 方法放进 useEffect/useCallback 依赖；稳定引用可以避免每次状态更新都重新请求，造成红条闪烁和无限轮询。
+  const request = useCallback(async function request<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
     const doFetch = () =>
       fetch(`/api/gw${path}`, {
         ...init,
         headers: {
           'Content-Type': 'application/json',
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}),
           ...(init.headers ?? {}),
         },
       });
@@ -54,9 +72,15 @@ export function useApi() {
       // access 过期：单飞静默换新，然后原样重试一次
       const data = await refreshSession();
       if (data) {
-        setAccessToken(data.accessToken);
+        // ★ 核心：续期返回的是完整 principal；必须同步 user/team/role，且 tokenRef 立即更新，避免旧角色 UI 与 effect 重发形成循环。
+        tokenRef.current = data.accessToken;
+        setSession(data);
         return request<T>(path, { ...init, headers: { ...init.headers, Authorization: `Bearer ${data.accessToken}` } }, false);
       }
+      // refresh 明确返回 400/401 时，Cookie 已由 BFF 清除；同步清掉旧
+      // principal，AppShell 才能回到登录页，而不是继续展示一个失效 Owner。
+      tokenRef.current = null;
+      clearSession();
     }
     if (!resp.ok) {
       let detail = `${resp.status}`;
@@ -68,15 +92,15 @@ export function useApi() {
     }
     if (resp.status === 204) return undefined as T;
     return resp.json() as Promise<T>;
-  }
+  }, [clearSession, setSession]);
 
-  return {
+  return useMemo(() => ({
     get: <T>(path: string) => request<T>(path),
     post: <T>(path: string, body?: unknown) =>
       request<T>(path, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) }),
     put: <T>(path: string, body: unknown) =>
       request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
-  };
+  }), [request]);
 }
 
 /** XHR 直传（fetch 无上传进度；XHR 的 progress 事件是唯一顺手的姿势）。 */

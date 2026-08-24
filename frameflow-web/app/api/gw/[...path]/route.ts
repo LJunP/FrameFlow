@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { buildGatewayUpstreamUrl } from '@/lib/security-contracts';
 
 // 同源通用代理：浏览器 → Next(route handler) → Java API。
 // 收益一：前端与 Java 之间零 CORS 配置；
@@ -7,7 +8,10 @@ import { NextRequest, NextResponse } from 'next/server';
 const API_BASE = process.env.API_BASE ?? 'http://127.0.0.1:18080';
 
 async function forward(req: NextRequest, path: string[]) {
-  const url = `${API_BASE}/api/v1/${path.join('/')}${req.nextUrl.search}`;
+  const url = buildGatewayUpstreamUrl(API_BASE, path, req.nextUrl.search);
+  if (!url) {
+    return NextResponse.json({ code: 'NOT_FOUND' }, { status: 404 });
+  }
   const headers = new Headers();
   const auth = req.headers.get('authorization');
   if (auth) headers.set('Authorization', auth);

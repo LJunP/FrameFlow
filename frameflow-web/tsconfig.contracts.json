@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "outDir": ".contract-tests",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": [
+    "lib/quality-profile.ts",
+    "lib/semantic-models.ts",
+    "lib/security-contracts.ts",
+    "lib/types.ts",
+    "tests/quality-profile.test.ts",
+    "tests/security-contracts.test.ts"
+  ]
+}

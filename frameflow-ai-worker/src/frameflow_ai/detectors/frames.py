@@ -88,6 +88,10 @@ def sample_frames(path: str, max_frames: int = 300) -> tuple[list[np.ndarray], l
             frames.append(gray)
             stamps.append(int(index * 1000 / fps))
             index += step
+        if not frames:
+            # ★ 核心：容器能打开但一帧也解不出仍是系统无法分析，不能继续让
+            # 语义 Provider 在没有图像的情况下猜测，或把空画面当作通过。
+            raise DetectorError(f"OpenCV 未能从视频解码任何帧: {path}")
         return frames, stamps
     finally:
         cap.release()

@@ -32,3 +32,11 @@ def test_parse_zero_denominator_is_none():
         {"codec_type": "video", "width": 0, "height": 0, "avg_frame_rate": "0/0"}]}
     r = parse_ffprobe_output(data)
     assert r.fps is None and r.duration_ms is None
+
+
+def test_invalid_average_fps_falls_back_to_real_frame_rate():
+    data = {"format": {"duration": "2"}, "streams": [
+        {"codec_type": "video", "width": 1920, "height": 1080,
+         "avg_frame_rate": "0/0", "r_frame_rate": "24000/1001"}]}
+    r = parse_ffprobe_output(data)
+    assert abs(r.fps - 23.976) < 0.001

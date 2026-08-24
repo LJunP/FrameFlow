@@ -39,7 +39,11 @@ export default function SelectionPage() {
     load();
   }, [load]);
 
-  if (!selection) return <p className="loading">加载中…</p>;
+  if (!selection) {
+    return message
+      ? <div className="card"><div className="notice bad">{message}</div><p style={{ marginTop: 12 }}><Link href="/workspace">← 返回工作台</Link></p></div>
+      : <p className="loading">加载中…</p>;
+  }
   const locked = selection.status === 'LOCKED';
 
   async function adjust(candidateId: number, action: 'INCLUDE' | 'EXCLUDE') {

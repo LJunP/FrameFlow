@@ -8,9 +8,13 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import os
 
+from .model_catalog import (ModelCatalogError, ModelSelectionError,
+                            load_model_catalog)
 from .providers import (FakeProvider, OpenAICompatProvider, ProviderDisabled,
                         ProviderError, SemanticProvider, SemanticRequest)
 
@@ -18,14 +22,25 @@ log = logging.getLogger(__name__)
 
 DEFAULT_DIMENSIONS = ["prompt_alignment", "quality_impression", "policy_violation"]
 MAX_KEYFRAMES = 3          # 预算：一次语义调用最多携带的关键帧数
+ROUTER_PROVIDER_NAME = "semantic-model-router"
 
 
-def build_provider() -> SemanticProvider:
-    """按环境选择 Provider：有配置用真实适配器，否则 Fake（可测/可演示）。"""
-    real = OpenAICompatProvider()
-    if real.available:
-        return real
-    return FakeProvider()
+def build_provider(model_id: object = None) -> SemanticProvider:
+    """按平台目录路由 Provider；Fake 只能由显式演示/测试配置启用。"""
+    # ★ 核心：缺少真实 Provider 凭据必须形成可观测的 ERROR Finding，不能
+    # 静默切到伪判定；否则用户会把稳定哈希生成的结果误认为模型看过视频。
+    if os.environ.get("FRAMEFLOW_SEMANTIC_PROVIDER", "").strip().lower() == "fake":
+        return FakeProvider()
+
+    # ★ 核心：modelId 只在平台下发的 enabled 白名单中解析。未知、禁用或
+    # 目录损坏都抛给编排层形成 ERROR，绝不偷偷换成 default/legacy/Fake。
+    selected = load_model_catalog().select(model_id)
+    return OpenAICompatProvider(
+        base_url=selected.base_url,
+        api_key=os.environ.get(selected.api_key_env, ""),
+        model=selected.model,
+        model_id=selected.id,
+    )
 
 
 def run_semantic(spec: dict, brief_content: str, video_path: str,
@@ -35,8 +50,25 @@ def run_semantic(spec: dict, brief_content: str, video_path: str,
     semantic_cfg = (spec or {}).get("semantic") or {}
     if not semantic_cfg.get("enabled"):
         return []
-    provider = provider or build_provider()
-    dimensions = semantic_cfg.get("dimensions") or DEFAULT_DIMENSIONS
+    # ★ 核心：字段缺失才使用兼容默认值；显式 [] 代表“不检查任何语义维度”。
+    # 若把空数组当假值回退，会悄悄重新启用用户已取消的全部检查。
+    dimensions = (DEFAULT_DIMENSIONS if "dimensions" not in semantic_cfg
+                  else semantic_cfg.get("dimensions"))
+    if not dimensions:
+        return []
+    requested_model_id = semantic_cfg.get("modelId")
+    try:
+        provider = provider or build_provider(requested_model_id)
+    except ModelCatalogError as e:
+        log.warning("语义模型目录无效: %s", e)
+        return _error_finding(
+            dimensions, f"模型目录配置无效: {e}", ROUTER_PROVIDER_NAME,
+            _safe_model_id(requested_model_id), None)
+    except ModelSelectionError as e:
+        log.warning("语义模型选择失败: %s", e)
+        return _error_finding(
+            dimensions, str(e), ROUTER_PROVIDER_NAME,
+            e.model_id, e.actual_model)
 
     # 关键帧预算：均匀取至多 MAX_KEYFRAMES 帧（多帧 ≠ 更准，只 = 更贵）
     step = max(1, len(sampled_frames) // MAX_KEYFRAMES) if sampled_frames else 1
@@ -56,17 +88,26 @@ def run_semantic(spec: dict, brief_content: str, video_path: str,
         evidence = {
             "provider": result.provider,
             "providerVersion": result.provider_version,
+            "modelId": result.model_id,
+            "model": result.model,
             "prompt": result.prompt_snapshot,
             "rawOutput": result.raw_output,
             "keyframeTimecodesMs": stamps,
+            "keyframeSha256": [hashlib.sha256(jpeg).hexdigest() for jpeg in jpegs],
         }
         return [_finding(v, evidence) for v in result.verdicts]
     except ProviderDisabled as e:
         log.warning("语义 Provider 禁用: %s", e)
-        return _error_finding(dimensions, str(e), provider.name)
+        return _error_finding(
+            dimensions, str(e), provider.name,
+            getattr(provider, "model_id", _safe_model_id(requested_model_id)),
+            getattr(provider, "model", None))
     except ProviderError as e:
         log.warning("语义 Provider 失败: %s", e)
-        return _error_finding(dimensions, str(e), provider.name)
+        return _error_finding(
+            dimensions, str(e), provider.name,
+            getattr(provider, "model_id", _safe_model_id(requested_model_id)),
+            getattr(provider, "model", None))
 
 
 def _finding(v, evidence: dict) -> dict:
@@ -83,7 +124,9 @@ def _finding(v, evidence: dict) -> dict:
     }
 
 
-def _error_finding(dimensions: list[str], reason: str, provider_name: str) -> dict:
+def _error_finding(dimensions: list[str], reason: str, provider_name: str,
+                   model_id: str | None = None,
+                   actual_model: str | None = None) -> list[dict]:
     # 逐维度产出 ERROR 判定（每条都进人工复核，而不是笼统一句失败）
     return [{
         "detector": "semantic",
@@ -94,9 +137,15 @@ def _error_finding(dimensions: list[str], reason: str, provider_name: str) -> di
         "verdict": "ERROR",
         "timecodeMs": None,
         "evidence": json.dumps(
-            {"provider": provider_name, "error": reason}, ensure_ascii=False),
+            {"provider": provider_name, "modelId": model_id,
+             "model": actual_model, "error": reason}, ensure_ascii=False),
         "message": f"语义 Provider 不可用: {reason[:200]}",
     } for dim in dimensions]
+
+
+def _safe_model_id(value: object) -> str | None:
+    """只把契约允许的字符串 ID 放进证据，避免序列化任意输入对象。"""
+    return value if isinstance(value, str) and value else None
 
 
 def _to_jpeg(frame) -> bytes:

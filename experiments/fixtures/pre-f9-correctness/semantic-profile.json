@@ -1,0 +1,37 @@
+{
+  "dimensions": {
+    "duration": {
+      "min": 2,
+      "max": 10,
+      "severity": "BLOCKER"
+    },
+    "resolution": {
+      "minWidth": 320,
+      "minHeight": 180,
+      "severity": "BLOCKER"
+    },
+    "fps": {
+      "min": 20,
+      "severity": "BLOCKER"
+    }
+  },
+  "weights": {
+    "duration": 10,
+    "resolution": 10,
+    "fps": 10,
+    "prompt_alignment": 12,
+    "quality_impression": 12,
+    "policy_violation": 16
+  },
+  "semantic": {
+    "enabled": true,
+    "dimensions": [
+      "prompt_alignment",
+      "quality_impression",
+      "policy_violation"
+    ]
+  },
+  "duplicates": {
+    "hammingThreshold": 6
+  }
+}

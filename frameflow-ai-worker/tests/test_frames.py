@@ -1,8 +1,10 @@
 """黑帧/冻结检测器单测：合成 numpy 帧数组，不需要真实视频文件。"""
 
 import numpy as np
+import pytest
 
 from frameflow_ai.detectors import frames
+from frameflow_ai.detectors.probe import DetectorError
 
 
 def _gray(value: int, size: int = 64) -> np.ndarray:
@@ -45,3 +47,27 @@ def test_boundary_luma_threshold():
     seq = [_gray(15), _gray(16)]
     segments = frames.find_black_segments(seq, [0, 100])
     assert len(segments) == 1 and segments[0].frames == 1
+
+
+def test_opened_video_with_no_decodable_frame_is_detector_error(monkeypatch):
+    class EmptyCapture:
+        def isOpened(self):
+            return True
+
+        def get(self, _key):
+            return 0
+
+        def set(self, _key, _value):
+            return True
+
+        def read(self):
+            return False, None
+
+        def release(self):
+            return None
+
+    import cv2
+    monkeypatch.setattr(cv2, "VideoCapture", lambda _path: EmptyCapture())
+
+    with pytest.raises(DetectorError, match="任何帧"):
+        frames.sample_frames("empty.mp4")
