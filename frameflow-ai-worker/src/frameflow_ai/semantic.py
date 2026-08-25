@@ -106,6 +106,10 @@ def run_semantic(spec: dict, brief_content: str, video_path: str,
             "keyframeTimecodesMs": stamps,
             "keyframeSha256": [hashlib.sha256(jpeg).hexdigest() for jpeg in jpegs],
         }
+        if result.request_ordinal is not None:
+            evidence["providerRequestOrdinal"] = result.request_ordinal
+        if result.request_budget is not None:
+            evidence["providerRequestBudget"] = result.request_budget
         return [_finding(v, evidence) for v in result.verdicts]
     except ProviderDisabled as e:
         log.warning("语义 Provider 禁用: %s", e)
@@ -118,7 +122,9 @@ def run_semantic(spec: dict, brief_content: str, video_path: str,
         return _error_finding(
             dimensions, str(e), provider.name,
             getattr(provider, "model_id", _safe_model_id(requested_model_id)),
-            getattr(provider, "model", None))
+            getattr(provider, "model", None),
+            request_ordinal=e.request_ordinal,
+            request_budget=e.request_budget)
 
 
 def _finding(v, evidence: dict) -> dict:
@@ -137,7 +143,9 @@ def _finding(v, evidence: dict) -> dict:
 
 def _error_finding(dimensions: list[str], reason: str, provider_name: str,
                    model_id: str | None = None,
-                   actual_model: str | None = None) -> list[dict]:
+                   actual_model: str | None = None,
+                   request_ordinal: int | None = None,
+                   request_budget: int | None = None) -> list[dict]:
     # 逐维度产出 ERROR 判定（每条都进人工复核，而不是笼统一句失败）
     return [{
         "detector": "semantic",
@@ -147,9 +155,16 @@ def _error_finding(dimensions: list[str], reason: str, provider_name: str,
         "severity": "WARNING",
         "verdict": "ERROR",
         "timecodeMs": None,
-        "evidence": json.dumps(
-            {"provider": provider_name, "modelId": model_id,
-             "model": actual_model, "error": reason}, ensure_ascii=False),
+        "evidence": json.dumps({
+            "provider": provider_name,
+            "modelId": model_id,
+            "model": actual_model,
+            "error": reason,
+            **({"providerRequestOrdinal": request_ordinal}
+               if request_ordinal is not None else {}),
+            **({"providerRequestBudget": request_budget}
+               if request_budget is not None else {}),
+        }, ensure_ascii=False),
         "message": f"语义 Provider 不可用: {reason[:200]}",
     } for dim in dimensions]
 

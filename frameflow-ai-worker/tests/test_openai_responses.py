@@ -135,6 +135,51 @@ def test_openai_responses_accepts_explicit_one_shot_transport():
     assert calls == [("https://responses.example/v1/responses", 30.0)]
 
 
+def test_openai_responses_process_budget_blocks_second_instance_before_network(monkeypatch):
+    calls = []
+
+    def injected_post(*args, **kwargs):
+        calls.append(args[0])
+        return StubResponse({"output": [{"content": [{
+            "type": "output_text",
+            "text": '{"dimension":"prompt_alignment",'
+                    '"verdict":"PASS","reason":"ok"}',
+        }]}]})
+
+    monkeypatch.setenv("FRAMEFLOW_PROVIDER_REQUEST_BUDGET", "1")
+    monkeypatch.setenv("FRAMEFLOW_PROVIDER_REQUEST_BUDGET_ID", "pytest-one-shot-budget")
+    first = OpenAIResponsesProvider(
+        base_url="https://responses.example/v1", api_key="test-key", post=injected_post)
+    second = OpenAIResponsesProvider(
+        base_url="https://responses.example/v1", api_key="test-key", post=injected_post)
+
+    result = first.analyze(_request(frames_jpeg=[]))
+    with pytest.raises(ProviderError, match="预算已耗尽"):
+        second.analyze(_request(frames_jpeg=[]))
+
+    assert calls == ["https://responses.example/v1/responses"]
+    assert result.request_ordinal == 1
+    assert result.request_budget == 1
+
+
+@pytest.mark.parametrize(("budget", "budget_id"), [
+    ("1", ""),
+    ("", "gate-id"),
+    ("zero", "gate-id"),
+    ("0", "gate-id"),
+    ("1", "bad/id"),
+])
+def test_openai_responses_rejects_invalid_request_budget_before_network(
+        monkeypatch, budget, budget_id):
+    monkeypatch.setenv("FRAMEFLOW_PROVIDER_REQUEST_BUDGET", budget)
+    monkeypatch.setenv("FRAMEFLOW_PROVIDER_REQUEST_BUDGET_ID", budget_id)
+
+    provider = OpenAIResponsesProvider(
+        base_url="https://responses.example/v1", api_key="test-key")
+    with pytest.raises(ProviderError, match="真实门禁请求预算"):
+        provider.analyze(_request(frames_jpeg=[]))
+
+
 def test_openai_responses_prompt_budget_is_enforced(monkeypatch):
     captured = {}
 
@@ -222,3 +267,23 @@ def test_openai_responses_failures_are_error_and_redacted(
     serialized = json.dumps(findings, ensure_ascii=False)
     assert secret_key not in serialized
     assert secret_base_url not in serialized
+
+
+def test_openai_responses_failure_records_claimed_budget_without_secrets(monkeypatch):
+    def fail(*args, **kwargs):
+        raise requests.Timeout("secret transport detail")
+
+    monkeypatch.setenv("FRAMEFLOW_PROVIDER_REQUEST_BUDGET", "1")
+    monkeypatch.setenv("FRAMEFLOW_PROVIDER_REQUEST_BUDGET_ID", "pytest-failure-budget")
+    provider = OpenAIResponsesProvider(
+        base_url="https://responses.example/v1", api_key="test-key", post=fail)
+
+    findings = semantic.run_semantic(
+        {"semantic": {"enabled": True, "dimensions": ["prompt_alignment"]}},
+        "brief", "video.mp4", [], [], provider)
+
+    evidence = json.loads(findings[0]["evidence"])
+    assert findings[0]["verdict"] == "ERROR"
+    assert evidence["providerRequestOrdinal"] == 1
+    assert evidence["providerRequestBudget"] == 1
+    assert "secret transport detail" not in json.dumps(evidence)

@@ -20,8 +20,9 @@ LABEL org.opencontainers.image.title="FrameFlow Select AI worker" \
       org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.source="${SOURCE_URL}"
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates ffmpeg libgomp1 && \
+RUN apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 update && \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 install \
+        -y --no-install-recommends ca-certificates ffmpeg libgomp1 && \
     rm -rf /var/lib/apt/lists/* && \
     groupadd --gid 10001 frameflow && \
     useradd --uid 10001 --gid frameflow --create-home --shell /usr/sbin/nologin frameflow

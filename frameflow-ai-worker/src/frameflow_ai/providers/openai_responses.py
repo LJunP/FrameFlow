@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import base64
 import os
+import re
+import threading
 from collections.abc import Callable
 
 import requests
@@ -17,6 +19,11 @@ import requests
 from .base import (ProviderDisabled, ProviderError, SemanticRequest,
                    SemanticResult)
 from .openai_compat import MAX_KEYFRAMES, build_prompt, parse_verdicts
+
+
+_REQUEST_BUDGET_LOCK = threading.Lock()
+_REQUEST_COUNTS: dict[str, int] = {}
+_BUDGET_ID_PATTERN = re.compile(r"[A-Za-z0-9._-]{1,96}")
 
 
 class OpenAIResponsesProvider:
@@ -77,6 +84,11 @@ class OpenAIResponsesProvider:
             "input": [{"role": "user", "content": content}],
             "stream": False,
         }
+        # ★ 核心：真实门禁一旦领取预算，即使请求超时或解析失败也算已消耗；
+        # 后续消息重投会在联网前被拒绝。若把计数放在 HTTP 成功之后，失败路径
+        # 就可能违反所有者批准的“最多一次、失败不重试”。
+        request_budget, request_budget_id = _request_budget_from_env()
+        request_ordinal = _claim_request_budget(request_budget_id, request_budget)
         try:
             response = self._post(
                 f"{self.base_url}/responses",
@@ -86,12 +98,21 @@ class OpenAIResponsesProvider:
             output_text = _extract_output_text(response.json())
         except requests.Timeout:
             # 不传播 requests 原始异常；其中可能包含完整 baseUrl。
-            raise ProviderError(f"语义模型超时({self.timeout_s}s)") from None
+            raise ProviderError(
+                f"语义模型超时({self.timeout_s}s)",
+                request_ordinal=request_ordinal,
+                request_budget=request_budget) from None
         except requests.RequestException:
             # Key 只进入请求头；产品异常与证据只能看到固定的脱敏文案。
-            raise ProviderError("语义模型调用失败") from None
+            raise ProviderError(
+                "语义模型调用失败",
+                request_ordinal=request_ordinal,
+                request_budget=request_budget) from None
         except (KeyError, IndexError, TypeError, ValueError):
-            raise ProviderError("语义模型响应格式无效") from None
+            raise ProviderError(
+                "语义模型响应格式无效",
+                request_ordinal=request_ordinal,
+                request_budget=request_budget) from None
 
         verdicts = parse_verdicts(output_text, request)
         return SemanticResult(
@@ -102,7 +123,41 @@ class OpenAIResponsesProvider:
             provider_version=self.version,
             model_id=self.model_id,
             model=self.model,
+            request_ordinal=request_ordinal,
+            request_budget=request_budget,
         )
+
+
+def _request_budget_from_env() -> tuple[int | None, str | None]:
+    """读取可选的进程级真实门禁预算；未设置时完全关闭。"""
+    raw_budget = os.environ.get("FRAMEFLOW_PROVIDER_REQUEST_BUDGET", "").strip()
+    raw_id = os.environ.get("FRAMEFLOW_PROVIDER_REQUEST_BUDGET_ID", "").strip()
+    if not raw_budget and not raw_id:
+        return None, None
+    if not raw_budget or not raw_id:
+        raise ProviderError("真实门禁请求预算配置不完整")
+    try:
+        budget = int(raw_budget)
+    except ValueError:
+        raise ProviderError("真实门禁请求预算必须是正整数") from None
+    if budget < 1 or budget > 10:
+        raise ProviderError("真实门禁请求预算必须在 1..10")
+    if _BUDGET_ID_PATTERN.fullmatch(raw_id) is None:
+        raise ProviderError("真实门禁请求预算 ID 非法")
+    return budget, raw_id
+
+
+def _claim_request_budget(budget_id: str | None, budget: int | None) -> int | None:
+    """原子领取一次联网资格；超过预算时绝不调用 transport。"""
+    if budget is None or budget_id is None:
+        return None
+    with _REQUEST_BUDGET_LOCK:
+        consumed = _REQUEST_COUNTS.get(budget_id, 0)
+        if consumed >= budget:
+            raise ProviderError("真实门禁请求预算已耗尽；未发出额外网络请求")
+        ordinal = consumed + 1
+        _REQUEST_COUNTS[budget_id] = ordinal
+        return ordinal
 
 
 def _extract_output_text(payload: object) -> str:

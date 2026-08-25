@@ -1,0 +1,5 @@
+services:
+  worker:
+    # ★ 核心：受控真实门禁禁止 Worker 自动重启。进程级预算还能拦住同进程
+    # 内的 RabbitMQ 重投；两层同时存在，才不会因容器重启而重置请求计数。
+    restart: "no"

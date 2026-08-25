@@ -16,6 +16,12 @@ from typing import Protocol
 class ProviderError(Exception):
     """调用失败（网络/超时/限流）→ 语义 ERROR，人工复核。"""
 
+    def __init__(self, message: str, *, request_ordinal: int | None = None,
+                 request_budget: int | None = None):
+        super().__init__(message)
+        self.request_ordinal = request_ordinal
+        self.request_budget = request_budget
+
 
 class ProviderDisabled(Exception):
     """未配置凭据/开关 → 语义 ERROR（附原因），绝不静默跳过。"""
@@ -48,6 +54,10 @@ class SemanticResult:
     model_id: str | None = None        # 平台逻辑模型 ID（稳定、可供审计）
     model: str | None = None           # Provider 实际收到的模型名
     degraded: bool = False             # True=降级产物（禁用/失败）
+    # 仅受控真实门禁设置：证明当前进程在联网前领取了第几份请求预算。
+    # 常规产品调用保持 None，不把门禁机制混进业务配置。
+    request_ordinal: int | None = None
+    request_budget: int | None = None
 
 
 class SemanticProvider(Protocol):
