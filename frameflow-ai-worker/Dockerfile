@@ -12,14 +12,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python -m build --wheel --outdir /wheels
 
 FROM ${PYTHON_IMAGE} AS runtime
-ARG VERSION=0.1.0
-ARG VCS_REF=unknown
-ARG SOURCE_URL=https://example.invalid/frameflow-select
-LABEL org.opencontainers.image.title="FrameFlow Select AI worker" \
-      org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.revision="${VCS_REF}" \
-      org.opencontainers.image.source="${SOURCE_URL}"
-
 RUN apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 update && \
     apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 install \
         -y --no-install-recommends ca-certificates ffmpeg libgomp1 && \
@@ -35,6 +27,15 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 WORKDIR /work
 RUN chown frameflow:frameflow /work
+
+# 版本标签放在稳定依赖层之后；否则只换 Git SHA 会重装整套 ffmpeg 运行时。
+ARG VERSION=0.1.0
+ARG VCS_REF=unknown
+ARG SOURCE_URL=https://example.invalid/frameflow-select
+LABEL org.opencontainers.image.title="FrameFlow Select AI worker" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.source="${SOURCE_URL}"
 
 # ★ 核心：worker 处理不可信媒体，因此固定非 root UID，临时媒体只写 /work。
 # 若给 root 或挂 Docker socket，畸形媒体触发的解析器漏洞会直接扩大为宿主机风险。

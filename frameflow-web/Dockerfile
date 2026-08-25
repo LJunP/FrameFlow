@@ -18,14 +18,6 @@ COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev && npm cache clean --force
 
 FROM ${NODE_IMAGE} AS runtime
-ARG VERSION=0.1.0
-ARG VCS_REF=unknown
-ARG SOURCE_URL=https://example.invalid/frameflow-select
-LABEL org.opencontainers.image.title="FrameFlow Select web" \
-      org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.revision="${VCS_REF}" \
-      org.opencontainers.image.source="${SOURCE_URL}"
-
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     HOSTNAME=0.0.0.0 \
@@ -34,6 +26,15 @@ WORKDIR /app
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/.next ./.next
 COPY --from=build --chown=node:node /app/package.json /app/package-lock.json /app/next.config.mjs ./
+
+# 版本标签放在稳定依赖/产物复制之后，重标记镜像不再重跑 npm 层。
+ARG VERSION=0.1.0
+ARG VCS_REF=unknown
+ARG SOURCE_URL=https://example.invalid/frameflow-select
+LABEL org.opencontainers.image.title="FrameFlow Select web" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.source="${SOURCE_URL}"
 
 # ★ 核心：Next 只在服务端读取 API_BASE，浏览器始终请求同源 BFF；同时以 node 用户运行。
 # 若把内部 API 地址改成 NEXT_PUBLIC_*，会泄露拓扑并绕开 HttpOnly refresh-cookie 边界。

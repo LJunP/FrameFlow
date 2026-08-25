@@ -26,14 +26,6 @@ RUN --mount=type=cache,target=/root/.m2 \
     test -n "$jar_path" && cp "$jar_path" /workspace/application.jar
 
 FROM ${JRE_IMAGE} AS runtime
-ARG VERSION=0.1.0-SNAPSHOT
-ARG VCS_REF=unknown
-ARG SOURCE_URL=https://example.invalid/frameflow-select
-LABEL org.opencontainers.image.title="FrameFlow Select app" \
-      org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.revision="${VCS_REF}" \
-      org.opencontainers.image.source="${SOURCE_URL}"
-
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates curl && \
     rm -rf /var/lib/apt/lists/* && \
@@ -42,6 +34,15 @@ RUN apt-get update && \
 
 WORKDIR /app
 COPY --from=build --chown=frameflow:frameflow /workspace/application.jar /app/application.jar
+
+# 版本标签放在稳定依赖层之后；否则只换 Git SHA 也会让 APT 运行时层失效。
+ARG VERSION=0.1.0-SNAPSHOT
+ARG VCS_REF=unknown
+ARG SOURCE_URL=https://example.invalid/frameflow-select
+LABEL org.opencontainers.image.title="FrameFlow Select app" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.source="${SOURCE_URL}"
 
 # ★ 核心：运行阶段只保留 JRE、只读应用 JAR，并降权到固定非 root UID。
 # 若改回 root 或把 Maven/源码带进运行镜像，容器逃逸面与供应链审计噪声都会扩大。
