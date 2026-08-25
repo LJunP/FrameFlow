@@ -1,6 +1,6 @@
 # F6 · 真实 Provider 受控门禁
 
-> 本文是未来执行 Runbook，不是已经发生的真实调用记录。第一次只允许合成媒体；
+> 本文同时保存受控执行 Runbook 与已发生记录。合成门禁不能自动授权真实客户媒体；
 > 任何 API Key 都不得进入聊天、截图、Git、主 Compose env、Java/Web 或证据。
 
 ## 1. 当前目标模型
@@ -111,3 +111,17 @@ frameflow-ai-worker/.venv/bin/python scripts/run_real_provider_gate.py \
 
 此次没有启动完整产品栈，因此下一次若验证 API→MQ→Worker→回写真实整链，必须
 重新取得一次明确真实调用授权。
+
+## 6. 2026-08-25 完整产品链执行记录
+
+- 首次尝试：Provider 三项语义与 Java 回写成功，但旧合成视频被冻结检测器判为
+  BLOCKER，候选 `AUTO_REJECT`；总门禁 FAIL，未重试；
+- 修复：提交 `49b3629` 增加请求前同检测器预检，黑帧/冻结异常会在联网前拒绝；
+- 修复后重试：基于 `1fad2b6dc0e2`，恰好 1 次新授权请求、自动重试 0、客户数据 0；
+- 结果：API→MinIO→RabbitMQ→Worker→Luna→Java 回写→排名→锁定→JSON/CSV，
+  39 项检查全部 PASS；候选 `ANALYZED`，Selection `LOCKED`；
+- 安全收尾：Key 只进入 Worker；临时 `0600` 文件、容器、卷、网络和端口均已清零；
+- Evidence：`docs/evidence/f6-real-provider-full-e2e-opencode-luna-2026-08-25-retry/`。
+
+这份 PASS 只关闭本地合成媒体的完整产品正确性门禁；production 和真实客户试点仍
+需要各自的当前授权、隐私审查、运行证据与所有者判断。

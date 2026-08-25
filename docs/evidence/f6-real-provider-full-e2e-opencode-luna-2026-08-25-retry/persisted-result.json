@@ -1,0 +1,149 @@
+{
+    "ranking": {
+        "entryCount": 1,
+        "snapshotId": 1,
+        "algorithmVersion": "rank-v1",
+        "hammingThreshold": 6
+    },
+    "findings": [
+        {
+            "model": null,
+            "passed": true,
+            "reason": null,
+            "message": "时长 6.0s，要求 [2,10]s",
+            "modelId": null,
+            "verdict": null,
+            "detector": "spec-rules",
+            "provider": null,
+            "severity": "BLOCKER",
+            "dimension": "duration",
+            "providerRequestBudget": null,
+            "providerRequestOrdinal": null
+        },
+        {
+            "model": null,
+            "passed": true,
+            "reason": null,
+            "message": "分辨率 1280x720，最小要求 320x180",
+            "modelId": null,
+            "verdict": null,
+            "detector": "spec-rules",
+            "provider": null,
+            "severity": "BLOCKER",
+            "dimension": "resolution",
+            "providerRequestBudget": null,
+            "providerRequestOrdinal": null
+        },
+        {
+            "model": null,
+            "passed": true,
+            "reason": null,
+            "message": "帧率 24.0，要求 >= 20",
+            "modelId": null,
+            "verdict": null,
+            "detector": "spec-rules",
+            "provider": null,
+            "severity": "BLOCKER",
+            "dimension": "fps",
+            "providerRequestBudget": null,
+            "providerRequestOrdinal": null
+        },
+        {
+            "model": null,
+            "passed": true,
+            "reason": null,
+            "message": "未检测到黑帧区间",
+            "modelId": null,
+            "verdict": null,
+            "detector": "opencv-frames",
+            "provider": null,
+            "severity": "INFO",
+            "dimension": "black_frame",
+            "providerRequestBudget": null,
+            "providerRequestOrdinal": null
+        },
+        {
+            "model": null,
+            "passed": true,
+            "reason": null,
+            "message": "未检测到画面冻结",
+            "modelId": null,
+            "verdict": null,
+            "detector": "opencv-frames",
+            "provider": null,
+            "severity": "INFO",
+            "dimension": "freeze",
+            "providerRequestBudget": null,
+            "providerRequestOrdinal": null
+        },
+        {
+            "model": "gpt-5.6-luna",
+            "passed": true,
+            "reason": "VISUAL CHALLENGE code: FF-E2E-9Q2M-7K4X",
+            "message": "[PASS] VISUAL CHALLENGE code: FF-E2E-9Q2M-7K4X",
+            "modelId": "opencode-go-luna-v1",
+            "verdict": "PASS",
+            "detector": "semantic",
+            "provider": "semantic-openai-responses",
+            "severity": "WARNING",
+            "dimension": "prompt_alignment",
+            "providerRequestBudget": 1,
+            "providerRequestOrdinal": 1
+        },
+        {
+            "model": "gpt-5.6-luna",
+            "passed": true,
+            "reason": "三张关键帧的 PHASE 依次为 1/3、2/3、3/3，亮色三角形从画面左侧移动到中部再到右侧。",
+            "message": "[PASS] 三张关键帧的 PHASE 依次为 1/3、2/3、3/3，亮色三角形从画面左侧移动到中部再到右侧。",
+            "modelId": "opencode-go-luna-v1",
+            "verdict": "PASS",
+            "detector": "semantic",
+            "provider": "semantic-openai-responses",
+            "severity": "WARNING",
+            "dimension": "quality_impression",
+            "providerRequestBudget": 1,
+            "providerRequestOrdinal": 1
+        },
+        {
+            "model": "gpt-5.6-luna",
+            "passed": true,
+            "reason": "画面仅包含合成图形与合成文字，未发现真人、客户资料、真实品牌或危险内容。",
+            "message": "[PASS] 画面仅包含合成图形与合成文字，未发现真人、客户资料、真实品牌或危险内容。",
+            "modelId": "opencode-go-luna-v1",
+            "verdict": "PASS",
+            "detector": "semantic",
+            "provider": "semantic-openai-responses",
+            "severity": "WARNING",
+            "dimension": "policy_violation",
+            "providerRequestBudget": 1,
+            "providerRequestOrdinal": 1
+        }
+    ],
+    "candidate": {
+        "id": 1,
+        "fps": 24,
+        "phash": "a1a1c1d181111115",
+        "width": 1280,
+        "height": 720,
+        "status": "ANALYZED",
+        "durationMs": 6000,
+        "contentHash": "3be99862a42a70942bd78e0ea88b4ea466b51c00a97deceae254606f2737bb63"
+    },
+    "selection": {
+        "id": 1,
+        "topK": 1,
+        "status": "LOCKED",
+        "lockedAt": "2026-08-25T06:15:53.375971+00:00",
+        "itemCount": 1
+    },
+    "analysisRun": {
+        "id": 1,
+        "status": "SUCCEEDED",
+        "startedAt": "2026-08-25T06:15:46.075615+00:00",
+        "finishedAt": "2026-08-25T06:15:52.684371+00:00",
+        "errorSummary": null,
+        "workerVersion": "0.1.0"
+    },
+    "schemaVersion": 1,
+    "classification": "REAL_PROVIDER_FULL_PRODUCT_E2E_SYNTHETIC_ONLY"
+}

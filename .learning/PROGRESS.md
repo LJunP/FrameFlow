@@ -8,30 +8,27 @@
 
 - 已交付：F1–F8、F6.1；F9/F10 的本地工程与动态门禁；F11 Pilot-ready
   工程与合成彩排（不等于远程上线、production 运维或真实试点完成）
-- 当前阶段：本地可完成的开发已推进到 Deploy-ready / Pilot-ready。F6 的 Adapter
-  真实合成视觉门禁已通过；F9 的 VPS、SSH、DNS、HTTPS 与远程 CI/发布，F10 的
+- 当前阶段：本地可完成的开发已推进到 Deploy-ready / Pilot-ready。F6 的完整本地
+  真实 Provider 合成产品链门禁已通过；F9 的 VPS、SSH、DNS、HTTPS 与远程 CI/发布，F10 的
   production 告警/恢复，F11 的真实客户批次与真实试点仍是外部门禁
 - 开发状态：F12 品牌前台与账户团队基础已完成当前工作树回归，等待所有者验收
 - F12 范围：公开首页、认证体验、工作台导航、个人中心、当前团队只读页、业务化质量规则表单（含平台多模态模型选择）
 - F12 导读：[F12 源码导读](../docs/guides/F12-源码导读.md)
 - F12 学习状态：未读（由所有者本人更新）
 - 学习状态：F1–F8、F6.1、F12 均未读（只能由所有者本人更新）
-- 当前门禁事实：Provider 禁用时，合成真 MP4 已跑通 API → MinIO → RabbitMQ →
-  Python Worker → Java 回写 → 排名/聚类 → 人工调整 → 锁定 → JSON/CSV 导出。
-  2026-08-25 的完整真实 Provider 尝试中，Luna 三项语义与 Java 回写均通过，但旧
-  合成夹具被冻结检测判为 BLOCKER，候选 `AUTO_REJECT`，排名/锁定/导出未执行；
-  因此该次总门禁为 `FAIL`，不得写成完整产品链 PASS
+- 当前门禁事实：2026-08-25 修复后受控重试以恰好 1 次 Luna `/responses` 请求跑通
+  API → MinIO → RabbitMQ → Python Worker → 真实模型 → Java 回写 → 排名/聚类 →
+  锁定 → JSON/CSV 导出；候选 `ANALYZED`、Selection `LOCKED`，39 项检查全部 PASS
 - F6.1 当前事实：平台无密钥模型目录、受保护安全 API、Profile 版本化选择、
   Chat Completions/Responses 精确路由、Worker-only Secret 注入、证据脱敏和前端
-  选择器的自动化均通过；两次分别授权的真实请求均仅使用合成视觉输入且无重试，
-  当前完整尝试的 Evidence 为请求序号 1/预算 1、三项语义 PASS、真实客户媒体为 0
+  选择器的自动化均通过；最新完整门禁仅使用合成视频且无重试，Evidence 为请求
+  序号 1/预算 1、三项语义 PASS、真实客户媒体为 0
 - F9/F10 当前事实：三种本地镜像与全栈 Smoke 通过；监控、日志、合成告警触达/
   恢复、PostgreSQL/MinIO 隔离恢复及四类故障 harness 已在 local 实际通过
 - F11 当前事实：合成彩排 `PASS`，310 个候选记录、337 项校验、30 个 hash artifact；
   `realPilotDecisionEligible=false`，不得作为真实试点结论
-- 下一外部动作：若要关闭完整真实 Provider 产品链门禁，需对修复后的夹具另行授权
-  1 次无重试请求；之后由所有者按 F9 Runbook 手工部署，再执行 production 运维
-  门禁和真实试点
+- 下一外部动作：由所有者按 F9 Runbook 手工部署，再执行 production 运维门禁和
+  真实试点；本地真实 Provider 产品正确性门禁已关闭，但不替代这些外部门禁
 - 更新日期：2026-08-25
 
 ## 功能进度
@@ -45,14 +42,14 @@
 | F3 批次与视频上传 | 已交付 | 未读 | [F3](../docs/guides/F3-源码导读.md) | 38 测试全绿（累计） |
 | F4 确定性质检流水线 | 已交付 | 未读 | [F4](../docs/guides/F4-源码导读.md) | 当前全量 Java 77 + Worker 110 测试全绿；合成真媒体主链通过 |
 | F5 缓存与限流（Redis） | 已交付 | 未读 | [F5](../docs/guides/F5-源码导读.md) | 50 测试全绿；降级演练实测 |
-| F6 语义质检（AI Provider） | 已交付（真实合成门禁通过） | 未读 | [F6](../docs/guides/F6-源码导读.md) | Luna Adapter 门禁 PASS；完整产品尝试的模型/回写 PASS，但总门禁因冻结规则 FAIL |
+| F6 语义质检（AI Provider） | 已交付（完整真实合成产品门禁通过） | 未读 | [F6](../docs/guides/F6-源码导读.md) | Luna 恰好 1 次请求；三项语义、Java 回写、排名、锁定与双格式导出同链 PASS |
 | F6.1 平台多模型选择 | 已交付（自动化通过） | 未读 | [F6.1](../docs/guides/F6.1-源码导读.md) | 平台托管 Key，用户选 enabled 模型；Java 77、Worker 110、Web 契约 15 全绿 |
 | F7 聚类排名与 Top-K 优选 | 已交付 | 未读 | [F7](../docs/guides/F7-源码导读.md) | 58+33 全绿 |
-| F8 Web 前端产品化 | 已交付（合成全链回归通过） | 未读 | [F8](../docs/guides/F8-源码导读.md) | 合成真媒体全链与真实浏览器深链通过；不等于真实 Provider/试点价值证明 |
+| F8 Web 前端产品化 | 已交付（真实 Provider 合成产品链通过） | 未读 | [F8](../docs/guides/F8-源码导读.md) | 真实 Provider API 产品链与真实浏览器深链分别通过；不等于真实客户试点价值证明 |
 | F12 品牌前台与账户团队基础 | 回归完成（待验收） | 未读 | [F12](../docs/guides/F12-源码导读.md) | 登录/登出、团队/账户、工作台深链及 390px 焦点管理当前实测通过 |
 | F9 服务器部署与 CI/CD | 本地工程与 Smoke 已交付（远程门禁未执行） | 未读 | [F9](../docs/guides/F9-源码导读.md) | 未推 Registry；VPS/SSH/DNS/HTTPS/远程发布由所有者执行 |
 | F10 生产化运维 | 本地工程与动态演练已交付（production 门禁未执行） | 未读 | [F10](../docs/guides/F10-源码导读.md) | 本地 synthetic 告警、隔离恢复、4 类故障通过；不等于 production RTO/RPO |
-| F11 真实试点验证 | Pilot-ready 工程与合成彩排已交付 | — | [F11](../docs/guides/F11-源码导读.md) | F6 单请求合成视觉门禁已过；真实客户批次、真实人工审核与价值结论未执行 |
+| F11 真实试点验证 | Pilot-ready 工程与合成彩排已交付 | — | [F11](../docs/guides/F11-源码导读.md) | F6 完整真实 Provider 合成产品链已过；真实客户批次、真实人工审核与价值结论未执行 |
 
 ## 任务明细
 
@@ -112,9 +109,9 @@
 - [x] 交付《F6 源码导读》（docs/guides/F6-源码导读.md）
 - [x] 交付《F6.1 源码导读》（docs/guides/F6.1-源码导读.md）
 - [x] 真实 Provider 调用记录（2026-08-24：OpenCode Go Luna，1 次合成视觉请求，HTTP 200，挑战码精确匹配；Evidence 已脱敏）
-- [ ] 完整产品真实 Provider 门禁（2026-08-25：本次恰好 1 次新请求；模型三项
-  PASS、Java 回写成功，但旧夹具冻结 BLOCKER 导致总门禁 FAIL；夹具及本地预检已修复，
-  新一次真实执行仍需所有者另行授权）
+- [x] 完整产品真实 Provider 门禁（2026-08-25 修复后重试：恰好 1 次新请求、
+  自动重试 0、真实客户数据 0；API→MinIO→MQ→Worker→Luna→Java→排名→锁定→
+  JSON/CSV，39 项检查全部 PASS；Evidence 已脱敏）
 
 ### F7 聚类排名与 Top-K 优选（开发完成 2026-08-22）
 
@@ -137,9 +134,8 @@
 - [x] 历史 F8 浏览器闭环不作为当前证据；2026-08-23 已重新运行当前工作树
 - [x] 当前工作树：公开页、认证、工作台、账户/团队、深层业务路由、移动菜单焦点环与 Escape 恢复实测通过
 - [x] 合成真 MP4 → 分析 → 排名/重复聚类 → 人工优选 → 锁定 → JSON/CSV 导出当前 PASS（Provider 明确禁用）
-- [ ] 完整 Web/API→MQ→Worker→回写链的真实 Provider E2E：2026-08-25 已证实到
-  真实模型三项 PASS 与 Java 回写；冻结规则使候选 AUTO_REJECT，排名/锁定/导出未执行。
-  修复后重跑会产生新的真实请求，必须再次通知并取得授权
+- [x] 完整 Web/API→MQ→Worker→回写链的真实 Provider E2E：2026-08-25 修复后
+  单请求门禁 PASS；候选 `ANALYZED`、排名第 1、Selection `LOCKED`、JSON/CSV 各 1 行
 - [x] 交付《F8 源码导读》（docs/guides/F8-源码导读.md）
 
 ### F9 服务器部署与 CI/CD（本地工程交付 2026-08-24）
