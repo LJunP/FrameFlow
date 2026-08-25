@@ -5,6 +5,8 @@ from pathlib import Path
 
 import cv2
 
+from frameflow_ai.detectors import frames as frame_detector
+
 
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "run_real_provider_e2e_gate.py"
 SPEC = importlib.util.spec_from_file_location("run_real_provider_e2e_gate", SCRIPT)
@@ -40,6 +42,11 @@ def test_full_e2e_generator_creates_real_moving_synthetic_mp4(tmp_path):
     assert metadata["hasCustomerData"] is False
     assert metadata["frameCount"] == 144
     assert metadata["fps"] == 24
+    assert metadata["localFramePreflight"] == {
+        "sampledFrames": 144,
+        "blackSegments": 0,
+        "freezeSegments": 0,
+    }
     assert len(metadata["sha256"]) == 64
     capture = cv2.VideoCapture(str(output))
     try:
@@ -57,3 +64,6 @@ def test_full_e2e_generator_creates_real_moving_synthetic_mp4(tmp_path):
         capture.release()
     assert all(float(frame.mean()) > 16 for frame in frames)
     assert any((frames[index] != frames[index + 1]).any() for index in range(2))
+    sampled, timestamps = frame_detector.sample_frames(str(output))
+    assert frame_detector.find_black_segments(sampled, timestamps) == []
+    assert frame_detector.find_freeze_segments(sampled, timestamps) == []

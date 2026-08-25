@@ -28,7 +28,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+WORKER_SRC = SCRIPT_DIR.parent / "frameflow-ai-worker" / "src"
+if str(WORKER_SRC) not in sys.path:
+    sys.path.insert(0, str(WORKER_SRC))
+
 import run_pre_f9_api_gate as common  # noqa: E402
+from frameflow_ai.detectors import frames as frame_detector  # noqa: E402
 
 
 REPO_ROOT = SCRIPT_DIR.parent
@@ -139,7 +144,11 @@ def generate_synthetic_video(path: Path, challenge: str) -> dict[str, Any]:
             progress = index / max(1, frame_count - 1)
             phase = min(3, index // (frame_count // 3) + 1)
             frame = np.zeros((height, width, 3), dtype=np.uint8)
-            frame[:, :] = (48 + index % 30, 70 + (index * 2) % 40, 96)
+            # ★ 核心：让大面积背景每帧至少变化 5 个亮度级，同时保留三角形的
+            # 位移语义。只移动小图形时，全画面平均差可能低于冻结阈值，真实请求
+            # 会在 Provider 已返回 PASS 后被本地规则误杀，浪费一次受控调用额度。
+            background = 42 + (index * 5) % 80
+            frame[:, :] = (background, background + 24, background + 48)
             stripe_x = int((index * 17) % width)
             cv2.rectangle(frame, (stripe_x, 0), (min(width - 1, stripe_x + 80), height),
                           (80, 118, 150), -1)
@@ -163,6 +172,15 @@ def generate_synthetic_video(path: Path, challenge: str) -> dict[str, Any]:
         writer.release()
     if not path.is_file() or path.stat().st_size <= 0:
         raise common.ContractError("synthetic MP4 was not created")
+    # ★ 核心：上传和派发前使用产品同一套确定性检测器做 fail-closed 预检。
+    # 预检不通过就禁止进入真实 Provider 阶段，避免用外部请求发现本地夹具错误。
+    sampled, timestamps = frame_detector.sample_frames(str(path))
+    black_segments = frame_detector.find_black_segments(sampled, timestamps)
+    freeze_segments = frame_detector.find_freeze_segments(sampled, timestamps)
+    if black_segments or freeze_segments:
+        raise common.ContractError(
+            "synthetic MP4 failed local frame preflight: "
+            f"blackSegments={len(black_segments)}, freezeSegments={len(freeze_segments)}")
     return {
         "path": str(path.relative_to(REPO_ROOT)) if path.is_relative_to(REPO_ROOT) else path.name,
         "contentType": "video/mp4",
@@ -173,6 +191,11 @@ def generate_synthetic_video(path: Path, challenge: str) -> dict[str, Any]:
         "fps": fps,
         "durationSeconds": seconds,
         "frameCount": frame_count,
+        "localFramePreflight": {
+            "sampledFrames": len(sampled),
+            "blackSegments": 0,
+            "freezeSegments": 0,
+        },
         "syntheticOnly": True,
         "hasCustomerData": False,
         "visualChallenge": challenge,
