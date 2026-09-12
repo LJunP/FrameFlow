@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-13",
+  "change": "remove concurrent npm cache clean; shared locked BuildKit npm cache",
+  "buildCommand": "docker build --no-cache -t frameflow/web:local-0.1.0 -f frameflow-web/Dockerfile frameflow-web",
+  "result": "PASS",
+  "localImageId": "sha256:67feb1cebcf6faffd63da7e0d0ea632d43953635eb5bcc9b8416050863251611",
+  "runtimeSmoke": "PASS",
+  "registryPublished": false
+}

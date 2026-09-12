@@ -5,17 +5,19 @@ ARG NODE_IMAGE=node:22.17.0-bookworm-slim
 FROM ${NODE_IMAGE} AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,id=frameflow-web-npm,target=/root/.npm,sharing=locked npm ci
 
 FROM dependencies AS build
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
+# ★ 核心：两个安装阶段共享 BuildKit 缓存，串行占用避免竞争；缓存不进入最终镜像，
+# 不能在另一个阶段写入时执行 npm cache clean（会导致 ENOTEMPTY 并破坏并行构建）。
 FROM ${NODE_IMAGE} AS production-dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev && npm cache clean --force
+RUN --mount=type=cache,id=frameflow-web-npm,target=/root/.npm,sharing=locked npm ci --omit=dev
 
 FROM ${NODE_IMAGE} AS runtime
 ENV NODE_ENV=production \

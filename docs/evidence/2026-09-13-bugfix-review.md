@@ -28,6 +28,7 @@
 | B12 | 低 / 界面 | 浏览器请求网站图标得到 404 | 增加 `app/icon.svg`，重新构建后验证控制台无错误 |
 | B13 | 高 / CI | GitHub Java 作业引用不存在的 setup-java 提交，准备阶段失败 | 经官方仓库 API 确认后固定到 v4.7.1 的完整提交 `c5195efecf7bdfc987ee8bae7a71cb8b11521c00`，保持 JDK 17 |
 | B14 | 高 / 可复现性 | 无缓存 GitHub runner 无法拉取 Docker Hub MinIO / mc，本机缓存掩盖故障 | 测试、local/remote Compose 与恢复演练统一使用官方 Quay 同版多架构固定摘要；不升级服务版本或跳过集成测试 |
+| B15 | 中 / 构建 | Web 两个 Docker 安装阶段共用 npm 缓存，其中一个清理缓存与另一个写入竞争，CI 报 ENOTEMPTY | 移除不进入镜像的 BuildKit 缓存清理，并用明确 cache id 与 sharing=locked 串行使用；保留 npm ci 与生产依赖裁剪 |
 
 B08/B09 是依赖公告命中，不表示已证明本项目部署可以被利用。
 来源：[Next.js 公告](https://github.com/advisories/GHSA-2xp9-vwfh-vxw4)、
@@ -72,6 +73,13 @@ MinIO 镜像拉取被拒，导致应用测试上下文启动失败。官方同�
 
 切换为 Quay 同版清单后，本地全量 Java 85 项、Compose Smoke 与 80 项产品链再次通过。
 新增 `storage-distribution.json` 和 `product-receipt-quay.json`；保留此前 receipt，不覆盖旧运行。
+
+第三轮 [34710816183](https://github.com/LJunP/FrameFlow/actions/runs/34710816183) 的 Java、Web、Worker、
+部署及运维检查通过；Web 镜像暴露 B15，失败发生在 `npm cache clean --force` 的共享缓存
+删除操作。修复缓存使用方式，不通过忽略退出码或移除镜像门禁制造通过。
+
+B15 修复后本地 `docker build --no-cache` 与新 Web 镜像全栈 Smoke 通过，镜像 ID 记录于
+`web-image-build.json`。上一轮远端 App / Worker 镜像已通过；最新提交的完整 CI 仍以 Actions 为准。
 
 ## 证据文件
 
