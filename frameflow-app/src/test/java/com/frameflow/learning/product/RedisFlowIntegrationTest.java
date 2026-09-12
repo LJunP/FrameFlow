@@ -117,12 +117,29 @@ class RedisFlowIntegrationTest {
     }
 
     @Test
+    void warm_progress_cache_does_not_bypass_team_authorization() throws Exception {
+        var ctx = preparedBatch("private-progress@example.com");
+        var outsider = registerAndGetTokens("outsider-progress@example.com");
+        mockMvc.perform(get("/api/v1/batches/" + ctx.batchId + "/progress")
+                        .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isOk());
+        assertThat(redis.hasKey("batch:progress:" + ctx.batchId)).isTrue();
+        mockMvc.perform(get("/api/v1/batches/" + ctx.batchId + "/progress")
+                        .header("Authorization", bearer(outsider)))
+                .andExpect(status().isNotFound());
+        // 缓存清空后的路径也必须得到同一个拒绝结果。
+        redis.delete("batch:progress:" + ctx.batchId);
+        mockMvc.perform(get("/api/v1/batches/" + ctx.batchId + "/progress")
+                        .header("Authorization", bearer(outsider)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void penetration_guard_caches_missing_batch_sentinel() throws Exception {
         var tokens = registerAndGetTokens("pen@example.com");
         long ghostId = 987654321L;
 
-        // 连续查不存在的批次；第一次之后空值哨兵进缓存，
-        // 后续请求连"主键查批次是否存在"都省掉（恶意扫 ID 打不到库）
+        // 不存在的批次仍保留空响应与哨兵契约；归属查询不由共享缓存替代。
         for (int i = 0; i < 3; i++) {
             mockMvc.perform(get("/api/v1/batches/" + ghostId + "/progress")
                             .header("Authorization", bearer(tokens)))

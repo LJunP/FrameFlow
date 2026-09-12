@@ -3,6 +3,7 @@ package com.frameflow.learning.product.service;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.frameflow.learning.identity.domain.Role;
@@ -24,6 +25,8 @@ import com.frameflow.learning.shared.error.ApiException;
 import com.frameflow.learning.shared.error.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * 批次：创建（绑定快照）、关闭、候选登记（发放直传凭证）。
@@ -72,6 +75,11 @@ public class BatchService {
         // ★ 核心：批次绑定"具体版本"——profileVersionNo 不传则解析为该 profile
         // 的最新版本。绑定后批次永远引用这一行（V3 迁移的 ★ 注释），
         // 后续发布新标准不影响任何已创建批次。
+        // ★ 核心：配置与项目必须属于同一团队，不能只验证项目权限；否则可绑定他人配置。
+        var profile = profiles.findProfileById(req.profileId());
+        if (profile == null || !project.getTeamId().equals(profile.getTeamId())) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND);
+        }
         QualityProfileVersionRow version = resolveVersion(req);
         if (project.getCurrentBriefId() == null) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
@@ -91,6 +99,18 @@ public class BatchService {
         return toResponse(batch, version.getVersionNo(), counts);
     }
 
+    /** 项目下的批次列表（历史批次入口）：成员可读，新批次在前。 */
+    public List<BatchResponse> listByProject(long userId, long projectId) {
+        ProjectRow project = projects.findById(projectId);
+        if (project == null) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND);
+        }
+        teamAccess.requireMember(userId, project.getTeamId());
+        return batches.listByProject(projectId).stream()
+                .map(row -> get(userId, row.getId()))
+                .toList();
+    }
+
     private Map<String, Integer> countsFromDb(long batchId) {
         Map<String, Integer> counts = new HashMap<>();
         for (CandidateMapper.StatusCount sc : candidates.countByStatus(batchId)) {
@@ -99,21 +119,15 @@ public class BatchService {
         return counts;
     }
 
-    /**
-     * F5：缓存优先的进度查询（高频轮询专用端点）。
-     * 与 get() 的区别：get() 先做归属校验（必然查库），缓存只省聚合查询；
-     * 本方法缓存优先——不存在的批次以"哨兵"缓存，重复扫 ID 连主键查询都省掉。
-     * 授权检查只对真实存在的批次执行（在加载器内）。
-     */
+    /** F5：缓存仅复用统计值，权限始终按当前用户实时检查。 */
     public Map<String, Integer> progressOf(long userId, long batchId) {
-        return progressCache.getOrLoad(batchId, () -> {
-            BatchRow row = batches.findById(batchId);
-            if (row == null) {
-                return null;   // → 空值哨兵，防穿透
-            }
+        // ★ 核心：授权不能藏在缓存 loader 内，否则命中共享缓存时会跨团队泄露统计。
+        // 不存在的批次保留原有空响应契约；哨兵只缓存空结果，不替代归属检查。
+        BatchRow row = batches.findById(batchId);
+        if (row != null) {
             teamAccess.requireMember(userId, batchTeamId(row));
-            return countsFromDb(batchId);
-        });
+        }
+        return progressCache.getOrLoad(batchId, () -> row == null ? null : countsFromDb(batchId));
     }
 
     @Transactional
@@ -127,10 +141,12 @@ public class BatchService {
     /**
      * 候选登记：校验批次与容量，决定 SIMPLE/MULTIPART 模式并发放直传凭证。
      */
+    @Transactional
     public RegisterCandidateResponse registerCandidate(long userId, long batchId,
                                                        RegisterCandidateRequest req) {
-        BatchRow batch = requireBatchOfMyTeam(userId, batchId);
-        teamAccess.requireRole(userId, batchTeamId(batch), Role.OWNER, Role.OPERATOR);
+        requireWritableBatch(userId, batchId);
+        // ★ 核心：批次行锁将容量检查、登记及关闭串行化；仅加事务仍会并发超额。
+        BatchRow batch = batches.findByIdForUpdate(batchId);
         if (!"OPEN".equals(batch.getStatus())) {
             throw new ApiException(ErrorCode.BATCH_CLOSED);
         }
@@ -147,21 +163,39 @@ public class BatchService {
                     "文件超出单对象上限 " + MAX_OBJECT_BYTES + " 字节");
         }
 
+        boolean multipart = req.sizeBytes() > storageProps.multipartThreshold().toBytes();
+        // ★ 核心：按服务端真实阈值检查客户端能力，配置变化也不能留下无法上传的占位。
+        if (multipart && Boolean.TRUE.equals(req.simpleOnly())) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "文件超过当前单文件直传上限，请使用分片上传客户端");
+        }
         String objectKey = "batches/" + batchId + "/candidates/" + "c" + System.nanoTime()
                 + "/" + sanitize(req.fileName());
         Long candidateId = candidates.insert(batchId, sanitize(req.fileName()),
                 req.contentType(), req.sizeBytes(), objectKey, userId);
-        progressCache.evict(batchId);   // 候选数量变了，进度缓存立即失效
+        // ★ 核心：提交后再失效，避免并发读在提交前把旧计数重新写入缓存。
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() { progressCache.evict(batchId); }
+        });
 
         // ★ 核心：先落库再发凭证，S3 调用失败时事务回滚不留孤儿行；
         // 反向顺序（先 S3 后落库）失败会留下无主对象。注意 S3 的分片会话
         // 不参与数据库事务——initiate 成功后若后续异常，必须在 catch 里
         // 显式 abort，否则 MinIO 会积累"有头无尾"的分片会话占磁盘。
-        boolean multipart = req.sizeBytes() > storageProps.multipartThreshold().toBytes();
         if (multipart) {
             String uploadId = null;
             try {
                 uploadId = storage.initiateMultipart(objectKey);
+                String sessionId = uploadId;
+                // 数据库最终提交失败也要补偿已创建的外部会话，而不仅是方法内抛错。
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status != STATUS_COMMITTED) {
+                            try { storage.abortMultipart(objectKey, sessionId); } catch (Exception ignored) { }
+                        }
+                    }
+                });
                 candidates.updateUploadSession(candidateId, "MULTIPART", uploadId);
             } catch (Exception e) {
                 if (uploadId != null) {

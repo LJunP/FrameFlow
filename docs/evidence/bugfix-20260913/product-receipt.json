@@ -1,0 +1,525 @@
+{
+  "analysis": {
+    "dispatched": 5,
+    "findingCounts": {
+      "invalid_container": 0,
+      "too_short": 5,
+      "valid_a": 5,
+      "valid_a_copy": 5,
+      "valid_b": 5
+    },
+    "skipped": 0,
+    "terminalStatuses": {
+      "invalid_container": "ANALYSIS_ERROR",
+      "too_short": "AUTO_REJECT",
+      "valid_a": "ANALYZED",
+      "valid_a_copy": "ANALYZED",
+      "valid_b": "ANALYZED"
+    },
+    "totalFindings": 20
+  },
+  "apiBase": "http://127.0.0.1:18080/api/v1",
+  "auth": {
+    "emailSha256": "20f7c83b947365fa6920f2f6ddc89e1d420f244a5eb5aa45fc4646fc30b44dc1",
+    "mode": "LOGGED_IN",
+    "role": "OWNER",
+    "teamId": 1,
+    "userId": 1
+  },
+  "candidates": {
+    "invalid_container": {
+      "actualStatus": "ANALYSIS_ERROR",
+      "candidateId": 311,
+      "expectedStatus": "ANALYSIS_ERROR",
+      "fileName": "invalid-container.mp4"
+    },
+    "too_short": {
+      "actualStatus": "AUTO_REJECT",
+      "candidateId": 310,
+      "expectedStatus": "AUTO_REJECT",
+      "fileName": "too-short.mp4"
+    },
+    "valid_a": {
+      "actualStatus": "ANALYZED",
+      "candidateId": 307,
+      "expectedStatus": "ANALYZED",
+      "fileName": "valid-motion-a.mp4"
+    },
+    "valid_a_copy": {
+      "actualStatus": "ANALYZED",
+      "candidateId": 308,
+      "expectedStatus": "ANALYZED",
+      "fileName": "valid-motion-a-exact-copy.mp4"
+    },
+    "valid_b": {
+      "actualStatus": "ANALYZED",
+      "candidateId": 309,
+      "expectedStatus": "ANALYZED",
+      "fileName": "valid-motion-b.mp4"
+    }
+  },
+  "checks": [
+    {
+      "name": "fixture.brief.non_blank",
+      "status": "PASS"
+    },
+    {
+      "name": "profile.real_provider_disabled",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "expected": {
+          "max": 10,
+          "min": 2,
+          "severity": "BLOCKER"
+        }
+      },
+      "name": "profile.dimension.duration",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "expected": {
+          "minHeight": 180,
+          "minWidth": 320,
+          "severity": "BLOCKER"
+        }
+      },
+      "name": "profile.dimension.resolution",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "expected": {
+          "min": 20,
+          "severity": "BLOCKER"
+        }
+      },
+      "name": "profile.dimension.fps",
+      "status": "PASS"
+    },
+    {
+      "name": "profile.duplicate_threshold",
+      "status": "PASS"
+    },
+    {
+      "name": "fixture.media.valid_a.non_empty",
+      "status": "PASS"
+    },
+    {
+      "name": "fixture.media.valid_a_copy.non_empty",
+      "status": "PASS"
+    },
+    {
+      "name": "fixture.media.valid_b.non_empty",
+      "status": "PASS"
+    },
+    {
+      "name": "fixture.media.too_short.non_empty",
+      "status": "PASS"
+    },
+    {
+      "name": "fixture.media.invalid_container.non_empty",
+      "status": "PASS"
+    },
+    {
+      "name": "fixture.exact_copy.same_bytes",
+      "status": "PASS"
+    },
+    {
+      "name": "fixture.valid_b.distinct_bytes",
+      "status": "PASS"
+    },
+    {
+      "name": "api.ping.app",
+      "status": "PASS"
+    },
+    {
+      "name": "auth.access_token.accepted",
+      "status": "PASS"
+    },
+    {
+      "name": "brief.project_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "profile.initial_version",
+      "status": "PASS"
+    },
+    {
+      "name": "batch.project_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "batch.brief_snapshot_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "batch.profile_version",
+      "status": "PASS"
+    },
+    {
+      "name": "batch.initial_status",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.valid_a.simple_mode",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.valid_a.completed",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.valid_a.candidate_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.valid_a_copy.simple_mode",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.valid_a_copy.completed",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.valid_a_copy.candidate_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.valid_b.simple_mode",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.valid_b.completed",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.valid_b.candidate_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.too_short.simple_mode",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.too_short.completed",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.too_short.candidate_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.invalid_container.simple_mode",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.invalid_container.completed",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.invalid_container.candidate_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "upload.unique_candidate_ids",
+      "status": "PASS"
+    },
+    {
+      "name": "batch.closed",
+      "status": "PASS"
+    },
+    {
+      "name": "analysis.batch_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "analysis.dispatched_all",
+      "status": "PASS"
+    },
+    {
+      "name": "analysis.skipped_none",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "actual": "ANALYZED",
+        "expected": "ANALYZED"
+      },
+      "name": "analysis.status.valid_a",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "actual": "ANALYZED",
+        "expected": "ANALYZED"
+      },
+      "name": "analysis.status.valid_a_copy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "actual": "ANALYZED",
+        "expected": "ANALYZED"
+      },
+      "name": "analysis.status.valid_b",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "actual": "AUTO_REJECT",
+        "expected": "AUTO_REJECT"
+      },
+      "name": "analysis.status.too_short",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "actual": "ANALYSIS_ERROR",
+        "expected": "ANALYSIS_ERROR"
+      },
+      "name": "analysis.status.invalid_container",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.valid_a.no_semantic_verdict",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.valid_a_copy.no_semantic_verdict",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.valid_b.no_semantic_verdict",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.too_short.no_semantic_verdict",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.invalid_container.no_semantic_verdict",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.valid_a.deterministic_passes",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.valid_a_copy.deterministic_passes",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.valid_b.deterministic_passes",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.too_short.blocker_duration_failure",
+      "status": "PASS"
+    },
+    {
+      "name": "findings.invalid_container.empty",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.summary.ranked",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.summary.clusters",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.summary.excluded",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.snapshot_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.algorithm_version",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.hamming_threshold",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.all_candidates_present",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.valid_a.representative_rank_1",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.exact_copy.clustered",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.valid_b.separate_representative_rank_2",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.auto_reject_excluded",
+      "status": "PASS"
+    },
+    {
+      "name": "ranking.analysis_error_excluded",
+      "status": "PASS"
+    },
+    {
+      "name": "selection.created_draft",
+      "status": "PASS"
+    },
+    {
+      "name": "selection.snapshot_binding",
+      "status": "PASS"
+    },
+    {
+      "name": "selection.human_exclude",
+      "status": "PASS"
+    },
+    {
+      "name": "selection.human_include",
+      "status": "PASS"
+    },
+    {
+      "name": "selection.locked",
+      "status": "PASS"
+    },
+    {
+      "name": "export.csv.header",
+      "status": "PASS"
+    },
+    {
+      "name": "export.row_count",
+      "status": "PASS"
+    },
+    {
+      "name": "export.same_candidate_set",
+      "status": "PASS"
+    },
+    {
+      "name": "export.json.human_actions",
+      "status": "PASS"
+    },
+    {
+      "name": "export.csv.human_actions",
+      "status": "PASS"
+    },
+    {
+      "name": "export.json_csv.field_equivalence",
+      "status": "PASS"
+    },
+    {
+      "name": "export.content_types",
+      "status": "PASS"
+    }
+  ],
+  "durationMs": 12883,
+  "exports": {
+    "csv": {
+      "rowCount": 3,
+      "sha256": "30608fefdb0446ea53e9088a4fb05bd7a96b389bb1d0047e0339815e423fa48b",
+      "sizeBytes": 188
+    },
+    "json": {
+      "rowCount": 3,
+      "sha256": "b4a17412ca58cace7e011452f348296a83bfae54cbf05fae3e065747ee4e8259",
+      "sizeBytes": 373
+    }
+  },
+  "finishedAt": "2026-09-12T18:07:19.587Z",
+  "fixtures": {
+    "brief": {
+      "path": "experiments/fixtures/pre-f9-correctness/brief.md",
+      "sha256": "aa9462c1d298c13b9fa382833d7e8e68bae56ed7862949f2f7b86e85e6e8e2b9"
+    },
+    "media": [
+      {
+        "expectedStatus": "ANALYZED",
+        "fileName": "valid-motion-a.mp4",
+        "key": "valid_a",
+        "sha256": "52f5842f450c05c8f0f530b77d937a8e52d183fb93e5910c11ea62ec88999bf9",
+        "sizeBytes": 565924
+      },
+      {
+        "expectedStatus": "ANALYZED",
+        "fileName": "valid-motion-a-exact-copy.mp4",
+        "key": "valid_a_copy",
+        "sha256": "52f5842f450c05c8f0f530b77d937a8e52d183fb93e5910c11ea62ec88999bf9",
+        "sizeBytes": 565924
+      },
+      {
+        "expectedStatus": "ANALYZED",
+        "fileName": "valid-motion-b.mp4",
+        "key": "valid_b",
+        "sha256": "f46839e9907a64a8c2822c69b8e653190d2fe682ba981e296259e6363125ef86",
+        "sizeBytes": 631886
+      },
+      {
+        "expectedStatus": "AUTO_REJECT",
+        "fileName": "too-short.mp4",
+        "key": "too_short",
+        "sha256": "370a2c2aaa8c0d5c31d13ffb6c5895d41726edc07c336cef686f69dba790f30f",
+        "sizeBytes": 92759
+      },
+      {
+        "expectedStatus": "ANALYSIS_ERROR",
+        "fileName": "invalid-container.mp4",
+        "key": "invalid_container",
+        "sha256": "8f9276d714838ff7243158f609dbb17671167ec776fc54ff2a41301ef883e347",
+        "sizeBytes": 2048
+      }
+    ],
+    "profile": {
+      "path": "experiments/fixtures/pre-f9-correctness/deterministic-profile.json",
+      "sha256": "a4ee3c769857a86c4d462c0b45352d3a6ffabf006ebae60008a5cb64e5a64bb6"
+    }
+  },
+  "providerPolicy": {
+    "profile": "deterministic-profile.json",
+    "realProviderCallsAllowed": false,
+    "semanticEnabled": false
+  },
+  "ranking": {
+    "algorithmVersion": "rank-v1",
+    "clusters": 2,
+    "exactDuplicateCandidateId": 308,
+    "excluded": 2,
+    "ranked": 2,
+    "representativeCandidateIds": [
+      307,
+      309
+    ],
+    "snapshotId": 2
+  },
+  "resources": {
+    "batchId": 4,
+    "briefId": 3,
+    "profileId": 3,
+    "profileVersionId": 3,
+    "projectId": 3
+  },
+  "schemaVersion": "frameflow.pre-f9-api-gate.v1",
+  "selection": {
+    "humanActions": {
+      "EXCLUDE": [
+        307
+      ],
+      "INCLUDE": [
+        308
+      ]
+    },
+    "itemCount": 3,
+    "selectionId": 2,
+    "status": "LOCKED",
+    "topK": 2
+  },
+  "startedAt": "2026-09-12T18:07:06.705Z",
+  "status": "PASS"
+}

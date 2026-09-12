@@ -2,7 +2,9 @@ package com.frameflow.learning.product.web;
 
 import java.util.List;
 
+import com.frameflow.learning.product.service.BatchService;
 import com.frameflow.learning.product.service.ProjectService;
+import com.frameflow.learning.product.web.BatchDtos.BatchResponse;
 import com.frameflow.learning.product.web.ProductDtos.ArchiveProjectRequest;
 import com.frameflow.learning.product.web.ProductDtos.BriefResponse;
 import com.frameflow.learning.product.web.ProductDtos.CreateProjectRequest;
@@ -36,9 +38,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final BatchService batchService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, BatchService batchService) {
         this.projectService = projectService;
+        this.batchService = batchService;
     }
 
     // ★ 核心：teamId 取自 JWT 的 tid claim（登录时签发写入），不信任任何
@@ -95,5 +99,13 @@ public class ProjectController {
     @GetMapping("/{id}/briefs/current")
     public BriefResponse currentBrief(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
         return projectService.currentBrief(Long.parseLong(jwt.getSubject()), id);
+    }
+
+    // ---------- Batches ----------
+
+    /** 历史批次列表：成员可读，供项目页回看已创建的批次（新批次在前）。 */
+    @GetMapping("/{id}/batches")
+    public List<BatchResponse> listBatches(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        return batchService.listByProject(Long.parseLong(jwt.getSubject()), id);
     }
 }

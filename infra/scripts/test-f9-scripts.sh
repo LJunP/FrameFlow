@@ -225,4 +225,13 @@ fi
 "$script_dir/generate-jwt-keypair.sh" --environment dev --output-dir "$temp_root/keys/dev" >/dev/null
 "$script_dir/renew-certificates.sh" >/dev/null
 
+# 自定义 smoke project 仅用于隔离本地测试；不允许任意名字触达其他项目。
+if "$script_dir/smoke-test.sh" --environment local \
+  --compose-file "$repo_root/infra/local/docker-compose.yml" \
+  --env-file "$repo_root/infra/local/env.example" --base-url http://127.0.0.1:3000 \
+  --project-name unrelated-project --timeout 0 >"$temp_root/smoke-rejected.log" 2>&1; then
+  echo "expected invalid smoke project name to fail" >&2; exit 1
+fi
+grep -q 'custom project name is restricted' "$temp_root/smoke-rejected.log"
+
 echo "F9 script tests: PASS"

@@ -237,6 +237,38 @@ class ProductFlowIntegrationTest {
     // ---------- Quality Profile 版本化 ----------
 
     @Test
+    void concurrent_profile_publications_receive_distinct_versions() throws Exception {
+        var owner = registerOwner("version-race@example.com");
+        long profileId = createProfile(owner, "concurrent", "{\"dimensions\":{}}");
+        var executor = java.util.concurrent.Executors.newFixedThreadPool(4);
+        var ready = new java.util.concurrent.CountDownLatch(4);
+        var start = new java.util.concurrent.CountDownLatch(1);
+        try {
+            var futures = new java.util.ArrayList<java.util.concurrent.Future<Integer>>();
+            for (int i = 0; i < 4; i++) {
+                futures.add(executor.submit(() -> {
+                    ready.countDown();
+                    if (!start.await(10, java.util.concurrent.TimeUnit.SECONDS)) throw new AssertionError("start timeout");
+                    var result = mockMvc.perform(post("/api/v1/quality-profiles/" + profileId + "/versions")
+                                    .header("Authorization", bearer(owner))
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(Map.of("spec", "{\"dimensions\":{}}"))))
+                            .andExpect(status().isCreated()).andReturn();
+                    return objectMapper.readTree(result.getResponse().getContentAsString()).get("versionNo").asInt();
+                }));
+            }
+            assertThat(ready.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+            var versions = new java.util.ArrayList<Integer>();
+            for (var future : futures) versions.add(future.get(20, java.util.concurrent.TimeUnit.SECONDS));
+            assertThat(versions).containsExactlyInAnyOrder(2, 3, 4, 5);
+        } finally {
+            start.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
     void profile_create_validate_and_versioning() throws Exception {
         var owner = registerOwner("qp@example.com");
 

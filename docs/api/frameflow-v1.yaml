@@ -82,6 +82,12 @@ paths:
       summary: 归档项目（仅 OWNER，乐观锁）
       responses:
         "200": { description: 归档后的项目 }
+  /api/v1/projects/{id}/batches:
+    get:
+      tags: [batch]
+      summary: 项目下的历史批次列表（新批次在前）
+      responses:
+        "200": { description: 批次列表 }
   /api/v1/projects/{id}/briefs:
     get:
       tags: [brief]
@@ -178,7 +184,7 @@ paths:
   /api/v1/batches/{id}/progress:
     get:
       tags: [batch]
-      summary: 批次进度（缓存优先，轮询友好；不存在的批次返回空对象）
+      summary: 批次进度（每次请求先检查归属，再读统计缓存；不存在时保留空响应）
       responses:
         "200": { description: 各状态候选计数 }
   /api/v1/batches/{id}/candidates:
@@ -190,6 +196,10 @@ paths:
     post:
       tags: [batch]
       summary: 登记候选并发放直传凭证（SIMPLE/MULTIPART）
+      description: >-
+        请求包含 fileName、contentType、sizeBytes；可选 simpleOnly=true 表示客户端
+        仅支持单文件直传。若超过服务端分片阈值则在创建候选前返回 400，默认保留双模式。
+        同批次登记按行锁串行校验容量；存储凭证失败回滚登记。
       responses:
         "201": { description: 上传指令 }
   /api/v1/batches/{id}/reconcile:

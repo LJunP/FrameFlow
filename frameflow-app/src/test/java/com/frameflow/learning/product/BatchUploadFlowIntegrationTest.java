@@ -52,7 +52,7 @@ class BatchUploadFlowIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @Autowired
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
     private StoragePort storage;
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
@@ -295,6 +295,135 @@ class BatchUploadFlowIntegrationTest {
                         .header("Authorization", bearer(ctx.tokens)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.PENDING_UPLOAD").doesNotExist());
+    }
+
+    // ---------- 历史批次列表 ----------
+
+    @Test
+    void project_batch_list_returns_created_batches() throws Exception {
+        var ctx = preparedContext("list@example.com");
+        var detail = mockMvc.perform(get("/api/v1/batches/" + ctx.batchId)
+                        .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isOk()).andReturn();
+        long projectId = objectMapper.readTree(detail.getResponse().getContentAsString())
+                .get("projectId").asLong();
+
+        mockMvc.perform(get("/api/v1/projects/" + projectId + "/batches")
+                        .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(ctx.batchId))
+                .andExpect(jsonPath("$[0].projectId").value(projectId))
+                .andExpect(jsonPath("$[0].status").value("OPEN"))
+                .andExpect(jsonPath("$[0].capacity").value(1));
+
+        // 不存在的项目 → 404（防枚举一致语义）
+        mockMvc.perform(get("/api/v1/projects/999999/batches")
+                        .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void foreign_team_profile_cannot_be_bound_to_own_project() throws Exception {
+        var owner = preparedContext("profile-owner@example.com");
+        var outsider = preparedContext("profile-outsider@example.com");
+        Long projectId = jdbcTemplate.queryForObject(
+                "SELECT project_id FROM generation_batches WHERE id=?", Long.class, outsider.batchId);
+        Long foreignProfile = jdbcTemplate.queryForObject(
+                "SELECT v.profile_id FROM generation_batches b JOIN quality_profile_versions v "
+                        + "ON v.id=b.profile_version_id WHERE b.id=?", Long.class, owner.batchId);
+        // 默认最新版本及显式版本两条入口均须隔离。
+        for (String version : List.of("", ",\"profileVersionNo\":1")) {
+            mockMvc.perform(post("/api/v1/batches")
+                            .header("Authorization", bearer(outsider.tokens))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"projectId\":" + projectId + ",\"profileId\":"
+                                    + foreignProfile + ",\"capacity\":1" + version + "}"))
+                    .andExpect(status().isNotFound());
+        }
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM generation_batches WHERE project_id=?", Integer.class, projectId))
+                .isEqualTo(1);
+    }
+
+    @Test
+    void concurrent_registration_cannot_exceed_capacity() throws Exception {
+        var ctx = preparedContext("concurrent-capacity@example.com");
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        var ready = new java.util.concurrent.CountDownLatch(2);
+        var start = new java.util.concurrent.CountDownLatch(1);
+        try {
+            java.util.concurrent.Callable<Integer> attempt = () -> {
+                ready.countDown();
+                if (!start.await(10, java.util.concurrent.TimeUnit.SECONDS)) throw new AssertionError("start timeout");
+                return mockMvc.perform(post("/api/v1/batches/" + ctx.batchId + "/candidates")
+                                .header("Authorization", bearer(ctx.tokens))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"fileName\":\"clip.mp4\",\"contentType\":\"video/mp4\",\"sizeBytes\":64}"))
+                        .andReturn().getResponse().getStatus();
+            };
+            var first = pool.submit(attempt);
+            var second = pool.submit(attempt);
+            assertThat(ready.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+            assertThat(List.of(first.get(20, java.util.concurrent.TimeUnit.SECONDS),
+                    second.get(20, java.util.concurrent.TimeUnit.SECONDS)))
+                    .containsExactlyInAnyOrder(201, 409);
+            assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM candidates WHERE batch_id=?",
+                    Integer.class, ctx.batchId)).isEqualTo(1);
+        } finally {
+            start.countDown();
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void storage_failure_rolls_back_registration_and_releases_capacity() throws Exception {
+        var ctx = preparedContext("storage-rollback@example.com");
+        org.mockito.Mockito.doThrow(new IllegalStateException("synthetic storage outage"))
+                .when(storage).presignPut(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
+        try {
+            mockMvc.perform(post("/api/v1/batches/" + ctx.batchId + "/candidates")
+                            .header("Authorization", bearer(ctx.tokens))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"fileName\":\"clip.mp4\",\"contentType\":\"video/mp4\",\"sizeBytes\":64}"))
+                    .andExpect(status().isInternalServerError());
+            assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM candidates WHERE batch_id=?",
+                    Integer.class, ctx.batchId)).isZero();
+        } finally {
+            org.mockito.Mockito.reset(storage);
+        }
+        assertThat(registerSimple(ctx, "retry.mp4", 64)).isPositive();
+    }
+
+    @Test
+    void simple_only_client_is_rejected_before_registration_at_server_threshold() throws Exception {
+        var ctx = preparedContext("simple-only@example.com");
+        // 测试服务阈值 4 MiB，故 5 MiB 文件虽低于 Web 的 32 MiB，仍必须在服务端无副作用拒绝。
+        mockMvc.perform(post("/api/v1/batches/" + ctx.batchId + "/candidates")
+                        .header("Authorization", bearer(ctx.tokens))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fileName\":\"large.mp4\",\"contentType\":\"video/mp4\","
+                                + "\"sizeBytes\":5242880,\"simpleOnly\":true}"))
+                .andExpect(status().isBadRequest());
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM candidates WHERE batch_id=?",
+                Integer.class, ctx.batchId)).isZero();
+        assertThat(registerSimple(ctx, "small.mp4", 64)).isPositive();
+    }
+
+    @Test
+    void candidate_pagination_exposes_records_after_two_hundred() throws Exception {
+        var ctx = preparedContext("pagination@example.com");
+        jdbcTemplate.update("UPDATE generation_batches SET capacity=300 WHERE id=?", ctx.batchId);
+        jdbcTemplate.update("INSERT INTO candidates(batch_id,file_name,content_type,size_bytes,object_key,created_by) "
+                + "SELECT ?, 'clip-' || n || '.mp4', 'video/mp4', 64, 'pagination-' || ? || '-' || n, "
+                + "(SELECT created_by FROM generation_batches WHERE id=?) FROM generate_series(1,300) n",
+                ctx.batchId, ctx.batchId, ctx.batchId);
+        mockMvc.perform(get("/api/v1/batches/" + ctx.batchId + "/candidates?page=1&size=200")
+                        .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(300))
+                .andExpect(jsonPath("$.items.length()").value(100))
+                .andExpect(jsonPath("$.items[0].fileName").value("clip-201.mp4"));
     }
 
     // ---------- 工具 ----------

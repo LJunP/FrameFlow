@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useApi, putWithProgress } from '@/lib/api';
+import { browserUploadError } from '@/lib/batch-upload';
 import type { Batch, Candidate, PageOf, RegisterCandidateResponse, SelectionSummary } from '@/lib/types';
 
 const STATUS_CLASS: Record<string, string> = {
@@ -25,20 +26,38 @@ export default function BatchPage() {
   const [uploadPct, setUploadPct] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [topK, setTopK] = useState(5);
+  const [candidatePage, setCandidatePage] = useState(0);
+  const [candidateTotal, setCandidateTotal] = useState(0);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const loadSequence = useRef(0);
+  const uploading = useRef(false);
+  const pageSize = 50;
 
   const load = useCallback(async () => {
+    const sequence = ++loadSequence.current;
+    setLoadingCandidates(true);
     try {
-      setBatch(await api.get<Batch>(`/batches/${id}`));
-      const page = await api.get<PageOf<Candidate>>(`/batches/${id}/candidates?size=200`);
+      const [detail, page, selectionList] = await Promise.all([
+        api.get<Batch>(`/batches/${id}`),
+        api.get<PageOf<Candidate>>(`/batches/${id}/candidates?page=${candidatePage}&size=${pageSize}`),
+        api.get<SelectionSummary[]>(`/batches/${id}/selections`),
+      ]);
+      // ★ 核心：翻页后的新请求拥有结果；旧轮询晚到不能覆盖当前页。
+      if (sequence !== loadSequence.current) return;
+      setBatch(detail);
       setCandidates(page.items);
-      setSelections(await api.get<SelectionSummary[]>(`/batches/${id}/selections`));
+      setCandidateTotal(page.total);
+      setSelections(selectionList);
     } catch (err) {
-      setMessage(String(err instanceof Error ? err.message : err));
+      if (sequence === loadSequence.current) setMessage(String(err instanceof Error ? err.message : err));
+    } finally {
+      if (sequence === loadSequence.current) setLoadingCandidates(false);
     }
-  }, [api, id]);
+  }, [api, id, candidatePage]);
 
   useEffect(() => {
     load();
+    return () => { ++loadSequence.current; };
   }, [load]);
 
   // 有进行中任务时轮询（批次进度是缓存优先端点，轮询很便宜）
@@ -60,13 +79,19 @@ export default function BatchPage() {
 
   async function upload() {
     const file = fileRef.current?.files?.[0];
-    if (!file) return;
+    if (!file || uploading.current) return;
+    // ★ 核心：预检必须发生在登记前，否则超限文件也会占用批次名额。
+    const error = browserUploadError(file);
+    if (error) { setMessage(`✗ ${error}`); return; }
+    uploading.current = true;
+    setUploadPct(0);
     setMessage('');
     try {
       const reg = await api.post<RegisterCandidateResponse>(`/batches/${id}/candidates`, {
         fileName: file.name,
         contentType: file.type || 'video/mp4',
         sizeBytes: file.size,
+        simpleOnly: true,
       });
       if (!reg.uploadUrl) throw new Error('该文件需要分片上传，请在桌面端使用小文件体验');
       setUploadPct(0);
@@ -85,6 +110,7 @@ export default function BatchPage() {
     } catch (err) {
       setMessage(String(err instanceof Error ? err.message : err));
     } finally {
+      uploading.current = false;
       setUploadPct(null);
     }
   }
@@ -156,10 +182,10 @@ export default function BatchPage() {
 
       {batch.status === 'OPEN' && (
         <div className="card">
-          <h2>上传候选视频（浏览器直传对象存储，≤32MB 单文件）</h2>
+          <h2>上传候选视频（浏览器直传对象存储，≤32 MiB 单文件）</h2>
           <div className="row">
-            <input ref={fileRef} type="file" accept="video/*" />
-            <button className="btn" onClick={upload}>
+            <input ref={fileRef} type="file" accept="video/*" aria-label="选择候选视频" disabled={uploadPct !== null} />
+            <button className="btn" onClick={upload} disabled={uploadPct !== null}>
               上传
             </button>
           </div>
@@ -168,7 +194,14 @@ export default function BatchPage() {
       )}
 
       <div className="card">
-        <h2>候选（{candidates.length}）</h2>
+        <h2>候选（{candidateTotal}）</h2>
+        <nav className="row" aria-label="候选分页" style={{ marginBottom: 12 }}>
+          <button className="btn secondary" disabled={candidatePage === 0 || loadingCandidates}
+            onClick={() => setCandidatePage((page) => page - 1)}>上一页</button>
+          <span aria-live="polite">第 {candidatePage + 1} / {Math.max(1, Math.ceil(candidateTotal / pageSize))} 页</span>
+          <button className="btn secondary" disabled={(candidatePage + 1) * pageSize >= candidateTotal || loadingCandidates}
+            onClick={() => setCandidatePage((page) => page + 1)}>下一页</button>
+        </nav>
         {candidates.length === 0 ? (
           <div className="empty">
             批次还没有候选

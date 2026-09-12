@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-13",
+  "registry": "https://registry.npmjs.org",
+  "scope": "npm production dependencies",
+  "versions": {
+    "next": "15.5.25",
+    "sharp": "0.35.4"
+  },
+  "vulnerabilities": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  }
+}

@@ -45,6 +45,16 @@ export interface Profile {
   latestVersion: number | null;
 }
 
+/** 项目页历史批次列表的行数据；candidateCounts 是各状态候选的数量统计。 */
+export interface BatchSummary {
+  id: number;
+  projectId: number;
+  profileVersionNo: number | null;
+  status: string;
+  capacity: number;
+  candidateCounts: Record<string, number> | null;
+}
+
 /** 平台公开给用户选择的模型元数据；密钥和 endpoint 永远不进入浏览器契约。 */
 export interface SemanticModelOption {
   id: string;

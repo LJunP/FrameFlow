@@ -25,6 +25,10 @@ public interface QualityProfileMapper {
             + "FROM quality_profiles WHERE id = #{id}")
     QualityProfileRow findProfileById(Long id);
 
+    @Select("SELECT id, team_id, name, description, created_by, created_at "
+            + "FROM quality_profiles WHERE id = #{id} FOR UPDATE")
+    QualityProfileRow findProfileByIdForUpdate(Long id);
+
     /** latest_version 用相关子查询取（版本表很小，子查询成本可忽略）。 */
     @Select("SELECT p.id, p.team_id, p.name, p.description, p.created_by, p.created_at, "
             + "(SELECT max(version_no) FROM quality_profile_versions v WHERE v.profile_id = p.id) "

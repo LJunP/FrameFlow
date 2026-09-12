@@ -34,7 +34,9 @@ public final class BatchDtos {
     public record RegisterCandidateRequest(
             @NotBlank @Size(max = 255) String fileName,
             @NotBlank @Size(max = 128) String contentType,
-            @NotNull @Positive long sizeBytes) {
+            @NotNull @Positive long sizeBytes,
+            /** 仅支持单文件直传的客户端传 true；服务端在落库前拒绝分片需求。 */
+            Boolean simpleOnly) {
     }
 
     /**

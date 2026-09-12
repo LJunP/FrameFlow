@@ -8,9 +8,10 @@ base_url=""
 media_url=""
 image_env_file=""
 timeout_seconds=180
+project_name=""
 
 usage() {
-  echo "usage: $0 --environment ENV --compose-file FILE --env-file FILE --base-url URL [--image-env-file FILE] [--media-url URL] [--timeout SECONDS]" >&2
+  echo "usage: $0 --environment ENV --compose-file FILE --env-file FILE --base-url URL [--image-env-file FILE] [--media-url URL] [--timeout SECONDS] [--project-name LOCAL_PROJECT]" >&2
 }
 
 while (($#)); do
@@ -22,6 +23,7 @@ while (($#)); do
     --image-env-file) image_env_file=${2:?}; shift 2 ;;
     --media-url) media_url=${2:?}; shift 2 ;;
     --timeout) timeout_seconds=${2:?}; shift 2 ;;
+    --project-name) project_name=${2:?}; shift 2 ;;
     *) usage; exit 2 ;;
   esac
 done
@@ -53,7 +55,13 @@ PY
 storage_bucket=$(read_env_key FRAMEFLOW_STORAGE_BUCKET)
 cors_origin=$(read_env_key FRAMEFLOW_STORAGE_CORS_ORIGINS)
 
-compose=(docker compose --project-name "frameflow-$environment" --env-file "$env_file")
+# 本地回归可使用隔离 project，避免触碰开发数据；远程环境仍固定名称。
+if [[ -n $project_name ]]; then
+  [[ $environment == local && $project_name =~ ^frameflow-[a-z0-9-]+$ ]] || {
+    echo "custom project name is restricted to frameflow-* local projects" >&2; exit 2;
+  }
+fi
+compose=(docker compose --project-name "${project_name:-frameflow-$environment}" --env-file "$env_file")
 if [[ -n $image_env_file ]]; then
   [[ -f $image_env_file ]] || { echo "image env file not found: $image_env_file" >&2; exit 2; }
   compose+=(--env-file "$image_env_file")

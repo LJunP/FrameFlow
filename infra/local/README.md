@@ -16,3 +16,7 @@ docker compose --env-file infra/local/.env -f infra/local/docker-compose.yml dow
 `down` 不删除命名卷；只有明确要丢弃本地测试数据时才由所有者另行执行
 `down --volumes`。Compose 默认不启用任何真实 AI Provider Key，语义调用会按既有
 fail-closed 规则形成待复核错误，而不会静默 Fake。
+
+隔离本地回归时，可用 `docker compose -p frameflow-review-YYYYMMDD ...` 创建独立栈，
+并给 smoke 同时传 `--project-name frameflow-review-YYYYMMDD`；它只允许 local 的
+`frameflow-*` 名称，远程环境仍固定 project。环境端口也须与现有栈错开。

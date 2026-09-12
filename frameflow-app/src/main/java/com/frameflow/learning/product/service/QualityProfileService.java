@@ -91,22 +91,13 @@ public class QualityProfileService {
         teamAccess.requireRole(userId, profile.getTeamId(), Role.OWNER, Role.OPERATOR);
         String specJson = validateSpec(req.spec());
 
-        // ★ 核心：并发安全的版本号生成——"算下一个版本号"和"插入"之间存在
-        // 缝隙：两个发布请求都算出 next=3 时，靠 (profile_id, version_no)
-        // UNIQUE 约束让后插入者失败；捕获后重算一次即可（此时 max 已是 3，
-        // 算出 4）。最多重试一次，再冲突说明竞争极端，宁可 500 也不锁表。
-        // 若没有这个约束兜底，"先查 max 再插入"在并发下会产生重复版本号。
-        for (int attempt = 0; attempt < 2; attempt++) {
-            Integer max = profiles.maxVersionNo(profile.getId());
-            int next = (max == null) ? 1 : max + 1;
-            try {
-                profiles.insertVersion(profile.getId(), next, specJson, userId);
-                return toVersionResponse(profiles.findVersion(profile.getId(), next));
-            } catch (DuplicateKeyException e) {
-                // 版本号被并发占用，重算（第二次仍冲突则抛出转 500）
-            }
-        }
-        throw new IllegalStateException("版本号并发冲突重试仍失败, profileId=" + profileId);
+        // ★ 核心：先锁定配置主行，再分配版本号。PostgreSQL 唯一冲突会使当前
+        // 事务进入失败状态，在同一事务捕获后重试仍会失败；行锁避免这个窗口。
+        profiles.findProfileByIdForUpdate(profile.getId());
+        Integer max = profiles.maxVersionNo(profile.getId());
+        int next = (max == null) ? 1 : max + 1;
+        profiles.insertVersion(profile.getId(), next, specJson, userId);
+        return toVersionResponse(profiles.findVersion(profile.getId(), next));
     }
 
     // ---------- 内部 ----------

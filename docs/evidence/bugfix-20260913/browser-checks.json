@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "browser": "installed Chrome via Playwright; Browser plugin not available",
+  "base": "http://127.0.0.1:3000",
+  "viewports": [
+    "1440x1000",
+    "390x844"
+  ],
+  "checks": [
+    "300 candidates / six pages",
+    "201st and 300th candidate reachable",
+    "last page disabled",
+    "mobile previous page",
+    "oversized upload zero registrations",
+    "normal synthetic upload uses one remaining slot",
+    "project history entry",
+    "no page or console errors"
+  ],
+  "projectId": 4,
+  "batchId": 5,
+  "uploadBatchId": 6
+}

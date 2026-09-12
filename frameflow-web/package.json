@@ -11,13 +11,13 @@
     "typecheck": "next typegen && tsc --noEmit --incremental false"
   },
   "dependencies": {
-    "next": "15.5.23",
+    "next": "15.5.25",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
   "overrides": {
     "postcss": "8.5.26",
-    "sharp": "0.35.3"
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "@types/node": "22.15.3",

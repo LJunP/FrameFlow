@@ -23,6 +23,14 @@ public interface BatchMapper {
             + "created_by, created_at FROM generation_batches WHERE id = #{id}")
     BatchRow findById(Long id);
 
+    @Select("SELECT id, project_id, profile_version_id, brief_id, status, capacity, "
+            + "created_by, created_at FROM generation_batches WHERE project_id = #{projectId} ORDER BY id DESC")
+    java.util.List<BatchRow> listByProject(Long projectId);
+
+    @Select("SELECT id, project_id, profile_version_id, brief_id, status, capacity, "
+            + "created_by, created_at FROM generation_batches WHERE id = #{id} FOR UPDATE")
+    BatchRow findByIdForUpdate(Long id);
+
     @Update("UPDATE generation_batches SET status = 'CLOSED' WHERE id = #{id} AND status = 'OPEN'")
     int closeIfOpen(Long id);
 }

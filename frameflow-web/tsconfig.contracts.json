@@ -8,7 +8,9 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "lib/quality-profile.ts",
@@ -16,6 +18,8 @@
     "lib/security-contracts.ts",
     "lib/types.ts",
     "tests/quality-profile.test.ts",
-    "tests/security-contracts.test.ts"
+    "tests/security-contracts.test.ts",
+    "lib/batch-upload.ts",
+    "tests/batch-upload.test.ts"
   ]
 }

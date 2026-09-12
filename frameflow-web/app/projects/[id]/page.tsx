@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useApi } from '@/lib/api';
-import type { Brief, Profile, Project, SemanticModelCatalog } from '@/lib/types';
+import type { BatchSummary, Brief, Profile, Project, SemanticModelCatalog } from '@/lib/types';
 import {
   defaultQualityProfileDraft,
   serializeQualityProfileDraft,
@@ -19,6 +19,13 @@ import {
 
 type SemanticModelLoadState = 'loading' | 'ready' | 'error';
 
+/** 把批次的候选状态计数渲染成一行摘要，如 "ANALYZED 3 · AUTO_REJECT 1"。 */
+function formatBatchCounts(counts: Record<string, number> | null): string {
+  const entries = Object.entries(counts ?? {});
+  if (entries.length === 0) return '暂无候选';
+  return entries.map(([status, n]) => `${status} ${n}`).join(' · ');
+}
+
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -26,6 +33,7 @@ export default function ProjectPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [batches, setBatches] = useState<BatchSummary[]>([]);
   const [briefText, setBriefText] = useState('');
   const [profileName, setProfileName] = useState('');
   const [profileDraft, setProfileDraft] = useState<QualityProfileDraft>(defaultQualityProfileDraft);
@@ -56,6 +64,7 @@ export default function ProjectPage() {
       setProject(await api.get<Project>(`/projects/${id}`));
       setBriefs(await api.get<Brief[]>(`/projects/${id}/briefs`));
       setProfiles(await api.get<Profile[]>('/quality-profiles'));
+      setBatches(await api.get<BatchSummary[]>(`/projects/${id}/batches`));
     } catch (err) {
       setMessage(String(err instanceof Error ? err.message : err));
     }
@@ -341,6 +350,38 @@ export default function ProjectPage() {
           {!project.currentBriefId && <span className="muted">先发布 Brief</span>}
         </form>
         {message && <div className="notice bad">{message}</div>}
+      </div>
+
+      <div className="card">
+        <h2>历史批次</h2>
+        {batches.length === 0 ? (
+          <p className="muted">还没有批次——用上面的表单创建第一个批次。</p>
+        ) : (
+          <table style={{ marginTop: 10 }}>
+            <thead>
+              <tr>
+                <th>批次</th>
+                <th>状态</th>
+                <th>容量</th>
+                <th>候选进度</th>
+                <th>标准版本</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {batches.map((b) => (
+                <tr key={b.id}>
+                  <td className="mono">#{b.id}</td>
+                  <td><span className={`badge ${b.status === 'OPEN' ? '' : 'ok'}`}>{b.status}</span></td>
+                  <td>{b.capacity}</td>
+                  <td>{formatBatchCounts(b.candidateCounts)}</td>
+                  <td className="muted">{b.profileVersionNo === null ? '—' : `v${b.profileVersionNo}`}</td>
+                  <td><Link href={`/batches/${b.id}`}>打开 ↗</Link></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </>
   );
