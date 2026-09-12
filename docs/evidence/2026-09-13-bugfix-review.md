@@ -26,6 +26,7 @@
 | B10 | 低 / 工具 | Smoke 固定 Compose project，不能检查隔离的本地回归栈 | 增加仅 local 可用的 `--project-name frameflow-*`；非法名称负例与隔离栈动态 Smoke 通过 |
 | B11 | 低 / 工具 | 演示 Worker 入口依赖旧会话 `.tmp/pre-f9-bin` | 优先原生 ffprobe，缺失时检查本地固定镜像并建立 Docker shim；无环境则明确失败。完成 shell 语法检查，推荐入口仍是 Compose |
 | B12 | 低 / 界面 | 浏览器请求网站图标得到 404 | 增加 `app/icon.svg`，重新构建后验证控制台无错误 |
+| B13 | 高 / CI | GitHub Java 作业引用不存在的 setup-java 提交，准备阶段失败 | 经官方仓库 API 确认后固定到 v4.7.1 的完整提交 `c5195efecf7bdfc987ee8bae7a71cb8b11521c00`，保持 JDK 17 |
 
 B08/B09 是依赖公告命中，不表示已证明本项目部署可以被利用。
 来源：[Next.js 公告](https://github.com/advisories/GHSA-2xp9-vwfh-vxw4)、
@@ -57,6 +58,10 @@ B08/B09 是依赖公告命中，不表示已证明本项目部署可以被利用
 
 首次浏览器检查发现图标 404；修复后复验。首次 Smoke 使用默认项目名而实际运行在
 隔离项目，未通过；修复 B10 并明确传入隔离 project 后通过，不把首次失败记为 PASS。
+
+远程首轮 [34710428675](https://github.com/LJunP/FrameFlow/actions/runs/34710428675) 暴露 B13，
+Java 失败于作业准备阶段，并非测试断言失败。原失败记录保留；修正 Action 后以最新提交
+对应运行作为最终 CI 结果，不把本地通过等同于首轮远程通过。
 
 ## 证据文件
 
