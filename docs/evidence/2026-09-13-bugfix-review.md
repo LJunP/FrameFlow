@@ -27,6 +27,7 @@
 | B11 | 低 / 工具 | 演示 Worker 入口依赖旧会话 `.tmp/pre-f9-bin` | 优先原生 ffprobe，缺失时检查本地固定镜像并建立 Docker shim；无环境则明确失败。完成 shell 语法检查，推荐入口仍是 Compose |
 | B12 | 低 / 界面 | 浏览器请求网站图标得到 404 | 增加 `app/icon.svg`，重新构建后验证控制台无错误 |
 | B13 | 高 / CI | GitHub Java 作业引用不存在的 setup-java 提交，准备阶段失败 | 经官方仓库 API 确认后固定到 v4.7.1 的完整提交 `c5195efecf7bdfc987ee8bae7a71cb8b11521c00`，保持 JDK 17 |
+| B14 | 高 / 可复现性 | 无缓存 GitHub runner 无法拉取 Docker Hub MinIO / mc，本机缓存掩盖故障 | 测试、local/remote Compose 与恢复演练统一使用官方 Quay 同版多架构固定摘要；不升级服务版本或跳过集成测试 |
 
 B08/B09 是依赖公告命中，不表示已证明本项目部署可以被利用。
 来源：[Next.js 公告](https://github.com/advisories/GHSA-2xp9-vwfh-vxw4)、
@@ -62,6 +63,15 @@ B08/B09 是依赖公告命中，不表示已证明本项目部署可以被利用
 远程首轮 [34710428675](https://github.com/LJunP/FrameFlow/actions/runs/34710428675) 暴露 B13，
 Java 失败于作业准备阶段，并非测试断言失败。原失败记录保留；修正 Action 后以最新提交
 对应运行作为最终 CI 结果，不把本地通过等同于首轮远程通过。
+
+第二轮 [34710528884](https://github.com/LJunP/FrameFlow/actions/runs/34710528884) 在 Java 中发现 B14：
+MinIO 镜像拉取被拒，导致应用测试上下文启动失败。官方同版
+[发布文档](https://github.com/minio/minio/blob/RELEASE.2025-04-22T22-12-26Z/README.md)
+指向 Quay；已读取多架构清单确认 amd64 / arm64 与固定摘要。社区上游目前已归档，
+生产前须另外评估维护策略，本轮只修复同版镜像的可获取性。
+
+切换为 Quay 同版清单后，本地全量 Java 85 项、Compose Smoke 与 80 项产品链再次通过。
+新增 `storage-distribution.json` 和 `product-receipt-quay.json`；保留此前 receipt，不覆盖旧运行。
 
 ## 证据文件
 

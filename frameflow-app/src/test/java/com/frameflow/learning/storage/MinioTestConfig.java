@@ -22,12 +22,14 @@ import java.time.Duration;
 @TestConfiguration(proxyBeanMethods = false)
 public class MinioTestConfig {
 
-    private static final String MINIO_IMAGE = "minio/minio@sha256:"
-            + "14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e";
+    // ★ 核心：固定官方 Quay 多架构清单，同一发布版在 ARM 本机与 AMD64 CI 都可获取。
+    // 原 Docker Hub 摘要在无缓存 runner 上已无法拉取，不能靠本机缓存假装可复现。
+    private static final String MINIO_IMAGE = "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z@sha256:"
+            + "a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e";
 
     @Bean(destroyMethod = "stop")
     MinIOContainer minio() {
-        return new MinIOContainer(DockerImageName.parse(MINIO_IMAGE));
+        return new MinIOContainer(DockerImageName.parse(MINIO_IMAGE).asCompatibleSubstituteFor("minio/minio"));
     }
 
     /**

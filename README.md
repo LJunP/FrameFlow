@@ -96,6 +96,10 @@ flowchart LR
 | Web | Next.js 15、React 19、TypeScript 5、Node.js 22 |
 | 运维 | Docker Compose、Nginx、GitHub Actions、Prometheus、Grafana、Loki、Alloy、Alertmanager |
 
+MinIO 使用同一历史发布版本的官方 Quay 多架构固定摘要，避免 Docker Hub 镜像不可获取。
+其[社区仓库已归档](https://github.com/minio/minio)，生产前还需评估安全维护与存储支持策略；
+本轮没有擅自更换对象存储技术。
+
 精确依赖与镜像版本以 `pom.xml`、各组件 lockfile 及 Compose 为准；JDK 的 `[17,18)` 约束由构建强制执行。
 
 ## 快速开始

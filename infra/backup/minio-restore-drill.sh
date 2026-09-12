@@ -12,8 +12,8 @@ usage() {
 }
 
 source_environment="" backup_dir="" evidence_dir=""
-minio_image="minio/minio:RELEASE.2025-04-22T22-12-26Z"
-mc_image="minio/mc:RELEASE.2025-04-16T18-13-26Z"
+minio_image="quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e"
+mc_image="quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z@sha256:aead63c77f9db9107f1696fb08ecb0faeda23729cde94b0f663edf4fe09728e3"
 execute=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -31,8 +31,8 @@ ff_require_environment "$source_environment"
 ff_safe_output_dir "$backup_dir"
 ff_safe_output_dir "$evidence_dir"
 [[ -d "$backup_dir" && ! -L "$backup_dir" ]] || ff_die "backup directory not found"
-[[ "$minio_image" == minio/minio:RELEASE.* ]] || ff_die "pinned MinIO RELEASE image required"
-[[ "$mc_image" == minio/mc:RELEASE.* ]] || ff_die "pinned mc RELEASE image required"
+[[ "$minio_image" == minio/minio:RELEASE.* || "$minio_image" =~ ^quay\.io/minio/minio:RELEASE\.[A-Za-z0-9T:-]+@sha256:[0-9a-f]{64}$ ]] || ff_die "pinned MinIO RELEASE image required"
+[[ "$mc_image" == minio/mc:RELEASE.* || "$mc_image" =~ ^quay\.io/minio/mc:RELEASE\.[A-Za-z0-9T:-]+@sha256:[0-9a-f]{64}$ ]] || ff_die "pinned mc RELEASE image required"
 manifest="$backup_dir/manifest.json"
 [[ "$(ff_read_manifest_field "$manifest" artifactType)" == "minio-current-objects" ]] || ff_die "not a MinIO backup"
 [[ "$(ff_read_manifest_field "$manifest" sourceEnvironment)" == "$source_environment" ]] || ff_die "source environment mismatch"
