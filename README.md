@@ -10,7 +10,7 @@
 
 </div>
 
-> **当前阶段：本地功能版 / 上线前验证阶段。** 核心业务链已实现，部署与运维工程已准备；远程生产部署、真实客户试点和价值验证尚未完成。本文描述当前源码能力，不代表生产可用承诺。开发主线为 [`frameflow-select/learning-main`](https://github.com/LJunP/FrameFlow/tree/frameflow-select/learning-main)。
+> **当前阶段：本地功能版 / 上线前验证阶段。** 核心业务链已实现，部署与运维工程已准备；远程生产部署、真实客户试点和价值验证尚未完成。本文描述当前源码能力，不代表生产可用承诺。开发主线为 [`main`](https://github.com/LJunP/FrameFlow/tree/main)。
 
 ## 为什么做这个项目
 
@@ -109,7 +109,7 @@ MinIO 使用同一历史发布版本的官方 Quay 多架构固定摘要，避�
 需要 Git、运行中的 Docker Engine / Docker Desktop 和支持 `env_file.required` 的 Docker Compose v2。首次构建需要网络和足够的镜像空间。本机端口须空闲：3000、18080、54329、6379、5672、15672、9000、9001；可通过本地环境文件调整。
 
 ```bash
-git clone --branch frameflow-select/learning-main https://github.com/LJunP/FrameFlow.git
+git clone --branch main https://github.com/LJunP/FrameFlow.git
 cd FrameFlow
 
 # 首次初始化；已有本地配置时不要覆盖。
@@ -221,6 +221,6 @@ FrameFlow/
 
 报告问题时请提供：源码提交、运行方式、复现步骤、期望/实际行为和脱敏日志。请勿在 Issue、PR 或截图中提交 Provider Key、访问令牌、预签名 URL、真实客户媒体或个人信息。
 
-修改应保持 JDK 17 基线、历史迁移不可变、团队权限隔离、机器/人工决定分离及 `ANALYSIS_ERROR` 语义；相关回归通过后再提交。开发主线为 `frameflow-select/learning-main`；`main` 与 `archive/frameflow-select-agent-mvp-v1` 是冻结历史，不应当作最新开发入口。
+修改应保持 JDK 17 基线、历史迁移不可变、团队权限隔离、机器/人工决定分离及 `ANALYSIS_ERROR` 语义；相关回归通过后再提交。开发主线为 `main`；`main` 已解除冻结，作为唯一长期主线；旧开发分支已归档为标签，历史记录见 [主线统一记录](docs/evidence/2026-09-13-main-consolidation.md)。
 
 **当前仓库尚未提供 LICENSE 文件。** 公开源码不等于已授予开源使用、修改或分发许可；许可证选择由项目所有者另行决定。本文不擅自声明 MIT、Apache-2.0 等许可。

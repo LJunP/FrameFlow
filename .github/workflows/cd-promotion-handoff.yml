@@ -9,7 +9,7 @@ on:
         options: [dev, staging, production]
         required: true
       source_run_id:
-        description: Successful learning-main CI run containing frameflow-image-manifest
+        description: Successful main CI run containing frameflow-image-manifest
         type: string
         required: true
       confirmation:
@@ -81,7 +81,7 @@ jobs:
               "run_id": source_run_id,
               "conclusion": "success",
               "event": "workflow_dispatch",
-              "head_branch": "frameflow-select/learning-main",
+              "head_branch": "main",
               "workflow_path": ".github/workflows/ci.yml",
               "repository": repository,
           }

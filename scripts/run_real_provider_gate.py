@@ -48,7 +48,7 @@ LIVE_CONFIRMATION = "LIVE_PROVIDER_SYNTHETIC_ONE_REQUEST"
 SAFE_TOKEN = re.compile(r"^[A-Za-z0-9._~+/=:-]{16,}$")
 CHALLENGE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 DIMENSIONS = ["visual_challenge", "frame_sequence"]
-AUTHORIZED_BRANCH = "frameflow-select/learning-main"
+AUTHORIZED_BRANCH = "main"
 
 
 class GateError(Exception):

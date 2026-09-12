@@ -68,7 +68,7 @@ done
 
 handoff=.github/workflows/cd-promotion-handoff.yml
 for binding in \
-  '"head_branch": "frameflow-select/learning-main"' \
+  '"head_branch": "main"' \
   'release.get("gitSha") != git_sha' \
   'ref: ${{ steps.source.outputs.git_sha }}' \
   '--expected-git-sha "$MANIFEST_SHA"' \
