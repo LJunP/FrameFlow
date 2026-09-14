@@ -30,6 +30,9 @@ __MACOSX/
 .codex/
 .workbuddy-ai/
 
+# Leftover empty Maven module dirs from an abandoned split (code lives in frameflow-app)
+frameflow-modules/
+
 # TypeScript incremental cache
 frameflow-web/tsconfig.tsbuildinfo
 
