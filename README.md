@@ -19,9 +19,10 @@
 
 ---
 
-> ### 当前阶段：本地功能版 / 上线前验证阶段
+> ### 当前阶段：本地功能版 / 上线前验证阶段（源码截至 `main`）
 >
-> 核心业务链（F1–F8、F6.1、F12）已实现并通过本地回归；F9–F11 的**本地工程与动态门禁**已交付。
+> 核心业务链（F1–F8、F6.1、F12）以及邀请、邮箱验证、多团队切换、所有权转移、
+> 分片续传、分析 Outbox 均已实现，本地回归通过；F9–F11 的**本地工程与动态门禁**已交付。
 > **远程生产部署、production 运维验收、真实客户试点与价值结论尚未执行。**
 >
 > 本文描述当前源码的真实能力，不构成生产可用承诺。开发主线为 `main`。
@@ -60,7 +61,7 @@ FrameFlow Select 把这件事组织成一条可追溯流程：
 
 ### 一次完整的使用流程
 
-1. **注册并进入团队工作区**，创建项目。
+1. **注册并进入团队工作区**（可验证邮箱、接受邀请或切换团队），创建项目。
 2. **发布 Brief**：保存本批视频的创作要求；每次发布形成不可变快照。
 3. **创建质检标准**：设置时长、分辨率、帧率等规则；按需启用平台配置的多模态模型。
 4. **创建批次并上传**：批次固定引用 Brief 与质检标准的具体版本。
@@ -75,8 +76,8 @@ FrameFlow Select 把这件事组织成一条可追溯流程：
 | --- | --- | --- |
 | **用户认证** | 注册、登录、RS256 JWT、刷新令牌轮换、登出、当前账户信息、**昵称编辑**、**密码修改**、**自助找回密码**、**邮箱验证** | 真实发信需要配置 SMTP；本地可用 Mailpit（1025/8025） |
 | **团队权限** | 角色检查、团队隔离、成员列表、邀请（可发邮件）、撤销邀请、角色调整、移除成员、**多团队切换**、**所有权转移** | — |
-| **项目管理** | 项目创建、查询、修改、归档，乐观锁与分页 API | 前端覆盖主要创建与读取流程；并非每个管理 API 都已有完整界面 |
-| **Brief 与质检标准** | Brief 不可变快照、Quality Profile 版本化、输入校验、批次固定版本 | 历史版本不原地修改 |
+| **项目管理** | 项目创建、查询、修改、归档，乐观锁；工作台与项目历史批次均为 0-based 分页 | 归档后不可再改 |
+| **Brief 与质检标准** | Brief 不可变快照、Quality Profile 版本化（可发新版本）、输入校验、批次固定版本 | 历史版本不原地修改 |
 | **批次与上传** | 容量 1–300、关闭批次、历史批次分页、候选分页；单文件 ≤200 MiB，>32 MiB 自动分片；多文件拖放排队；**分片断点续传**；**对账入口** | — |
 | **上传入口校验** | 对象存在性、大小、媒体签名；异常证据与对账接口 | 入口签名检查不是完整解码，损坏容器仍由 Worker 深度探针识别 |
 | **确定性质检** | FFprobe 元数据、时长/分辨率/帧率规则、黑帧/冻结检测 | 规则依配置执行；不等于覆盖全部视觉缺陷的专业质量评估 |
@@ -84,9 +85,9 @@ FrameFlow Select 把这件事组织成一条可追溯流程：
 | **AI 语义检查** | 创作要求对齐、整体观感、策略违规三类语义结果；Chat Completions / Responses 双协议适配 | 模型需平台配置与有效凭据；最多 3 张关键帧，不保证覆盖全片所有瞬间 |
 | **平台模型选择** | 安全模型目录、启用白名单、Profile 固定 modelId、Worker 路由、Worker-only 密钥注入 | 用户选择平台提供的模型；密钥由运维配置，不在网页填写或返回 |
 | **聚类与排名** | SHA-256 精确重复、dHash 近重复、资格门、加权评分、排名快照 | 相似度阈值与分数不是未经真实数据验证的质量保证 |
-| **人工优选** | Top-K、INCLUDE / EXCLUDE、机器/人工两列、**批量收录/剔除**、DRAFT → LOCKED | 锁定不可逆 |
+| **人工优选** | Top-K、INCLUDE / EXCLUDE、机器/人工两列、批量收录/剔除、**按候选 ID 纳入与备注**、DRAFT → LOCKED | 锁定不可逆 |
 | **导出** | JSON / CSV，**中文表头 + UTF-8 BOM**，含文件名/状态/大小/得分/**机器入选**/**簇编号**/质检结论/人工动作/时间戳，文件名带日期 | 导出结构化选择结果，不打包或渲染成片 |
-| **Web 界面** | 公开首页、认证、工作台、项目、批次、候选审阅、优选、账户与团队；**全局搜索**、**Toast 通知**、**空状态引导**、**移动端抽屉滑动手势**；液态玻璃视觉与鼠标跟随动效 | 不宣称所有浏览器和尺寸均完成兼容性验收 |
+| **Web 界面** | 公开首页、登录/注册、**找回密码**、**邮箱验证**、**接受邀请**、工作台、项目（含编辑/归档/发标准新版本）、批次（含对账与续传）、候选审阅、优选、账户（含切团队）、团队（含转让 Owner）；全局搜索、Toast、空状态、移动端抽屉 | 不宣称所有浏览器均完成兼容性验收 |
 | **候选审阅播放器** | 倍速（0.25x–2x）、逐帧步进、毫秒级时间码、截图导出 PNG、全屏、键盘快捷键、Finding 时间码跳转 | 全屏能力受宿主策略限制，失败时显式提示 |
 | **缓存与限流** | 批次进度缓存、写后失效、Redis 故障降级、登录限流 | 缓存只优化统计；读取前仍校验当前用户权限 |
 | **部署与运维** | 三个应用镜像、多环境 Compose、Nginx/HTTPS 模板、CI、晋级/回滚脚本；指标、日志、告警、备份恢复与故障演练工具 | 本地工程已交付；远程部署与生产运维验收未完成 |
@@ -165,7 +166,8 @@ MinIO 使用同一历史发布版本的官方 Quay 多架构固定摘要，避�
 ### 方式一：完整本地 Docker 栈（推荐）
 
 需要 Git、运行中的 Docker Engine / Docker Desktop 和支持 `env_file.required` 的 Docker Compose v2。
-本机端口须空闲：3000、18080、54329、6379、5672、15672、9000、9001；可通过本地环境文件调整。
+本机端口须空闲：3000（Web）、18080（API）、54329、6379、5672、15672、9000、9001，以及 Mailpit **1025 / 8025**；可通过本地环境文件调整。
+若本机 3000 已被占用，宿主机前端可用 **3100**，但必须把该 origin 写入 `FRAMEFLOW_STORAGE_CORS_ORIGINS` 与 `FRAMEFLOW_PUBLIC_BASE_URL`。
 
 ```bash
 git clone --branch main https://github.com/LJunP/FrameFlow.git
@@ -184,6 +186,7 @@ infra/scripts/smoke-test.sh --environment local \
 ```
 
 打开 **http://127.0.0.1:3000**，注册一个本地测试账户。API 默认在 **http://127.0.0.1:18080**。
+本地邮件收件箱：**http://127.0.0.1:8025**（Mailpit）。邀请与找回密码的链接域名由 `FRAMEFLOW_PUBLIC_BASE_URL` 决定，Docker 全栈应与前端端口一致（默认 3000）。
 请统一使用 `127.0.0.1`，不要与 `localhost` 混用——否则 Cookie 域与对象存储 CORS 会不一致。
 
 > **首次体验建议**：先**关闭质检标准中的 AI 语义检查**，用合成视频跑通确定性链路。
@@ -200,9 +203,18 @@ docker compose --env-file infra/local/.env -f infra/local/docker-compose.yml dow
 `down` 保留命名卷。示例凭据只供 loopback 本地开发，不能用于公网部署。
 详见 [local 运行说明](infra/local/README.md) 与 [部署导读](docs/guides/F9-源码导读.md)。
 
-**只把 Java 跑在宿主机时**（前端/Worker 用 Compose，后端用 IDE 或 `./mvnw`）：
-在 `infra/local/.env` 里设置 `FRAMEFLOW_WORKER_API_BASE=http://host.docker.internal:18080`，
-否则容器内的 Worker 会把 `127.0.0.1` 解析成自己，分析任务永远停在进行中。
+**只把 Java 跑在宿主机时**（中间件与 Worker 用 Compose，后端用 IDE 或 jar）：
+
+1. 根目录 `.env` 供宿主机 Java 使用；`infra/local/.env` 供 Compose 使用，两份不要改错。
+2. `FRAMEFLOW_WORKER_API_BASE=http://host.docker.internal:18080`（写在 Compose 用的 env 里），
+   否则容器内 Worker 会把 `127.0.0.1` 解析成自己，分析永远停在进行中。
+3. Worker 容器必须单独起来，不会随中间件自动启动。
+4. 前端：`npm --prefix frameflow-web run dev -- -p 3100`（3000 被占用时）。
+5. CORS 与邮件链接必须包含该 origin，例如：
+   `FRAMEFLOW_STORAGE_CORS_ORIGINS=http://127.0.0.1:3100`，
+   `FRAMEFLOW_PUBLIC_BASE_URL=http://127.0.0.1:3100`。
+6. 改完 Java 后不要覆盖正在运行的 jar：先停掉旧进程，再 `java -jar`。
+   数据库迁移只前向，当前最新为 **V10**（邮箱验证令牌 + 分析 Outbox）。
 
 ### 方式二：源码开发与测试
 
@@ -227,6 +239,7 @@ npm --prefix frameflow-web run build
 
 `npm --prefix frameflow-web run dev` 仅启动前端，不能代替 Java、Worker 和中间件。
 前端开发与生产构建分别使用 `.next-dev`、`.next`，避免互相覆盖。
+数据库迁移由 Flyway 只前向执行，当前最新 **V10**。
 
 ### 可选：接入真实模型
 
@@ -287,8 +300,8 @@ npm --prefix frameflow-web run build
 | 认证 | `POST /auth/register`、`/auth/login`、`/auth/refresh`、`/auth/logout`、`GET /me`、`GET /me/teams`、`POST /me/current-team`、`POST /auth/password-reset/request`、`POST /auth/password-reset/confirm`、`POST /auth/verify-email/request`、`POST /auth/verify-email/confirm` |
 | 账户 | `PUT /users/me/profile`、`PUT /users/me/password` |
 | 团队与邀请 | `GET /teams/{id}/members`、`PUT /teams/{id}/members/{userId}/role`、`DELETE /teams/{id}/members/{userId}`、`POST /teams/{id}/owner`、`GET|POST /teams/{id}/invitations`、`DELETE /teams/{id}/invitations/{invitationId}`、`POST /invitations/accept` |
-| 项目与配置 | `GET|POST /projects`、`GET|PUT /projects/{id}`、`POST /projects/{id}/archive`、`GET /projects/{id}/batches`、`GET|POST /projects/{id}/briefs`、`GET /projects/{id}/briefs/current`、`GET|POST /quality-profiles`、`GET|POST /quality-profiles/{id}/versions`、`GET /semantic-models` |
-| 批次与上传 | `POST /batches`、`GET /batches/{id}`、`POST /batches/{id}/close`、`GET /batches/{id}/progress`、**`GET /batches/{id}/events`（SSE）**、`GET|POST /batches/{id}/candidates`、`POST /batches/{id}/reconcile`、`POST /candidates/{id}/upload-parts`、`POST /candidates/{id}/complete`、`GET /candidates/{id}/content-url` |
+| 项目与配置 | `GET|POST /projects`、`GET|PUT /projects/{id}`、`POST /projects/{id}/archive`、`GET /projects/{id}/batches`（分页）、`GET|POST /projects/{id}/briefs`、`GET /projects/{id}/briefs/current`、`GET|POST /quality-profiles`、`GET|POST /quality-profiles/{id}/versions`、`GET /quality-profiles/{id}/versions/{versionNo}`、`GET /semantic-models` |
+| 批次与上传 | `POST /batches`（**没有** `GET /batches` 列表，误用返回 405）、`GET /batches/{id}`、`POST /batches/{id}/close`、`GET /batches/{id}/progress`、`GET /batches/{id}/events`（SSE）、`GET|POST /batches/{id}/candidates`、`POST /batches/{id}/reconcile`、`GET /candidates/{id}/upload-session`、`POST /candidates/{id}/upload-parts`、`POST /candidates/{id}/complete`、`GET /candidates/{id}/content-url` |
 | 分析与证据 | `POST /batches/{id}/analyze`、`GET /candidates/{id}/findings` |
 | 排名与优选 | `POST /batches/{id}/rank`、`GET /batches/{id}/ranking/latest`、`GET|POST /batches/{id}/selections`、`GET /selections/{id}`、`POST /selections/{id}/items`、`POST /selections/{id}/lock`、`GET /selections/{id}/export?format=json\|csv` |
 | 搜索 | `GET /search?q=&limit=`（项目 / 批次 / 候选分组，团队作用域） |
@@ -304,9 +317,9 @@ npm --prefix frameflow-web run build
 
 | 范围 | 规模 | 时效 |
 | --- | --- | --- |
-| Java | 115 项（含越权负例、幂等、并发、契约、邀请/团队切换与架构边界） | 本次工作树实测 |
-| Web | 19 项契约测试 + 类型检查 + 生产构建 | 本次工作树实测 |
-| Worker + Pilot | 131 项（Worker 110 + Pilot 21，离线，无真实模型调用） | 2026-09-13 记录，本轮未重跑 |
+| Java | 115 项（含越权负例、幂等、并发、契约、邀请/邮箱验证/团队切换与架构边界） | 2026-09-14 工作树实测 |
+| Web | 19 项契约测试 + 类型检查 + 生产构建 | 2026-09-14 工作树实测 |
+| Worker + Pilot | 131 项（Worker 110 + Pilot 21，离线，无真实模型调用） | Worker 2026-09-14 复验 110；Pilot 21 为 2026-09-13 记录 |
 
 ### 本地端到端实测（当前工作树）
 
@@ -320,7 +333,7 @@ npm --prefix frameflow-web run build
 
 ### 证据与报告
 
-- 当前修复范围、验证结果与剩余边界：[2026-09-13 修复记录](docs/evidence/2026-09-13-bugfix-review.md)
+- 2026-09-13 安全与缺陷修复：[修复记录](docs/evidence/2026-09-13-bugfix-review.md)（其后邀请哈希、邮箱验证、Outbox 等已合入 `main`，以源码为准）
 - 历史真实 Provider 合成链路：[2026-08-25 E2E 证据](docs/evidence/f6-real-provider-full-e2e-opencode-luna-2026-08-25-retry/README.md)（39 项检查、1 次模型请求；仅代表当次运行）
 - 可复现确定性链路：[夹具与门禁说明](experiments/fixtures/pre-f9-correctness/README.md)
 - 本地运维证据：[F9 部署](docs/evidence/F9-本地部署门禁报告.md) · [F10 运维](docs/evidence/F10-本地验证报告.md) · [F5 Redis 降级演练](docs/evidence/F5-redis-降级演练.md)

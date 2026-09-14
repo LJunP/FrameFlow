@@ -45,7 +45,7 @@ paths:
   /api/v1/auth/password-reset/request:
     post:
       tags: [auth]
-      summary: 申请找回密码（始终 204，防邮箱枚举；未接入邮件发送）
+      summary: 申请找回密码（始终 204，防邮箱枚举；配置 SMTP/Mailpit 时发信）
       responses:
         "204": { description: 已受理 }
   /api/v1/auth/password-reset/confirm:
