@@ -1,55 +1,36 @@
-# AGENTS.md — FrameFlow Select 协作规则
+# AGENTS.md — FrameFlow Select
 
-## 1. 唯一目标
+FrameFlow Select 是面向 AI 生成短视频的批量质检与优选平台。本仓库按**产品工程**推进，不是学习课程。
 
-Agent 实现整个产品，所有者通过阅读带注释的源码掌握全部开发技术（第一）；
-产品价值真实可用（第二）；求职展示（第三）。三者顺序不可颠倒。
+## 权威来源（优先级递减）
 
-## 2. 权威来源（优先级递减）
+1. 当前对话中的明确指令
+2. `docs/01-产品与领域设计.md`（产品与领域）
+3. `docs/02-技术架构与技术栈.md`（技术选型）
+4. `docs/03-开发路线.md`（功能切片与任务）
+5. `docs/api/frameflow-v1.yaml`（API 契约，与运行时双向锁定）
 
-1. 项目所有者当前提示词
-2. docs/01（产品与领域）、docs/02（技术架构）、docs/03（开发与学习路线）
-3. .learning/PROGRESS.md（进度状态）
-4. 后续沉淀的 ADR 与 Runbook
+## 技术基线（勿擅改）
 
-## 3. 协作分工
+- **JDK 17**：根 pom 的 maven-enforcer 硬锁 `[17,18)`，非 17 构建直接失败
+- 其余选型以 docs/02 为准：Spring Boot 3.4.5、PostgreSQL 16、Redis、RabbitMQ、MinIO、Python 3.11、Next.js。变更须先说明理由
 
-- **Agent（开发方）**：实现每个功能（F1–F12）的全部代码、测试与部署配置。
-  强制遵守 docs/03 §0.2 注释规范——核心逻辑用 `// ★ 核心：` 标注
-  （做什么、为什么、改坏会怎样），调用链入口标注阅读顺序，不刷样板注释；
-  每个功能交付《源码导读》（docs/guides/F<n>-源码导读.md）。
-- **所有者（学习方 + 决策方）**：阅读源码与导读、本地运行验证、提问；
-  在 PROGRESS.md 维护学习状态（未读/阅读中/已理解）；功能验收、方向变更、
-  发布审批只由所有者拍板。
-- **物理动作例外**：服务器购买、SSH 操作、DNS 配置、生产发布只能所有者
-  亲手执行；Agent 准备全部配置、脚本与逐步指引。
+## 红线
 
-## 4. 技术基线（勿擅改）
-
-- **JDK 17**：根 pom 的 maven-enforcer 已硬锁 `[17,18)`，非 17 构建直接失败；
-  不得升级版本、不得移除该约束
-- 其余选型（Spring Boot 3.4.5、PostgreSQL 16、Redis、RabbitMQ、MinIO、
-  Python 3.11、Next.js）以 docs/02 为准；任何变更须先获所有者批准并记录理由
-
-## 5. 硬性红线
-
-- 主线策略（2026-09-13 所有者批准，替代 2026-08-22 旧策略）：解除 `main` 冻结，
-  本地及 origin 仅保留 `main` 为长期分支；最新完整代码统一在 `main`。
-- 允许向 origin 推送 `main` 与 tags；需要隔离开发时可使用临时 `codex/<短名>` 分支，
-  验证并合回 `main` 后清理。旧分支本次经所有者授权清理，历史位置保留为归档标签。
-- 不 force push、不改写已推送历史、不删除 .git；历史标签保持只读。
+- `main` 是唯一长期主线；隔离开发用临时 `codex/<短名>` 分支，合回后清理
+- 允许向 origin 推送 `main` 与 tags；不 force push、不改写已推送历史、不删除 `.git`
 - 不读取工作区外 Secret；不提交真实客户媒体、密钥、密码
-- 不修改已执行迁移；不通过改阈值/测试/历史制造 PASS
-- 不得代标所有者的学习状态（"已理解"只能由所有者本人标记）
-- 不得自行设置 PROJECT_COMPLETE / PILOT_VALUE_PROVEN（只能由所有者依据数据批准）
-- ANALYSIS_ERROR 不得伪装成视频不合格
-- 答案册分支只读对照（冻结状态以 tag `frameflow-select-agent-mvp-v1.0.0` 为准）：
-  可作架构参考，须按当前文档与 JDK 17 基线重新实现，不得直接搬移旧代码
+- 不修改已执行的 Flyway 迁移；不通过改阈值/测试/历史制造 PASS
+- `ANALYSIS_ERROR` 不得伪装成视频不合格
+- 语义结论不得自动淘汰候选；只有带证据的确定性规则可触发 `AUTO_REJECT`
+- 机器决定与人工决定分离：人工调整只叠加标记，不改写机器结果
+- 所有资源查询必须校验调用者的团队归属
+- 购买服务器、SSH、DNS、生产发布由有权限的人亲手执行；仓库内准备配置与脚本
+- 生产可用与试点价值只能依据真实运行数据判断
 
-## 6. 当前状态速览
+## 开发约定
 
-- 主线分支：`main`（唯一长期主线，已解除冻结）
-- 进度：`.learning/PROGRESS.md`（合成真媒体产品全链、F6.1 平台多模型选择自动化、
-  OpenCode Go Luna 单请求合成视觉门禁及 F9–F11 本地工程均已通过；远程部署、
-  production 运维、真实客户试点与价值结论仍未执行）
-- 流程、注释规范与交付标准：`docs/03-开发与学习路线.md` §0
+- 核心逻辑注释写「为什么」和「改坏会怎样」，不刷样板注释
+- 改 API 必须同步 `docs/api/frameflow-v1.yaml`，必要时同步 README
+- 验证：`./mvnw -B verify`、Worker pytest、`npm --prefix frameflow-web run test:contracts` / `typecheck` / `build`
+- conventional commits：feat / fix / test / docs / chore

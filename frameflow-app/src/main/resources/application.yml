@@ -1,6 +1,6 @@
 spring:
   application:
-    name: frameflow-select-learning
+    name: frameflow-select
 
   # F1-T2 数据源：默认值与本机 infra/local/docker-compose.yml 里的 PostgreSQL 对齐；
   # 生产/服务器环境用环境变量覆盖（见 .env.example），代码不感知环境差异。

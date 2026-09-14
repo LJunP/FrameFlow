@@ -9,7 +9,7 @@
     <version>0.1.0-SNAPSHOT</version>
   </parent>
   <artifactId>frameflow-app</artifactId>
-  <name>FrameFlow Select app (minimal learning skeleton)</name>
+  <name>FrameFlow Select app</name>
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -72,8 +72,7 @@
       <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
-    <!-- F3: S3 兼容对象存储客户端（MinIO 走 endpoint 覆盖 + path-style），
-         AWS SDK v2 同时也是求职市场上的通用技能 -->
+    <!-- F3: S3 兼容对象存储客户端（MinIO 走 endpoint 覆盖 + path-style） -->
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>s3</artifactId>

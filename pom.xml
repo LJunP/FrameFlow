@@ -7,8 +7,8 @@
   <artifactId>frameflow-select</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>FrameFlow Select (learning)</name>
-  <description>Learning-first rebuild. Business implementations live only on the archived agent-MVP reference (tag frameflow-select-agent-mvp-v1.0.0).</description>
+  <name>FrameFlow Select</name>
+  <description>Batch quality inspection and selection for AI-generated short videos.</description>
   <modules>
     <module>frameflow-app</module>
   </modules>
