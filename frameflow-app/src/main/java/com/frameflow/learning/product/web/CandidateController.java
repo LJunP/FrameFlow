@@ -28,6 +28,12 @@ public class CandidateController {
         this.uploadService = uploadService;
     }
 
+    @GetMapping("/{id}/upload-session")
+    public BatchDtos.UploadSessionResponse uploadSession(@AuthenticationPrincipal Jwt jwt,
+                                                         @PathVariable long id) {
+        return uploadService.uploadSession(Long.parseLong(jwt.getSubject()), id);
+    }
+
     @PostMapping("/{id}/upload-parts")
     public UploadPartsResponse uploadParts(@AuthenticationPrincipal Jwt jwt,
                                            @PathVariable long id,

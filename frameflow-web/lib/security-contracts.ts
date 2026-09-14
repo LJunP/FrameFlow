@@ -90,7 +90,8 @@ export function sameAuthUser(
     left
     && left.id === right.id
     && left.email === right.email
-    && left.displayName === right.displayName,
+    && left.displayName === right.displayName
+    && Boolean(left.emailVerified) === Boolean(right.emailVerified),
   );
 }
 

@@ -51,6 +51,7 @@ export default function ProjectPage() {
   const [batchProfileId, setBatchProfileId] = useState<number | ''>('');
   const [capacity, setCapacity] = useState(50);
   const [message, setMessage] = useState('');
+  const [profileTarget, setProfileTarget] = useState<'new' | number>('new');
 
   const enabledSemanticModels = useMemo(
     () => listEnabledSemanticModels(semanticModelCatalog),
@@ -133,6 +134,32 @@ export default function ProjectPage() {
           {project.name} <span className={`badge ${project.status === 'ACTIVE' ? 'ok' : ''}`}>{project.status}</span>
         </h2>
         <p className="muted">{project.description ?? '无说明'}</p>
+        {project.status === 'ACTIVE' && (
+          <form className="row" style={{ marginTop: 12 }} onSubmit={async (e) => {
+            e.preventDefault();
+            const form = e.currentTarget;
+            const name = (form.elements.namedItem('projName') as HTMLInputElement).value.trim();
+            const description = (form.elements.namedItem('projDesc') as HTMLInputElement).value.trim();
+            try {
+              setProject(await api.put<Project>(`/projects/${id}`, { name, description: description || null, lockVersion: project.lockVersion }));
+              setMessage('项目已更新');
+            } catch (err) {
+              setMessage(String(err instanceof Error ? err.message : err));
+            }
+          }}>
+            <input name="projName" defaultValue={project.name} required maxLength={96} />
+            <input name="projDesc" defaultValue={project.description ?? ''} placeholder="说明（可选）" maxLength={512} />
+            <button className="btn secondary" type="submit">保存项目</button>
+            <button className="btn secondary" type="button" onClick={async () => {
+              if (!window.confirm('归档后不能再改这个项目。确定？')) return;
+              try {
+                setProject(await api.post<Project>(`/projects/${id}/archive`, { lockVersion: project.lockVersion }));
+              } catch (err) {
+                setMessage(String(err instanceof Error ? err.message : err));
+              }
+            }}>归档</button>
+          </form>
+        )}
       </div>
 
       <div className="card">
@@ -197,7 +224,7 @@ export default function ProjectPage() {
             <p className="card-kicker">QUALITY PROFILE</p>
             <h2>创建质检标准</h2>
           </div>
-          <span className="badge">创建即发布 v1</span>
+          <span className="badge">{profiles.length ? '可新建或发布新版本' : '创建即发布 v1'}</span>
         </div>
         <p className="muted quality-editor-intro">用业务语言设置视频边界。系统会在提交时生成内部规则，普通用户无需编写 JSON。</p>
         <form
@@ -205,7 +232,7 @@ export default function ProjectPage() {
           onSubmit={async (e) => {
             e.preventDefault();
             const errors = validateQualityProfileDraft(
-              profileName,
+              profileTarget === 'new' ? profileName : 'existing',
               profileDraft,
               enabledSemanticModels.map((entry) => entry.id),
             );
@@ -213,11 +240,17 @@ export default function ProjectPage() {
             if (errors.length) return;
             setMessage('');
             try {
-              await api.post('/quality-profiles', {
-                name: profileName.trim(),
-                description: null,
-                spec: serializeQualityProfileDraft(profileDraft),
-              });
+              if (profileTarget === 'new') {
+                await api.post('/quality-profiles', {
+                  name: profileName.trim(),
+                  description: null,
+                  spec: serializeQualityProfileDraft(profileDraft),
+                });
+              } else {
+                await api.post(`/quality-profiles/${profileTarget}/versions`, {
+                  spec: serializeQualityProfileDraft(profileDraft),
+                });
+              }
               setProfileName('');
               setProfileDraft({
                 ...defaultQualityProfileDraft,
@@ -231,7 +264,13 @@ export default function ProjectPage() {
             }
           }}
         >
-          <label className="quality-name-field">标准名称<input value={profileName} required placeholder="例如：电商竖版" onChange={(e) => setProfileName(e.target.value)} /></label>
+          {profiles.length > 0 && (
+            <label>应用到<select value={profileTarget} onChange={(e) => setProfileTarget(e.target.value === 'new' ? 'new' : Number(e.target.value))}>
+              <option value="new">新建标准</option>
+              {profiles.map((p) => <option key={p.id} value={p.id}>{p.name}（当前 v{p.latestVersion ?? 1}）</option>)}
+            </select></label>
+          )}
+          <label className="quality-name-field">标准名称<input value={profileName} required={profileTarget === 'new'} placeholder="例如：电商竖版" onChange={(e) => setProfileName(e.target.value)} /></label>
           <fieldset>
             <legend>视频时长</legend>
             <div className="quality-fields">

@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/components/toast/use-toast';
+import type { UserTeam } from '@/lib/types';
 
 interface Feedback { ok: boolean; text: string }
 
 export default function AccountPage() {
-  const { user, team, ready, logout, updateUser } = useAuth();
+  const { user, team, ready, logout, updateUser, setSession, accessToken } = useAuth();
   const router = useRouter();
   const api = useApi();
   const toast = useToast();
@@ -24,8 +25,14 @@ export default function AccountPage() {
   const [pwSaving, setPwSaving] = useState(false);
   const [pwMsg, setPwMsg] = useState<Feedback | null>(null);
   const [pwDone, setPwDone] = useState(false);
+  const [teams, setTeams] = useState<UserTeam[]>([]);
+  const [switching, setSwitching] = useState(false);
 
   useEffect(() => { if (ready && !user) router.replace('/login?next=/account'); }, [ready, router, user]);
+  useEffect(() => {
+    if (!user) return;
+    void api.get<UserTeam[]>('/me/teams').then(setTeams).catch(() => setTeams([]));
+  }, [api, user]);
 
   const saveProfile = async (e: FormEvent) => {
     e.preventDefault();
@@ -61,6 +68,43 @@ export default function AccountPage() {
     } finally { setPwSaving(false); }
   };
 
+  const switchTeam = async (teamId: number) => {
+    if (!accessToken || switching || teamId === team?.id) return;
+    setSwitching(true);
+    try {
+      const response = await fetch('/api/auth/switch-team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ teamId }),
+      });
+      if (!response.ok) {
+        const detail = await response.json().catch(() => ({}));
+        throw new Error(detail.message || `HTTP ${response.status}`);
+      }
+      setSession(await response.json());
+      toast.success('已切换团队');
+      router.push('/workspace');
+    } catch (reason) {
+      toast.error(reason instanceof Error ? reason.message : String(reason));
+    } finally {
+      setSwitching(false);
+    }
+  };
+
+  const resendVerify = async () => {
+    if (!accessToken) return;
+    try {
+      const response = await fetch('/api/auth/verify-email-request', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (response.status !== 204 && !response.ok) throw new Error(`HTTP ${response.status}`);
+      toast.success('验证邮件已发送（未配置 SMTP 时见服务日志）');
+    } catch (reason) {
+      toast.error(reason instanceof Error ? reason.message : String(reason));
+    }
+  };
+
   if (!ready || !user) return <p className="loading">正在读取账户…</p>;
 
   return <div className="settings-page"><header className="settings-head"><p>ACCOUNT</p><h1>个人中心</h1><span>这里展示当前会话中的真实账户与团队信息。</span></header><div className="settings-grid"><section className="card identity-card"><div className="identity-avatar">{user.displayName.slice(0, 1).toUpperCase()}</div><div><p>当前登录账户</p><h2>{user.displayName}</h2><span>{user.email}</span></div><dl><div><dt>当前团队</dt><dd>{team?.name ?? '未选择团队'}</dd></div><div><dt>协作角色</dt><dd>{team?.role ?? '未分配'}</dd></div></dl></section>
@@ -80,6 +124,18 @@ export default function AccountPage() {
           <label>确认新密码<input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} autoComplete="new-password" required /></label>
           <div className="row"><button className="btn small" type="submit" disabled={pwSaving}>{pwSaving ? '提交中…' : '修改密码'}</button></div>
         </form>}
+    </section>
+
+    <section className="card"><p className="card-kicker">EMAIL</p><h2>邮箱验证</h2>
+      {user.emailVerified
+        ? <p className="card-copy">当前邮箱已验证。</p>
+        : <><p className="card-copy">尚未验证。验证邮件在注册时已发出；未配置 SMTP 时请看后端日志中的链接。</p><button className="btn small" type="button" onClick={() => void resendVerify()}>重发验证邮件</button></>}
+    </section>
+
+    <section className="card"><p className="card-kicker">TEAMS</p><h2>切换团队</h2><p className="card-copy">一个人可以加入多个团队。切换后工作台只显示该团队的项目。</p>
+      {teams.length <= 1
+        ? <p className="muted">当前只加入了一个团队。</p>
+        : <ul>{teams.map((item) => <li key={item.id} className="row" style={{ marginBottom: 8 }}><span>{item.name} · {item.role}{item.id === team?.id ? '（当前）' : ''}</span>{item.id !== team?.id && <button className="btn small secondary" type="button" disabled={switching} onClick={() => void switchTeam(item.id)}>切换</button>}</li>)}</ul>}
     </section>
 
     <section className="card"><p className="card-kicker">ACCOUNT SAFETY</p><h2>会话与安全</h2><p className="card-copy">Access Token 只保存在浏览器内存；刷新凭据只保存在 HttpOnly Cookie。退出后会请求服务端吊销刷新会话。</p><button className="danger-action" type="button" onClick={async () => { await logout(); router.push('/login'); }}>安全登出当前会话</button></section>

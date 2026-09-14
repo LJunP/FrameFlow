@@ -31,6 +31,9 @@ public interface StoragePort {
     /** 放弃分片会话（服务端错误回滚时清理用）。 */
     void abortMultipart(String objectKey, String uploadId);
 
+    /** 已上传分片（断点续传：跳过这些 partNumber）。会话不存在时返回空列表。 */
+    List<PartETag> listParts(String objectKey, String uploadId);
+
     /** 探测对象：不存在时 exists=false。 */
     HeadInfo head(String objectKey);
 

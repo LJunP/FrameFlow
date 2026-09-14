@@ -26,3 +26,35 @@ export function collectVideoFiles<T extends { name: string; size: number; type: 
   }
   return { accepted, rejected };
 }
+
+const RESUME_KEY = 'ff-upload-resume';
+
+export interface UploadResume {
+  batchId: string;
+  candidateId: number;
+  fileName: string;
+  sizeBytes: number;
+}
+
+export function rememberUploadResume(entry: UploadResume) {
+  const all = listUploadResumes().filter((row) => row.candidateId !== entry.candidateId);
+  all.push(entry);
+  localStorage.setItem(RESUME_KEY, JSON.stringify(all));
+}
+
+export function findUploadResume(batchId: string, file: { name: string; size: number }): UploadResume | undefined {
+  return listUploadResumes().find((row) => row.batchId === batchId && row.fileName === file.name && row.sizeBytes === file.size);
+}
+
+export function forgetUploadResume(candidateId: number) {
+  localStorage.setItem(RESUME_KEY, JSON.stringify(listUploadResumes().filter((row) => row.candidateId !== candidateId)));
+}
+
+function listUploadResumes(): UploadResume[] {
+  try {
+    const raw = localStorage.getItem(RESUME_KEY);
+    return raw ? JSON.parse(raw) as UploadResume[] : [];
+  } catch {
+    return [];
+  }
+}

@@ -41,11 +41,13 @@ public class PasswordResetService {
     private final RedisRateLimiter rateLimiter;
     private final Clock clock;
     private final String environment;
+    private final MailService mail;
 
     public PasswordResetService(UserMapper users, PasswordResetMapper tokens,
                                 RefreshTokenMapper refreshTokens, TokenService tokenService,
                                 PasswordEncoder passwordEncoder, RedisRateLimiter rateLimiter,
-                                Clock clock, @Value("${frameflow.env:local}") String environment) {
+                                Clock clock, @Value("${frameflow.env:local}") String environment,
+                                MailService mail) {
         this.users = users;
         this.tokens = tokens;
         this.refreshTokens = refreshTokens;
@@ -54,6 +56,7 @@ public class PasswordResetService {
         this.rateLimiter = rateLimiter;
         this.clock = clock;
         this.environment = environment;
+        this.mail = mail;
     }
 
     /**
@@ -76,8 +79,11 @@ public class PasswordResetService {
         tokens.invalidateOpen(user.getId(), now);
         String raw = tokenService.issueRefreshToken();
         tokens.insert(user.getId(), tokenService.sha256(raw), now.plus(RESET_TTL));
+        String link = mail.publicBaseUrl() + "/reset-password?token=" + raw;
+        mail.send(user.getEmail(), "重置 FrameFlow 密码",
+                "打开此链接设置新密码（1 小时内有效）：\n" + link);
         if ("local".equalsIgnoreCase(environment)) {
-            log.info("password-reset token issued userId={} token={} (local log only)",
+            log.info("password-reset token issued userId={} token={} (also mailed if SMTP configured)",
                     user.getId(), raw);
         }
         return Optional.of(raw);

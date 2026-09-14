@@ -1,6 +1,9 @@
 spring:
   application:
     name: frameflow-select
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
 
   # F1-T2 数据源：默认值与本机 infra/local/docker-compose.yml 里的 PostgreSQL 对齐；
   # 生产/服务器环境用环境变量覆盖（见 .env.example），代码不感知环境差异。
@@ -83,6 +86,13 @@ frameflow:
     # 空目录保持 F6 单模型配置兼容，模型名继续读取 FRAMEFLOW_SEMANTIC_MODEL。
     model-catalog-json: '${FRAMEFLOW_SEMANTIC_MODEL_CATALOG_JSON:}'
     legacy-model: ${FRAMEFLOW_SEMANTIC_MODEL:gpt-4o-mini}
+  mail:
+    host: ${FRAMEFLOW_MAIL_HOST:}
+    port: ${FRAMEFLOW_MAIL_PORT:1025}
+    username: ${FRAMEFLOW_MAIL_USERNAME:}
+    password: ${FRAMEFLOW_MAIL_PASSWORD:}
+    from: ${FRAMEFLOW_MAIL_FROM:FrameFlow <noreply@localhost>}
+    public-base-url: ${FRAMEFLOW_PUBLIC_BASE_URL:http://127.0.0.1:3100}
 
 server:
   # 宿主机直跑时可绑定 127.0.0.1；容器内保持 0.0.0.0，再由 Compose

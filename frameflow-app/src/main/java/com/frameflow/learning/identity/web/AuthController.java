@@ -1,11 +1,13 @@
 package com.frameflow.learning.identity.web;
 
 import com.frameflow.learning.identity.service.AuthService;
+import com.frameflow.learning.identity.service.EmailVerificationService;
 import com.frameflow.learning.identity.service.PasswordResetService;
 import com.frameflow.learning.identity.web.AuthDtos.AuthResponse;
 import com.frameflow.learning.identity.web.AuthDtos.LoginRequest;
 import com.frameflow.learning.identity.web.AuthDtos.PasswordResetConfirmRequest;
 import com.frameflow.learning.identity.web.AuthDtos.PasswordResetRequest;
+import com.frameflow.learning.identity.web.AuthDtos.VerifyEmailConfirmRequest;
 import com.frameflow.learning.identity.web.AuthDtos.RefreshRequest;
 import com.frameflow.learning.identity.web.AuthDtos.RegisterRequest;
 import jakarta.validation.Valid;
@@ -28,10 +30,13 @@ public class AuthController {
 
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
+    private final EmailVerificationService emailVerificationService;
 
-    public AuthController(AuthService authService, PasswordResetService passwordResetService) {
+    public AuthController(AuthService authService, PasswordResetService passwordResetService,
+                          EmailVerificationService emailVerificationService) {
         this.authService = authService;
         this.passwordResetService = passwordResetService;
+        this.emailVerificationService = emailVerificationService;
     }
 
     /** 注册需要 Idempotency-Key 请求头（由 IdempotencyFilter 强制并做重放）。 */
@@ -67,5 +72,17 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest req) {
         passwordResetService.confirmReset(req.token(), req.newPassword());
+    }
+
+    @PostMapping("/verify-email/request")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void requestEmailVerification(@AuthenticationPrincipal Jwt jwt) {
+        emailVerificationService.requestForUser(Long.parseLong(jwt.getSubject()));
+    }
+
+    @PostMapping("/verify-email/confirm")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void confirmEmailVerification(@Valid @RequestBody VerifyEmailConfirmRequest req) {
+        emailVerificationService.confirm(req.token());
     }
 }

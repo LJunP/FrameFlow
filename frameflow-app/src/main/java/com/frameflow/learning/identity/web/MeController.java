@@ -1,10 +1,17 @@
 package com.frameflow.learning.identity.web;
 
+import java.util.List;
+
 import com.frameflow.learning.identity.service.AuthService;
 import com.frameflow.learning.identity.web.AuthDtos.AuthResponse;
+import com.frameflow.learning.identity.web.AuthDtos.SwitchTeamRequest;
+import com.frameflow.learning.identity.web.AuthDtos.TeamResponse;
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -26,5 +33,16 @@ public class MeController {
     @GetMapping("/api/v1/me")
     public AuthResponse me(@AuthenticationPrincipal Jwt jwt) {
         return authService.me(Long.parseLong(jwt.getSubject()));
+    }
+
+    @GetMapping("/api/v1/me/teams")
+    public List<TeamResponse> teams(@AuthenticationPrincipal Jwt jwt) {
+        return authService.listTeams(Long.parseLong(jwt.getSubject()));
+    }
+
+    @PostMapping("/api/v1/me/current-team")
+    public AuthResponse switchTeam(@AuthenticationPrincipal Jwt jwt,
+                                   @Valid @RequestBody SwitchTeamRequest req) {
+        return authService.switchTeam(Long.parseLong(jwt.getSubject()), req.teamId());
     }
 }

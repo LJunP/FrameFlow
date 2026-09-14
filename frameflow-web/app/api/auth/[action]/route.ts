@@ -80,6 +80,68 @@ async function tryRevokeSession(
 export async function POST(req: NextRequest, ctx: { params: Promise<{ action: string }> }) {
   const { action } = await ctx.params;
 
+  if (action === 'verify-email-confirm') {
+    const body = await req.json();
+    let upstream: Response;
+    try {
+      upstream = await fetch(`${API_BASE}/api/v1/auth/verify-email/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(AUTH_TIMEOUT_MS),
+      });
+    } catch {
+      return upstreamUnavailable();
+    }
+    if (upstream.status === 204) return new NextResponse(null, { status: 204 });
+    return NextResponse.json(await upstream.json().catch(() => ({})), { status: upstream.status });
+  }
+
+  if (action === 'verify-email-request') {
+    const auth = req.headers.get('authorization');
+    if (!auth) return NextResponse.json({ code: 'UNAUTHENTICATED' }, { status: 401 });
+    let upstream: Response;
+    try {
+      upstream = await fetch(`${API_BASE}/api/v1/auth/verify-email/request`, {
+        method: 'POST',
+        headers: { Authorization: auth },
+        signal: AbortSignal.timeout(AUTH_TIMEOUT_MS),
+      });
+    } catch {
+      return upstreamUnavailable();
+    }
+    if (upstream.status === 204) return new NextResponse(null, { status: 204 });
+    return NextResponse.json(await upstream.json().catch(() => ({})), { status: upstream.status });
+  }
+
+  if (action === 'switch-team') {
+    const auth = req.headers.get('authorization');
+    if (!auth) return NextResponse.json({ code: 'UNAUTHENTICATED' }, { status: 401 });
+    const body = await req.json();
+    let upstream: Response;
+    try {
+      upstream = await fetch(`${API_BASE}/api/v1/me/current-team`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: auth },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(AUTH_TIMEOUT_MS),
+      });
+    } catch {
+      return upstreamUnavailable();
+    }
+    if (!upstream.ok) {
+      return NextResponse.json(await upstream.json().catch(() => ({})), { status: upstream.status });
+    }
+    const data = await upstream.json();
+    const resp = NextResponse.json({
+      user: data.user,
+      team: data.team,
+      accessToken: data.accessToken,
+    });
+    setRefreshCookie(resp, data.refreshToken);
+    return resp;
+  }
+
   if (action === 'password-reset-request' || action === 'password-reset-confirm') {
     const body = await req.json();
     const upstreamPath = action === 'password-reset-request'

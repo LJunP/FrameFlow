@@ -50,13 +50,14 @@ public class TeamInvitationService {
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
     private final Clock clock;
+    private final MailService mail;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public TeamInvitationService(InvitationMapper invitations, UserMapper users,
                                  MemberMapper members, TeamMapper teams,
                                  RefreshTokenMapper refreshTokens, TeamAccessService teamAccess,
                                  TokenService tokenService, PasswordEncoder passwordEncoder,
-                                 Clock clock) {
+                                 Clock clock, MailService mail) {
         this.invitations = invitations;
         this.users = users;
         this.members = members;
@@ -66,6 +67,7 @@ public class TeamInvitationService {
         this.tokenService = tokenService;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
+        this.mail = mail;
     }
 
     /** 创建邀请：仅 OWNER（404→403 判定复用 TeamAccessService 的唯一路径）。 */
@@ -84,6 +86,9 @@ public class TeamInvitationService {
         // 这样数据库泄露时攻击者拿到的是一堆无法还原的哈希，而不是可用的入团凭证。
         Long id = invitations.insert(teamId, req.email(), req.role(),
                 tokenService.sha256(token), now.plus(INVITE_TTL), userId);
+        String link = mail.publicBaseUrl() + "/invite/accept?token=" + token;
+        mail.send(req.email(), "你被邀请加入 FrameFlow 团队",
+                "角色：" + req.role() + "\n打开链接接受邀请（7 天内有效）：\n" + link);
         return new InvitationResponse(id, req.email(), req.role(), token,
                 now.plus(INVITE_TTL), null, now, null);
     }
@@ -171,7 +176,7 @@ public class TeamInvitationService {
         refreshTokens.insert(userId, tokenService.sha256(refreshToken),
                 tokenService.refreshTokenExpiry());
         return new AuthResponse(
-                new UserResponse(userId, email, displayName),
+                new UserResponse(userId, email, displayName, users.findById(userId).getEmailVerifiedAt() != null),
                 new TeamResponse(teamId, teamName, role),
                 accessToken, refreshToken);
     }

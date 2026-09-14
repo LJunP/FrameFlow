@@ -33,6 +33,10 @@ public interface MemberMapper {
             + "WHERE user_id = #{userId} ORDER BY created_at DESC, team_id DESC LIMIT 1")
     MemberRow findFirstByUser(Long userId);
 
+    @Select("SELECT m.team_id, m.user_id, m.role FROM team_members m "
+            + "WHERE m.user_id = #{userId} ORDER BY m.created_at DESC, m.team_id DESC")
+    List<MemberRow> listByUser(Long userId);
+
     /** 成员列表（联表取用户展示信息；不查 password_hash，见 TeamMemberView 注释）。 */
     @Select("SELECT m.user_id, u.email, u.display_name, m.role "
             + "FROM team_members m JOIN users u ON u.id = m.user_id "

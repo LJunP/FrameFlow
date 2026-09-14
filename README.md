@@ -73,14 +73,14 @@ FrameFlow Select 把这件事组织成一条可追溯流程：
 
 | 能力 | 当前已实现 | 使用边界 |
 | --- | --- | --- |
-| **用户认证** | 注册、登录、RS256 JWT、刷新令牌轮换、登出、当前账户信息、**昵称编辑**、**密码修改（改后吊销全部会话）**、**自助找回密码（令牌哈希、一次性核销）** | 尚无邮箱验证；找回密码尚未接入 SMTP，本地从服务日志取令牌 |
-| **团队权限** | OWNER / OPERATOR / REVIEWER / VIEWER 角色检查，团队资源隔离，成员列表，**成员邀请（一次性链接、令牌哈希）**、**撤销未接受邀请**、**角色调整**、**移除成员** | 尚无多团队切换 UI、所有权转移、邀请邮件自动发送（需手工转发链接） |
+| **用户认证** | 注册、登录、RS256 JWT、刷新令牌轮换、登出、当前账户信息、**昵称编辑**、**密码修改**、**自助找回密码**、**邮箱验证** | 真实发信需要配置 SMTP；本地可用 Mailpit（1025/8025） |
+| **团队权限** | 角色检查、团队隔离、成员列表、邀请（可发邮件）、撤销邀请、角色调整、移除成员、**多团队切换**、**所有权转移** | — |
 | **项目管理** | 项目创建、查询、修改、归档，乐观锁与分页 API | 前端覆盖主要创建与读取流程；并非每个管理 API 都已有完整界面 |
 | **Brief 与质检标准** | Brief 不可变快照、Quality Profile 版本化、输入校验、批次固定版本 | 历史版本不原地修改 |
-| **批次与上传** | 容量 1–300、关闭批次、**历史批次分页**、候选分页；**浏览器单文件 ≤200 MiB，>32 MiB 自动分片并发上传**；**多文件选择与拖放排队直传** | 尚无断点续传 |
+| **批次与上传** | 容量 1–300、关闭批次、历史批次分页、候选分页；单文件 ≤200 MiB，>32 MiB 自动分片；多文件拖放排队；**分片断点续传**；**对账入口** | — |
 | **上传入口校验** | 对象存在性、大小、媒体签名；异常证据与对账接口 | 入口签名检查不是完整解码，损坏容器仍由 Worker 深度探针识别 |
 | **确定性质检** | FFprobe 元数据、时长/分辨率/帧率规则、黑帧/冻结检测 | 规则依配置执行；不等于覆盖全部视觉缺陷的专业质量评估 |
-| **异步分析** | RabbitMQ、Publisher Confirm、条件状态迁移、幂等回写、死信查询与重放；**进度 SSE 实时推送（失败自动回退轮询）** | 数据库事务与 MQ 发布没有分布式原子提交；异常窗口依赖重试、死信与运维处置 |
+| **异步分析** | RabbitMQ、Publisher Confirm、条件状态迁移、幂等回写、死信、SSE；**分析任务 Outbox（先提交再发 MQ）** | 异常窗口缩小为 outbox 重试 |
 | **AI 语义检查** | 创作要求对齐、整体观感、策略违规三类语义结果；Chat Completions / Responses 双协议适配 | 模型需平台配置与有效凭据；最多 3 张关键帧，不保证覆盖全片所有瞬间 |
 | **平台模型选择** | 安全模型目录、启用白名单、Profile 固定 modelId、Worker 路由、Worker-only 密钥注入 | 用户选择平台提供的模型；密钥由运维配置，不在网页填写或返回 |
 | **聚类与排名** | SHA-256 精确重复、dHash 近重复、资格门、加权评分、排名快照 | 相似度阈值与分数不是未经真实数据验证的质量保证 |
@@ -253,16 +253,16 @@ npm --prefix frameflow-web run build
 
 | # | 功能 | 开发状态 | 尚未完成 |
 | --- | --- | --- | --- |
-| F1 | 工程基线与用户认证 | ✅ 已交付 | 邮箱验证、找回密码的 SMTP 投递 |
+| F1 | 工程基线与用户认证 | ✅ 已交付 | 生产 SMTP 账号需部署时配置 |
 | F2 | 项目与质检配置 | ✅ 已交付 | — |
-| F3 | 批次与视频上传 | ✅ 已交付 | 断点续传 |
-| F4 | 确定性质检流水线 | ✅ 已交付 | Outbox 等跨系统一致性方案 |
+| F3 | 批次与视频上传 | ✅ 已交付 | — |
+| F4 | 确定性质检流水线 | ✅ 已交付 | — |
 | F5 | 缓存与限流（Redis） | ✅ 已交付 | 持续回归与真实负载验证 |
 | F6 | 语义质检（AI Provider） | ✅ 已交付 | 真实客户素材下的准确率、成本与稳定性 |
 | F6.1 | 平台多模型选择 | ✅ 已交付 | 更多供应商适配 |
 | F7 | 聚类排名与 Top-K 优选 | ✅ 已交付 | 阈值与权重需真实数据校准 |
-| F8 | Web 前端产品化 | ✅ 已交付 | 完整管理界面、浏览器兼容性验收 |
-| F12 | 品牌前台与账户团队基础 | ✅ 已交付 | 多团队切换、所有权转移 |
+| F8 | Web 前端产品化 | ✅ 已交付 | 浏览器兼容性验收 |
+| F12 | 品牌前台与账户团队基础 | ✅ 已交付 | — |
 | F9 | 服务器部署与 CI/CD | ⚠️ 本地工程已交付 | **VPS、SSH、DNS、HTTPS、远程 CI 发布与回滚验收** |
 | F10 | 生产化运维 | ⚠️ 本地工程与演练已交付 | **production 外部告警、真实 RTO/RPO、异机恢复** |
 | F11 | 真实试点验证 | ⚠️ Pilot-ready 已交付 | **真实客户批次、真实人工审核、价值结论** |
@@ -284,9 +284,9 @@ npm --prefix frameflow-web run build
 | 分组 | 端点 |
 | --- | --- |
 | 健康检查 | `GET /api/v1/ping` |
-| 认证 | `POST /auth/register`、`/auth/login`、`/auth/refresh`、`/auth/logout`、`GET /me`、`POST /auth/password-reset/request`、`POST /auth/password-reset/confirm` |
+| 认证 | `POST /auth/register`、`/auth/login`、`/auth/refresh`、`/auth/logout`、`GET /me`、`GET /me/teams`、`POST /me/current-team`、`POST /auth/password-reset/request`、`POST /auth/password-reset/confirm`、`POST /auth/verify-email/request`、`POST /auth/verify-email/confirm` |
 | 账户 | `PUT /users/me/profile`、`PUT /users/me/password` |
-| 团队与邀请 | `GET /teams/{id}/members`、`PUT /teams/{id}/members/{userId}/role`、`DELETE /teams/{id}/members/{userId}`、`GET|POST /teams/{id}/invitations`、`DELETE /teams/{id}/invitations/{invitationId}`、`POST /invitations/accept` |
+| 团队与邀请 | `GET /teams/{id}/members`、`PUT /teams/{id}/members/{userId}/role`、`DELETE /teams/{id}/members/{userId}`、`POST /teams/{id}/owner`、`GET|POST /teams/{id}/invitations`、`DELETE /teams/{id}/invitations/{invitationId}`、`POST /invitations/accept` |
 | 项目与配置 | `GET|POST /projects`、`GET|PUT /projects/{id}`、`POST /projects/{id}/archive`、`GET /projects/{id}/batches`、`GET|POST /projects/{id}/briefs`、`GET /projects/{id}/briefs/current`、`GET|POST /quality-profiles`、`GET|POST /quality-profiles/{id}/versions`、`GET /semantic-models` |
 | 批次与上传 | `POST /batches`、`GET /batches/{id}`、`POST /batches/{id}/close`、`GET /batches/{id}/progress`、**`GET /batches/{id}/events`（SSE）**、`GET|POST /batches/{id}/candidates`、`POST /batches/{id}/reconcile`、`POST /candidates/{id}/upload-parts`、`POST /candidates/{id}/complete`、`GET /candidates/{id}/content-url` |
 | 分析与证据 | `POST /batches/{id}/analyze`、`GET /candidates/{id}/findings` |
@@ -304,7 +304,7 @@ npm --prefix frameflow-web run build
 
 | 范围 | 规模 | 时效 |
 | --- | --- | --- |
-| Java | 112 项（含越权负例、幂等、并发、契约、邀请全流程与架构边界） | 本次工作树实测 |
+| Java | 115 项（含越权负例、幂等、并发、契约、邀请/团队切换与架构边界） | 本次工作树实测 |
 | Web | 19 项契约测试 + 类型检查 + 生产构建 | 本次工作树实测 |
 | Worker + Pilot | 131 项（Worker 110 + Pilot 21，离线，无真实模型调用） | 2026-09-13 记录，本轮未重跑 |
 

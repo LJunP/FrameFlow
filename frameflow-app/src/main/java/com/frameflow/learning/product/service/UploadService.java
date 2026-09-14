@@ -13,6 +13,7 @@ import com.frameflow.learning.product.web.BatchDtos.CompleteUploadRequest;
 import com.frameflow.learning.product.web.BatchDtos.CompleteUploadResponse;
 import com.frameflow.learning.product.web.BatchDtos.PartResult;
 import com.frameflow.learning.product.web.BatchDtos.UploadPartsResponse;
+import com.frameflow.learning.product.web.BatchDtos.UploadSessionResponse;
 import com.frameflow.learning.shared.error.ApiException;
 import com.frameflow.learning.shared.error.ErrorCode;
 import org.springframework.stereotype.Service;
@@ -57,6 +58,19 @@ public class UploadService {
                     candidate.getS3UploadId(), part, storageProps.presignTtl()));
         }
         return new UploadPartsResponse(urls);
+    }
+
+    public UploadSessionResponse uploadSession(long userId, long candidateId) {
+        CandidateRow candidate = requireWritableCandidate(userId, candidateId);
+        List<PartResult> completed = List.of();
+        if ("MULTIPART".equals(candidate.getUploadMode()) && candidate.getS3UploadId() != null) {
+            completed = storage.listParts(candidate.getObjectKey(), candidate.getS3UploadId()).stream()
+                    .map(p -> new PartResult(p.partNumber(), p.etag()))
+                    .toList();
+        }
+        return new UploadSessionResponse(
+                candidate.getId(), candidate.getUploadMode(), candidate.getS3UploadId(),
+                storageProps.partSize().toBytes(), completed);
     }
 
     /**

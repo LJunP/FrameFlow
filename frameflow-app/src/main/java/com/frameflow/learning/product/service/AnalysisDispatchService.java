@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.frameflow.learning.product.mq.AnalysisTaskMessage;
-import com.frameflow.learning.product.mq.RabbitConfig;
 import com.frameflow.learning.product.repo.AnalysisRunMapper;
 import com.frameflow.learning.product.repo.CandidateMapper;
 import com.frameflow.learning.product.repo.CandidateRow;
@@ -15,9 +14,13 @@ import com.frameflow.learning.shared.error.ApiException;
 import com.frameflow.learning.shared.error.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.frameflow.learning.product.repo.AnalysisOutboxMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * T1 批次调度：为全部 UPLOADED 候选建立 run 并派发到 MQ。
@@ -32,23 +35,28 @@ public class AnalysisDispatchService {
     private final AnalysisRunMapper runs;
     private final QualityProfileMapper profiles;
     private final com.frameflow.learning.product.repo.BriefMapper briefs;
-    private final RabbitTemplate rabbitTemplate;
     private final FrameFlowMetrics metrics;
     private final ProgressCacheService progressCache;
+    private final AnalysisOutboxMapper outbox;
+    private final ObjectMapper objectMapper;
+    private final AnalysisOutboxRelay outboxRelay;
 
     public AnalysisDispatchService(BatchService batchService, CandidateMapper candidates,
                                    AnalysisRunMapper runs, QualityProfileMapper profiles,
                                    com.frameflow.learning.product.repo.BriefMapper briefs,
-                                   RabbitTemplate rabbitTemplate, FrameFlowMetrics metrics,
-                                   ProgressCacheService progressCache) {
+                                   FrameFlowMetrics metrics, ProgressCacheService progressCache,
+                                   AnalysisOutboxMapper outbox, ObjectMapper objectMapper,
+                                   AnalysisOutboxRelay outboxRelay) {
         this.batchService = batchService;
         this.candidates = candidates;
         this.runs = runs;
         this.profiles = profiles;
         this.briefs = briefs;
-        this.rabbitTemplate = rabbitTemplate;
         this.metrics = metrics;
         this.progressCache = progressCache;
+        this.outbox = outbox;
+        this.objectMapper = objectMapper;
+        this.outboxRelay = outboxRelay;
     }
 
     public record DispatchResult(long batchId, int dispatched, int skipped) {
@@ -86,48 +94,34 @@ public class AnalysisDispatchService {
             }
             Long runId = runs.insert(candidate.getId(), batchId);
             dispatchedIds.add(runId);
-            // 消息自包含：worker 不需要回查任何接口就知道"检什么、按什么标准"
-            publishConfirmed(new AnalysisTaskMessage(
+            AnalysisTaskMessage message = new AnalysisTaskMessage(
                     runId, candidate.getId(), batchId,
                     candidate.getObjectKey(), candidate.getContentType(),
                     candidate.getSizeBytes(), version.getSpecJson(),
-                    briefContentOf(batch), 1),
-                    candidate.getId());
-        }
-        // 事务提交在方法返回时——publish 在事务内先行。若提交失败，
-        // 消息可能已发出但 run 行不存在，worker 回写会得到 404 并重试后
-        // 放弃（DLQ 留痕）。这是"至少一次投递"的正常代价，见导读 §3。
-        // ★ 核心：派发把候选从 UPLOADED 推进 ANALYZING，必须立刻失效进度缓存。
-        // 否则 GET /progress 与批次页 SSE 触发条件会在最多 30s 内仍看到
-        // UPLOADED——页面既不建 SSE 也不轮询，分析看起来"卡住"。
-        if (!dispatchedIds.isEmpty()) {
-            progressCache.evict(batchId);
-        }
-        return new DispatchResult(batchId, dispatchedIds.size(), 0);
-    }
-
-    /**
-     * ★ 核心：Publisher Confirm——RabbitMQ 收到消息才返回。没有它，
-     * broker 宕机时消息"发出即忘"，任务静默丢失且无从知晓。
-     * waitForConfirmsOrDie 抛异常 → 事务回滚 → 候选停留 UPLOADED，
-     * 可安全重新触发。
-     */
-    private void publishConfirmed(AnalysisTaskMessage message, long candidateId) {
-        try {
-            Boolean confirmed = rabbitTemplate.invoke(operation -> {
-                operation.convertAndSend(
-                        RabbitConfig.TASK_EXCHANGE, RabbitConfig.TASK_ROUTING_KEY, message);
-                return operation.waitForConfirms(5_000);
-            });
-            if (!Boolean.TRUE.equals(confirmed)) {
-                throw new ApiException(ErrorCode.INTERNAL_ERROR,
-                        "broker 未确认消息, candidateId=" + candidateId);
+                    briefContentOf(batch), 1);
+            try {
+                outbox.insert(runId, objectMapper.writeValueAsString(message));
+            } catch (JsonProcessingException e) {
+                throw new ApiException(ErrorCode.INTERNAL_ERROR, "无法序列化分析任务");
             }
             metrics.recordDispatch(FrameFlowMetrics.DispatchOutcome.CONFIRMED);
-            log.info("已派发分析任务 runId={} candidateId={}", message.runId(), candidateId);
-        } catch (RuntimeException exception) {
-            metrics.recordDispatch(FrameFlowMetrics.DispatchOutcome.FAILED);
-            throw exception;
+            log.info("已写入分析 outbox runId={} candidateId={}", runId, candidate.getId());
         }
+        // ★ 核心：先落 outbox 再提交事务，提交后才发 MQ。
+        // 避免「broker 已收到、DB 回滚」让 worker 回写 404。
+        if (!dispatchedIds.isEmpty()) {
+            progressCache.evict(batchId);
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        outboxRelay.publishPending();
+                    }
+                });
+            } else {
+                outboxRelay.publishPending();
+            }
+        }
+        return new DispatchResult(batchId, dispatchedIds.size(), 0);
     }
 }

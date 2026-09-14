@@ -213,7 +213,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (protectedRoute && (!ready || !user)) {
     return <div className="auth-shell"><p className="loading auth-loading">正在验证会话…</p></div>;
   }
-  const authShell = pathname === '/login' || pathname === '/reset-password' || pathname.startsWith('/invite');
+  const authShell = pathname === '/login' || pathname === '/reset-password' || pathname === '/verify-email' || pathname.startsWith('/invite');
   if (!workspace) return <div className={authShell ? 'auth-shell' : 'public-shell'}>{children}</div>;
 
   const initial = user?.displayName.slice(0, 1).toUpperCase() || '?';

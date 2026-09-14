@@ -3,6 +3,7 @@ package com.frameflow.learning;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * FrameFlow Select 后端入口。
@@ -16,6 +17,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 // 症状是启动报错找不到 Bean，而不是配置值为 null，注意与 prefix 写错区分。
 @SpringBootApplication
 @ConfigurationPropertiesScan
+@EnableScheduling
 public class LearningApplication {
 
     public static void main(String[] args) {

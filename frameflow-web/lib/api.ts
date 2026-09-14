@@ -187,25 +187,32 @@ export async function uploadMultipartParts(opts: {
   partSizeBytes: number;
   fetchPartUrls: (partNumbers: number[]) => Promise<Record<string, string>>;
   onProgress: (percent: number) => void;
+  skipParts?: UploadedPart[];
 }): Promise<UploadedPart[]> {
-  const { file, partSizeBytes, fetchPartUrls, onProgress } = opts;
+  const { file, partSizeBytes, fetchPartUrls, onProgress, skipParts = [] } = opts;
   const partCount = Math.ceil(file.size / partSizeBytes);
-  const partNumbers = Array.from({ length: partCount }, (_, i) => i + 1);
+  const done = new Map(skipParts.map((part) => [part.partNumber, part]));
+  const partNumbers = Array.from({ length: partCount }, (_, i) => i + 1)
+    .filter((n) => !done.has(n));
+  if (partNumbers.length === 0) return [...done.values()].sort((a, b) => a.partNumber - b.partNumber);
   const partUrls = await fetchPartUrls(partNumbers);
 
-  const uploaded: UploadedPart[] = [];
-  let uploadedBytes = 0;
+  const uploaded: UploadedPart[] = [...done.values()];
+  let uploadedBytes = skipParts.reduce((sum, part) => {
+    const start = (part.partNumber - 1) * partSizeBytes;
+    return sum + Math.min(partSizeBytes, file.size - start);
+  }, 0);
   const report = () => onProgress(Math.min(100, Math.round((uploadedBytes / file.size) * 100)));
 
   let nextIndex = 0;
   async function worker() {
     // 单线程事件循环里 nextIndex++ 与 await 之间不会交错，各 worker 取片互不重叠
-    while (nextIndex < partCount) {
+    while (nextIndex < partNumbers.length) {
       const index = nextIndex++;
       const partNumber = partNumbers[index];
       const url = partUrls[String(partNumber)];
       if (!url) throw new Error(`缺少分片 ${partNumber} 的上传地址`);
-      const start = index * partSizeBytes;
+      const start = (partNumber - 1) * partSizeBytes;
       const blob = file.slice(start, Math.min(start + partSizeBytes, file.size));
       const etag = await putPart(url, blob, file.type || 'application/octet-stream', (delta) => {
         uploadedBytes += delta;
@@ -215,7 +222,7 @@ export async function uploadMultipartParts(opts: {
     }
   }
   await Promise.all(
-    Array.from({ length: Math.min(MULTIPART_CONCURRENCY, partCount) }, () => worker()),
+    Array.from({ length: Math.min(MULTIPART_CONCURRENCY, partNumbers.length) }, () => worker()),
   );
   // 后端 complete 会按分片号排序校验连续性，这里先排好，响应也更好读
   return uploaded.sort((a, b) => a.partNumber - b.partNumber);

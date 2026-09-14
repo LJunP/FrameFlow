@@ -50,7 +50,17 @@ public final class AuthDtos {
             @NotBlank @Size(min = 8, max = 72) String newPassword) {
     }
 
-    public record UserResponse(Long id, String email, String displayName) {
+    public record UserResponse(Long id, String email, String displayName, Boolean emailVerified) {
+    }
+
+    public record SwitchTeamRequest(@jakarta.validation.constraints.NotNull Long teamId) {
+    }
+
+    public record TransferOwnerRequest(@jakarta.validation.constraints.NotNull Long userId) {
+    }
+
+    public record VerifyEmailConfirmRequest(
+            @NotBlank @Size(min = 16, max = 128) String token) {
     }
 
     public record TeamResponse(Long id, String name, String role) {

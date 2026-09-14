@@ -2,9 +2,15 @@
 
 export interface AuthPayload {
   accessToken: string;
-  user: { id: number; email: string; displayName: string };
+  user: { id: number; email: string; displayName: string; emailVerified?: boolean };
   team: { id: number; name: string; role: string };
   refreshToken?: string; // 仅登录/注册响应携带，由代理写入 HttpOnly cookie
+}
+
+export interface UserTeam {
+  id: number;
+  name: string;
+  role: string;
 }
 
 export interface TeamMember {

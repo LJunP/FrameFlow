@@ -66,11 +66,13 @@ export default function SelectionPage() {
       : <p className="loading">加载中…</p>;
   }
   const locked = selection.status === 'LOCKED';
+  const [extraCandidateId, setExtraCandidateId] = useState('');
+  const [extraNote, setExtraNote] = useState('');
 
-  async function adjust(candidateId: number, action: 'INCLUDE' | 'EXCLUDE') {
+  async function adjust(candidateId: number, action: 'INCLUDE' | 'EXCLUDE', note?: string) {
     setMessage('');
     try {
-      await api.post(`/selections/${id}/items`, { candidateId, action });
+      await api.post(`/selections/${id}/items`, { candidateId, action, note: note || undefined });
       await load();
     } catch (err) {
       setMessage(String(err instanceof Error ? err.message : err));
@@ -192,6 +194,13 @@ export default function SelectionPage() {
             ← 返回批次
           </Link>
         </div>
+        {!locked && (
+          <form className="row" style={{ marginTop: 12 }} onSubmit={(e) => { e.preventDefault(); const cid = Number(extraCandidateId); if (!cid) return; void adjust(cid, 'INCLUDE', extraNote).then(() => { setExtraCandidateId(''); setExtraNote(''); }); }}>
+            <input type="number" min={1} placeholder="候选 ID" value={extraCandidateId} onChange={(e) => setExtraCandidateId(e.target.value)} />
+            <input placeholder="备注（可选）" value={extraNote} onChange={(e) => setExtraNote(e.target.value)} />
+            <button className="btn secondary" type="submit">从排名外纳入</button>
+          </form>
+        )}
         {message && <div className="notice bad">{message}</div>}
         <p className="muted" style={{ marginTop: 8 }}>
           机器标记与人工调整并存——最终交付 = 机器 Top-K 剔除人工 EXCLUDE 后 + 人工 INCLUDE。

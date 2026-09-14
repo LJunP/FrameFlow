@@ -43,12 +43,14 @@ public class AuthService {
     private final Clock clock;
     private final TeamAccessService teamAccess;
     private final com.frameflow.learning.shared.ratelimit.RedisRateLimiter rateLimiter;
+    private final EmailVerificationService emailVerification;
 
     public AuthService(UserMapper users, TeamMapper teams, MemberMapper members,
                        RefreshTokenMapper refreshTokens, TokenService tokenService,
                        PasswordEncoder passwordEncoder, Clock clock,
                        TeamAccessService teamAccess,
-                       com.frameflow.learning.shared.ratelimit.RedisRateLimiter rateLimiter) {
+                       com.frameflow.learning.shared.ratelimit.RedisRateLimiter rateLimiter,
+                       EmailVerificationService emailVerification) {
         this.users = users;
         this.teams = teams;
         this.members = members;
@@ -58,6 +60,7 @@ public class AuthService {
         this.clock = clock;
         this.teamAccess = teamAccess;
         this.rateLimiter = rateLimiter;
+        this.emailVerification = emailVerification;
     }
 
     /**
@@ -81,7 +84,10 @@ public class AuthService {
                     passwordEncoder.encode(req.password()),   // ★ 只存哈希，明文不落库
                     req.displayName());
             members.insert(teamId, userId, Role.OWNER.name());
-            return issueAuthResponse(userId, req.email(), req.displayName(), teamId, teamName, Role.OWNER.name());
+            AuthResponse response = issueAuthResponse(userId, req.email(), req.displayName(),
+                    teamId, teamName, Role.OWNER.name());
+            emailVerification.requestForUser(userId);
+            return response;
         } catch (DuplicateKeyException e) {
             // ★ 核心：应用层查重在并发下有缝隙（两个请求同时查到"邮箱不存在"
             // 然后都插入）——数据库的 UNIQUE 约束是最后防线，冲突会抛
@@ -143,7 +149,8 @@ public class AuthService {
     public UserResponse updateProfile(long userId, String displayName) {
         UserRow user = users.findById(userId);
         users.updateDisplayName(userId, displayName);
-        return new UserResponse(user.getId(), user.getEmail(), displayName);
+        return new UserResponse(user.getId(), user.getEmail(), displayName,
+                user.getEmailVerifiedAt() != null);
     }
 
     /**
@@ -172,9 +179,34 @@ public class AuthService {
         UserRow user = users.findById(userId);
         MemberRow member = members.findFirstByUser(userId);
         return new AuthResponse(
-                new UserResponse(user.getId(), user.getEmail(), user.getDisplayName()),
+                toUser(user),
                 new TeamResponse(member.getTeamId(), teamNameOf(member), member.getRole()),
                 null, null);
+    }
+
+    public List<TeamResponse> listTeams(long userId) {
+        return members.listByUser(userId).stream()
+                .map(row -> new TeamResponse(row.getTeamId(), teamNameOf(row), row.getRole()))
+                .toList();
+    }
+
+    @Transactional
+    public AuthResponse switchTeam(long userId, long teamId) {
+        MemberRow member = teamAccess.requireMember(userId, teamId);
+        UserRow user = users.findById(userId);
+        return issueAuthResponse(user.getId(), user.getEmail(), user.getDisplayName(),
+                member.getTeamId(), teamNameOf(member), member.getRole());
+    }
+
+    @Transactional
+    public void transferOwnership(long actorId, long teamId, long newOwnerId) {
+        teamAccess.requireRole(actorId, teamId, Role.OWNER);
+        if (actorId == newOwnerId) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "不能把所有权转给自己");
+        }
+        teamAccess.requireMember(newOwnerId, teamId);
+        members.updateRole(teamId, newOwnerId, Role.OWNER.name());
+        members.updateRole(teamId, actorId, Role.OPERATOR.name());
     }
 
     /**
@@ -246,10 +278,16 @@ public class AuthService {
         String refreshToken = tokenService.issueRefreshToken();
         refreshTokens.insert(userId, tokenService.sha256(refreshToken),
                 tokenService.refreshTokenExpiry());
+        UserRow user = users.findById(userId);
         return new AuthResponse(
-                new UserResponse(userId, email, displayName),
+                toUser(user),
                 new TeamResponse(teamId, teamName, role),
                 accessToken, refreshToken);
+    }
+
+    private static UserResponse toUser(UserRow user) {
+        return new UserResponse(user.getId(), user.getEmail(), user.getDisplayName(),
+                user.getEmailVerifiedAt() != null);
     }
 
     private String teamNameOf(MemberRow member) {

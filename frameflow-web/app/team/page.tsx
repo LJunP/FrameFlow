@@ -17,7 +17,7 @@ function inviteLinkOf(token: string) {
 }
 
 export default function TeamPage() {
-  const { user, team, ready } = useAuth(); const router = useRouter(); const api = useApi(); const toast = useToast();
+  const { user, team, ready, accessToken, setSession } = useAuth(); const router = useRouter(); const api = useApi(); const toast = useToast();
   const [members, setMembers] = useState<TeamMember[]>([]); const [error, setError] = useState(''); const [loading, setLoading] = useState(false);
   const [busyUserId, setBusyUserId] = useState<number | null>(null);
   const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
@@ -67,6 +67,24 @@ export default function TeamPage() {
     } finally { setBusyUserId(null); }
   };
 
+  const transferOwner = async (member: TeamMember) => {
+    if (!team || !accessToken || !window.confirm(`把 Owner 转给 ${member.displayName}？你将变成 OPERATOR。`)) return;
+    setBusyUserId(member.userId);
+    try {
+      await api.post(`/teams/${team.id}/owner`, { userId: member.userId });
+      const response = await fetch('/api/auth/switch-team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ teamId: team.id }),
+      });
+      if (response.ok) setSession(await response.json());
+      toast.success(`所有权已交给 ${member.displayName}。`);
+      router.push('/account');
+    } catch (reason) {
+      toast.error(reason instanceof Error ? reason.message : String(reason));
+    } finally { setBusyUserId(null); }
+  };
+
   const openInvite = () => { setInviteEmail(''); setInviteRole('OPERATOR'); setCreatedLink(''); setInviteOpen(true); };
 
   const submitInvite = async (event: React.FormEvent) => {
@@ -109,7 +127,7 @@ export default function TeamPage() {
 
   return <div className="settings-page"><header className="settings-head"><p>TEAM SPACE</p><h1>{team?.name ?? '当前团队'}</h1><span>当前团队上下文来自已签发的会话凭据；本页只展示已经由后端支持的数据和权限。</span></header><div className="settings-grid"><section className="card team-summary"><p className="card-kicker">YOUR ROLE</p><h2>{team?.role ?? '未分配角色'}</h2><p>{roleCopy[team?.role ?? ''] ?? '当前角色尚未配置说明。'}</p><div className="team-limits"><span>多团队切换将在后续协作功能中以完整权限与审计机制交付。</span></div></section><section className="card member-card"><div className="card-head"><div><p className="card-kicker">MEMBERS</p><h2>{owner ? '团队成员' : '成员名单权限'}</h2></div>{owner && <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><b>{members.length} 位</b><button className="btn small" type="button" onClick={openInvite}>邀请成员</button></div>}</div>{!owner ? <div className="permission-note"><strong>成员名单由团队 Owner 管理</strong><p>你当前拥有 {team?.role} 角色。为保护团队成员信息，本角色不会请求 Owner 专用成员列表接口。</p></div> : loading ? <p className="loading">正在读取成员列表…</p> : error ? <div className="error"><p>{error}</p><button className="mini-link" type="button" onClick={() => void load()}>重新加载</button></div> : <>{members.length === 0 ? <EmptyState title="团队还没有成员" description="邀请同事加入，一起评审候选素材、分工推进批次。" action={{ label: '邀请成员', onClick: openInvite }} /> : <div className="member-list">{members.map((member) => {
     const manageable = member.role !== 'OWNER'; const busy = busyUserId === member.userId;
-    return <div key={member.userId} className="member-row"><span>{member.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{member.displayName}</strong><small>{member.email}</small></div>{manageable ? <div className="member-actions"><select aria-label={`调整 ${member.displayName} 的角色`} value={member.role} disabled={busy} onChange={(e) => void changeRole(member, e.target.value as TeamMember['role'])}>{assignableRoles.map((role) => <option key={role} value={role}>{role}</option>)}</select><button className="danger-action" type="button" disabled={busy} onClick={() => void removeMember(member)}>移除</button></div> : <b>{member.role}</b>}</div>;
+    return <div key={member.userId} className="member-row"><span>{member.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{member.displayName}</strong><small>{member.email}</small></div>{manageable ? <div className="member-actions"><select aria-label={`调整 ${member.displayName} 的角色`} value={member.role} disabled={busy} onChange={(e) => void changeRole(member, e.target.value as TeamMember['role'])}>{assignableRoles.map((role) => <option key={role} value={role}>{role}</option>)}</select><button className="btn small secondary" type="button" disabled={busy} onClick={() => void transferOwner(member)}>转让 Owner</button><button className="danger-action" type="button" disabled={busy} onClick={() => void removeMember(member)}>移除</button></div> : <b>{member.role}</b>}</div>;
   })}</div>}</>}</section>
     {owner && <section className="card member-card"><div className="card-head"><div><p className="card-kicker">INVITATIONS</p><h2>邀请记录</h2></div>{invitations.length > 0 && <b>{invitations.filter((i) => !i.acceptedAt && !i.revokedAt).length} 待接受</b>}</div>
       {loading ? <p className="loading">正在读取邀请记录…</p> : invitations.length === 0 ? <EmptyState title="还没有发出过邀请" description="生成一条 7 天有效的一次性邀请链接，手工转发给对方即可加入团队。" action={{ label: '邀请成员', onClick: openInvite }} /> : <div className="invite-list">{invitations.map((invite) => {

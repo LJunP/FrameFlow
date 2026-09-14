@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
@@ -154,6 +155,19 @@ public class S3StorageAdapter implements StoragePort {
     public void abortMultipart(String objectKey, String uploadId) {
         s3.abortMultipartUpload(AbortMultipartUploadRequest.builder()
                 .bucket(props.bucket()).key(objectKey).uploadId(uploadId).build());
+    }
+
+    @Override
+    public List<PartETag> listParts(String objectKey, String uploadId) {
+        try {
+            return s3.listParts(ListPartsRequest.builder()
+                            .bucket(props.bucket()).key(objectKey).uploadId(uploadId).build())
+                    .parts().stream()
+                    .map(p -> new PartETag(p.partNumber(), p.eTag()))
+                    .toList();
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 
     @Override

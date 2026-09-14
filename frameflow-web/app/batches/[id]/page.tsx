@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useApi, putWithProgress, uploadMultipartParts, batchEventsUrl } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
-import { browserUploadError, collectVideoFiles, SIMPLE_UPLOAD_THRESHOLD_BYTES } from '@/lib/batch-upload';
+import { browserUploadError, collectVideoFiles, findUploadResume, forgetUploadResume, rememberUploadResume, SIMPLE_UPLOAD_THRESHOLD_BYTES } from '@/lib/batch-upload';
 import { EmptyState } from '@/components/empty-state';
 import type { Batch, Candidate, PageOf, RegisterCandidateResponse, SelectionSummary, UploadedPart, UploadPartsResponse } from '@/lib/types';
 
@@ -151,21 +151,48 @@ export default function BatchPage() {
   async function uploadOne(file: File) {
     const error = browserUploadError(file);
     if (error) throw new Error(error);
-    const reg = await api.post<RegisterCandidateResponse>(`/batches/${id}/candidates`, {
-      fileName: file.name,
-      contentType: file.type || 'video/mp4',
-      sizeBytes: file.size,
-      simpleOnly: file.size <= SIMPLE_UPLOAD_THRESHOLD_BYTES,
-    });
+    const resumed = findUploadResume(String(id), file);
+    let candidateId: number | undefined;
+    let mode = '';
+    let uploadUrl: string | null = null;
+    let partSizeBytes = 0;
+    let skipParts: UploadedPart[] = [];
+    if (resumed) {
+      try {
+        const session = await api.get<{ candidateId: number; mode: string; uploadId: string | null; partSizeBytes: number; completedParts: UploadedPart[] }>(
+          `/candidates/${resumed.candidateId}/upload-session`,
+        );
+        candidateId = session.candidateId;
+        mode = session.mode;
+        partSizeBytes = session.partSizeBytes;
+        skipParts = session.completedParts ?? [];
+      } catch {
+        forgetUploadResume(resumed.candidateId);
+      }
+    }
+    if (!candidateId) {
+      const reg = await api.post<RegisterCandidateResponse>(`/batches/${id}/candidates`, {
+        fileName: file.name,
+        contentType: file.type || 'video/mp4',
+        sizeBytes: file.size,
+        simpleOnly: file.size <= SIMPLE_UPLOAD_THRESHOLD_BYTES,
+      });
+      candidateId = reg.candidateId;
+      mode = reg.mode;
+      uploadUrl = reg.uploadUrl;
+      partSizeBytes = reg.partSizeBytes;
+      if (mode === 'MULTIPART') rememberUploadResume({ batchId: String(id), candidateId, fileName: file.name, sizeBytes: file.size });
+    }
     setUploadPct(0);
     let parts: UploadedPart[] | undefined;
-    if (reg.mode === 'MULTIPART') {
+    if (mode === 'MULTIPART') {
       parts = await uploadMultipartParts({
         file,
-        partSizeBytes: reg.partSizeBytes,
+        partSizeBytes,
+        skipParts,
         fetchPartUrls: async (partNumbers) => {
           const resp = await api.post<UploadPartsResponse>(
-            `/candidates/${reg.candidateId}/upload-parts`,
+            `/candidates/${candidateId}/upload-parts`,
             { partNumbers },
           );
           return resp.partUrls;
@@ -173,13 +200,15 @@ export default function BatchPage() {
         onProgress: setUploadPct,
       });
     } else {
-      if (!reg.uploadUrl) throw new Error('后端未返回上传地址');
-      await putWithProgress(reg.uploadUrl, file, setUploadPct);
+      if (!uploadUrl) throw new Error('后端未返回上传地址');
+      await putWithProgress(uploadUrl, file, setUploadPct);
     }
-    return api.post<{ candidateId: number; status: string; probeError: string | null }>(
-      `/candidates/${reg.candidateId}/complete`,
+    const done = await api.post<{ candidateId: number; status: string; probeError: string | null }>(
+      `/candidates/${candidateId}/complete`,
       parts ? { parts } : {},
     );
+    forgetUploadResume(candidateId);
+    return done;
   }
 
   async function uploadQueueOf(files: File[]) {
@@ -264,9 +293,12 @@ export default function BatchPage() {
         )}
         <div className="row" style={{ marginTop: 10 }}>
           {batch.status === 'OPEN' ? (
+            <>
+            <button className="btn secondary" onClick={() => act('对账超时上传', () => api.post(`/batches/${id}/reconcile`))}>对账</button>
             <button className="btn secondary" onClick={() => act('关闭批次', () => api.post(`/batches/${id}/close`))}>
               关闭批次
             </button>
+            </>
           ) : (
             <>
               <button className="btn secondary" disabled={isAnalyzing}

@@ -54,6 +54,10 @@ public final class BatchDtos {
     public record UploadPartsResponse(Map<Integer, String> partUrls) {
     }
 
+    public record UploadSessionResponse(Long candidateId, String mode, String uploadId,
+                                        long partSizeBytes, List<PartResult> completedParts) {
+    }
+
     public record PartResult(@NotNull Integer partNumber, @NotBlank String etag) {
     }
 

@@ -54,12 +54,36 @@ paths:
       summary: 凭重置令牌设置新密码并吊销全部会话
       responses:
         "204": { description: 已重置 }
+  /api/v1/auth/verify-email/request:
+    post:
+      tags: [auth]
+      summary: 向当前登录邮箱重发验证邮件
+      responses:
+        "204": { description: 已受理 }
+  /api/v1/auth/verify-email/confirm:
+    post:
+      tags: [auth]
+      summary: 凭验证令牌标记邮箱已验证
+      responses:
+        "204": { description: 已验证 }
   /api/v1/me:
     get:
       tags: [auth]
       summary: 当前用户信息
       responses:
         "200": { description: 用户与所属团队 }
+  /api/v1/me/teams:
+    get:
+      tags: [auth]
+      summary: 当前用户加入的全部团队
+      responses:
+        "200": { description: 团队列表 }
+  /api/v1/me/current-team:
+    post:
+      tags: [auth]
+      summary: 切换当前团队并签发新令牌对
+      responses:
+        "200": { description: 新的令牌对 }
   /api/v1/users/me/profile:
     put:
       tags: [auth]
@@ -90,6 +114,12 @@ paths:
       summary: 移除成员（仅 OWNER）
       responses:
         "204": { description: 已移除 }
+  /api/v1/teams/{teamId}/owner:
+    post:
+      tags: [team]
+      summary: 转移团队所有权（仅当前 OWNER，目标须已是成员）
+      responses:
+        "204": { description: 已转移 }
   /api/v1/teams/{teamId}/invitations:
     post:
       tags: [team]
@@ -277,6 +307,12 @@ paths:
       summary: 对账（元数据 vs 对象存储，修超时会话并出报告）
       responses:
         "200": { description: 对账报告 }
+  /api/v1/candidates/{id}/upload-session:
+    get:
+      tags: [batch]
+      summary: 查询未完成的分片上传会话（已完成分片号与 ETag，供断点续传）
+      responses:
+        "200": { description: 会话与已上传分片 }
   /api/v1/candidates/{id}/upload-parts:
     post:
       tags: [batch]

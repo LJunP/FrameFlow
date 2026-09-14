@@ -14,6 +14,7 @@ public class UserRow {
     private String passwordHash;
     private String displayName;
     private String status;
+    private OffsetDateTime emailVerifiedAt;
     private OffsetDateTime createdAt;
 
     public Long getId() { return id; }
@@ -26,6 +27,8 @@ public class UserRow {
     public void setDisplayName(String displayName) { this.displayName = displayName; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public OffsetDateTime getEmailVerifiedAt() { return emailVerifiedAt; }
+    public void setEmailVerifiedAt(OffsetDateTime emailVerifiedAt) { this.emailVerifiedAt = emailVerifiedAt; }
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
 }

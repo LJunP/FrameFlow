@@ -76,7 +76,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register",
                                 "/api/v1/auth/login", "/api/v1/auth/refresh",
                                 "/api/v1/auth/password-reset/request",
-                                "/api/v1/auth/password-reset/confirm").permitAll()
+                                "/api/v1/auth/password-reset/confirm",
+                                "/api/v1/auth/verify-email/confirm").permitAll()
                         // 接受邀请：受邀人没有会话可带，唯一凭证是令牌本身（见
                         // InvitationController 注释）。仅放行这一个精确路径。
                         .requestMatchers(HttpMethod.POST, "/api/v1/invitations/accept").permitAll()

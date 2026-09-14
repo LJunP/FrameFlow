@@ -22,11 +22,11 @@ public interface UserMapper {
                 @Param("passwordHash") String passwordHash,
                 @Param("displayName") String displayName);
 
-    @Select("SELECT id, email, password_hash, display_name, status, created_at "
+    @Select("SELECT id, email, password_hash, display_name, status, email_verified_at, created_at "
             + "FROM users WHERE email = #{email}")
     UserRow findByEmail(String email);
 
-    @Select("SELECT id, email, password_hash, display_name, status, created_at "
+    @Select("SELECT id, email, password_hash, display_name, status, email_verified_at, created_at "
             + "FROM users WHERE id = #{id}")
     UserRow findById(Long id);
 
@@ -35,4 +35,8 @@ public interface UserMapper {
 
     @Update("UPDATE users SET password_hash = #{passwordHash} WHERE id = #{id}")
     int updatePasswordHash(@Param("id") Long id, @Param("passwordHash") String passwordHash);
+
+    @Update("UPDATE users SET email_verified_at = #{verifiedAt} "
+            + "WHERE id = #{id} AND email_verified_at IS NULL")
+    int markEmailVerified(@Param("id") Long id, @Param("verifiedAt") java.time.OffsetDateTime verifiedAt);
 }
