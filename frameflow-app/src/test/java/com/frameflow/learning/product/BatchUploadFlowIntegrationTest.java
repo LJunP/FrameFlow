@@ -311,10 +311,12 @@ class BatchUploadFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/projects/" + projectId + "/batches")
                         .header("Authorization", bearer(ctx.tokens)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(ctx.batchId))
-                .andExpect(jsonPath("$[0].projectId").value(projectId))
-                .andExpect(jsonPath("$[0].status").value("OPEN"))
-                .andExpect(jsonPath("$[0].capacity").value(1));
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.items[0].id").value(ctx.batchId))
+                .andExpect(jsonPath("$.items[0].projectId").value(projectId))
+                .andExpect(jsonPath("$.items[0].status").value("OPEN"))
+                .andExpect(jsonPath("$.items[0].capacity").value(1));
 
         // 不存在的项目 → 404（防枚举一致语义）
         mockMvc.perform(get("/api/v1/projects/999999/batches")

@@ -1,6 +1,9 @@
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // ★ 关闭左下角 Next.js Dev Tools 圆钮：仅开发期调试入口，不属于产品 UI，
+  // 生产构建本就不渲染。关闭后终端报错与错误浮层不受影响。
+  devIndicators: false,
   // ★ 核心：固定自托管构建的 tracing root，避免 Next.js 因用户目录中
   // 的其他 lockfile 误把整个上层目录当作 workspace，导致追踪结果漂移。
   outputFileTracingRoot: process.cwd(),

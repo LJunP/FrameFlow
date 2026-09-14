@@ -103,9 +103,12 @@ public class ProjectController {
 
     // ---------- Batches ----------
 
-    /** 历史批次列表：成员可读，供项目页回看已创建的批次（新批次在前）。 */
+    /** 历史批次列表：成员可读，供项目页回看已创建的批次（新批次在前，0-based 分页）。 */
     @GetMapping("/{id}/batches")
-    public List<BatchResponse> listBatches(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        return batchService.listByProject(Long.parseLong(jwt.getSubject()), id);
+    public PageResponse<BatchResponse> listBatches(@AuthenticationPrincipal Jwt jwt,
+                                                   @PathVariable long id,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "20") int size) {
+        return batchService.listByProject(Long.parseLong(jwt.getSubject()), id, page, size);
     }
 }

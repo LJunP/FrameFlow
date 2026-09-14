@@ -37,6 +37,10 @@ mybatis:
 # 改这里的 name/version，重启后 /api/v1/ping 的返回随之变化——
 # 这就是"配置外置"的意义：改配置不用改代码。
 frameflow:
+  # 环境标识：local / dev / staging / production。
+  # SecurityStartupValidator 只在非 local 环境强制密钥 fail-closed，
+  # 避免本地与测试环境因缺少真实凭据而无法启动。
+  env: ${FRAMEFLOW_ENV:local}
   app:
     name: frameflow-select
     version: 0.1.0-SNAPSHOT
@@ -68,6 +72,12 @@ frameflow:
   worker:
     # 内部回写接口共享密钥（生产必须用环境变量覆盖）
     result-key: ${FRAMEFLOW_WORKER_KEY:frameflow-dev-worker-key}
+  admin:
+    # 平台运维接口（/api/v1/admin/**）密钥。
+    # ★ 故意不设默认值：留空时 AdminAuthFilter 拒绝全部运维请求（fail-closed）。
+    # MQ 是全局基础设施，不能用"团队 OWNER"授权——注册即成 OWNER 会让全员可重放
+    # 所有团队的死信。这里必须与团队角色彻底解耦。
+    api-key: ${FRAMEFLOW_ADMIN_API_KEY:}
   semantic:
     # 平台统一托管的模型目录。JSON 中只写 Key 的环境变量名，绝不写 Key 本身；
     # 空目录保持 F6 单模型配置兼容，模型名继续读取 FRAMEFLOW_SEMANTIC_MODEL。

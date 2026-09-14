@@ -1,8 +1,11 @@
 package com.frameflow.learning.identity.web;
 
 import com.frameflow.learning.identity.service.AuthService;
+import com.frameflow.learning.identity.service.PasswordResetService;
 import com.frameflow.learning.identity.web.AuthDtos.AuthResponse;
 import com.frameflow.learning.identity.web.AuthDtos.LoginRequest;
+import com.frameflow.learning.identity.web.AuthDtos.PasswordResetConfirmRequest;
+import com.frameflow.learning.identity.web.AuthDtos.PasswordResetRequest;
 import com.frameflow.learning.identity.web.AuthDtos.RefreshRequest;
 import com.frameflow.learning.identity.web.AuthDtos.RegisterRequest;
 import jakarta.validation.Valid;
@@ -24,9 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, PasswordResetService passwordResetService) {
         this.authService = authService;
+        this.passwordResetService = passwordResetService;
     }
 
     /** 注册需要 Idempotency-Key 请求头（由 IdempotencyFilter 强制并做重放）。 */
@@ -49,5 +54,18 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(@AuthenticationPrincipal Jwt jwt) {
         authService.logout(Long.parseLong(jwt.getSubject()));
+    }
+
+    /** 公开：始终 204，响应不透露邮箱是否存在。 */
+    @PostMapping("/password-reset/request")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void requestPasswordReset(@Valid @RequestBody PasswordResetRequest req) {
+        passwordResetService.requestReset(req.email());
+    }
+
+    @PostMapping("/password-reset/confirm")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest req) {
+        passwordResetService.confirmReset(req.token(), req.newPassword());
     }
 }

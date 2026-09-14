@@ -23,9 +23,15 @@ public interface BatchMapper {
             + "created_by, created_at FROM generation_batches WHERE id = #{id}")
     BatchRow findById(Long id);
 
+    @Select("SELECT count(*) FROM generation_batches WHERE project_id = #{projectId}")
+    long countByProject(Long projectId);
+
     @Select("SELECT id, project_id, profile_version_id, brief_id, status, capacity, "
-            + "created_by, created_at FROM generation_batches WHERE project_id = #{projectId} ORDER BY id DESC")
-    java.util.List<BatchRow> listByProject(Long projectId);
+            + "created_by, created_at FROM generation_batches WHERE project_id = #{projectId} "
+            + "ORDER BY id DESC LIMIT #{limit} OFFSET #{offset}")
+    java.util.List<BatchRow> listByProject(@Param("projectId") Long projectId,
+                                           @Param("limit") int limit,
+                                           @Param("offset") int offset);
 
     @Select("SELECT id, project_id, profile_version_id, brief_id, status, capacity, "
             + "created_by, created_at FROM generation_batches WHERE id = #{id} FOR UPDATE")

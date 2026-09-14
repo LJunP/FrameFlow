@@ -99,16 +99,22 @@ public class BatchService {
         return toResponse(batch, version.getVersionNo(), counts);
     }
 
-    /** 项目下的批次列表（历史批次入口）：成员可读，新批次在前。 */
-    public List<BatchResponse> listByProject(long userId, long projectId) {
+    /** 项目下的批次列表（历史批次入口）：成员可读，新批次在前，分页。 */
+    public com.frameflow.learning.shared.api.PageResponse<BatchResponse> listByProject(
+            long userId, long projectId, int page, int size) {
         ProjectRow project = projects.findById(projectId);
         if (project == null) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND);
         }
         teamAccess.requireMember(userId, project.getTeamId());
-        return batches.listByProject(projectId).stream()
-                .map(row -> get(userId, row.getId()))
-                .toList();
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        long total = batches.countByProject(projectId);
+        return com.frameflow.learning.shared.api.PageResponse.of(
+                batches.listByProject(projectId, safeSize, safePage * safeSize).stream()
+                        .map(row -> get(userId, row.getId()))
+                        .toList(),
+                safePage, safeSize, total);
     }
 
     private Map<String, Integer> countsFromDb(long batchId) {
@@ -219,7 +225,7 @@ public class BatchService {
             long userId, long batchId, int page, int size) {
         requireBatchOfMyTeam(userId, batchId);
         int safePage = Math.max(page, 0);
-        int safeSize = Math.min(Math.max(size, 1), 200);
+        int safeSize = Math.min(Math.max(size, 1), 300);
         var items = candidates.listByBatchPage(batchId, safeSize, safePage * safeSize)
                 .stream().map(BatchService::toCandidateResponse).toList();
         long total = candidates.countByStatus(batchId).stream()

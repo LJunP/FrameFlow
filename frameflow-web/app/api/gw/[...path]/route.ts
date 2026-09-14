@@ -27,6 +27,10 @@ async function forward(req: NextRequest, path: string[]) {
   const resp = new NextResponse(body, { status: upstream.status });
   const upstreamType = upstream.headers.get('content-type');
   if (upstreamType) resp.headers.set('Content-Type', upstreamType);
+  // ★ 核心：导出接口靠 Content-Disposition 带日期文件名；不转发它，前端只能
+  // 退回硬编码文件名，同一天多次导出会互相覆盖成 "(1)(2)" 副本。
+  const disposition = upstream.headers.get('content-disposition');
+  if (disposition) resp.headers.set('Content-Disposition', disposition);
   return resp;
 }
 

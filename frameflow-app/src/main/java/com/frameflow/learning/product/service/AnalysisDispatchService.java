@@ -34,11 +34,13 @@ public class AnalysisDispatchService {
     private final com.frameflow.learning.product.repo.BriefMapper briefs;
     private final RabbitTemplate rabbitTemplate;
     private final FrameFlowMetrics metrics;
+    private final ProgressCacheService progressCache;
 
     public AnalysisDispatchService(BatchService batchService, CandidateMapper candidates,
                                    AnalysisRunMapper runs, QualityProfileMapper profiles,
                                    com.frameflow.learning.product.repo.BriefMapper briefs,
-                                   RabbitTemplate rabbitTemplate, FrameFlowMetrics metrics) {
+                                   RabbitTemplate rabbitTemplate, FrameFlowMetrics metrics,
+                                   ProgressCacheService progressCache) {
         this.batchService = batchService;
         this.candidates = candidates;
         this.runs = runs;
@@ -46,6 +48,7 @@ public class AnalysisDispatchService {
         this.briefs = briefs;
         this.rabbitTemplate = rabbitTemplate;
         this.metrics = metrics;
+        this.progressCache = progressCache;
     }
 
     public record DispatchResult(long batchId, int dispatched, int skipped) {
@@ -94,6 +97,12 @@ public class AnalysisDispatchService {
         // 事务提交在方法返回时——publish 在事务内先行。若提交失败，
         // 消息可能已发出但 run 行不存在，worker 回写会得到 404 并重试后
         // 放弃（DLQ 留痕）。这是"至少一次投递"的正常代价，见导读 §3。
+        // ★ 核心：派发把候选从 UPLOADED 推进 ANALYZING，必须立刻失效进度缓存。
+        // 否则 GET /progress 与批次页 SSE 触发条件会在最多 30s 内仍看到
+        // UPLOADED——页面既不建 SSE 也不轮询，分析看起来"卡住"。
+        if (!dispatchedIds.isEmpty()) {
+            progressCache.evict(batchId);
+        }
         return new DispatchResult(batchId, dispatchedIds.size(), 0);
     }
 

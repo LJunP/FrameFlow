@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import type { AuthPayload } from '@/lib/types';
 import { safeNextPath } from '@/lib/security-contracts';
+import Link from 'next/link';
 import { BrandLockup } from '@/components/marketing/brand-lockup';
 
 function LoginExperience() {
@@ -186,6 +187,11 @@ function LoginExperience() {
               {busy ? '正在安全验证…' : register ? '注册并进入工作台 ↗' : '登录并继续 ↗'}
             </button>
           </form>
+          {!register && (
+            <p className="auth-legal">
+              <Link href="/reset-password">忘记密码？</Link>
+            </p>
+          )}
           <small className="auth-legal">
             继续即表示你理解：视频质量结论需按团队规则与人工复核共同确认。
           </small>

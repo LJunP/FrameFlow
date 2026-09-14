@@ -238,20 +238,38 @@ class RankingSelectionIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("SELECTION_LOCKED"));
 
-        // 导出 CSV：机器列与人工列并存（审计可还原）
+        // 导出 CSV：UTF-8 BOM + 中文表头 + 候选元数据 + 机器/人工列并存（审计可还原）
         MvcResult csv = mockMvc.perform(get("/api/v1/selections/" + selectionId + "/export")
                         .queryParam("format", "csv")
                         .header("Authorization", bearer(ctx.tokens)))
                 .andExpect(status().isOk())
                 .andReturn();
-        String body = csv.getResponse().getContentAsString();
-        assertThat(body).contains("rank,candidate_id,score,cluster_id,machine_pick,human_action,note");
-        assertThat(body).contains("true,EXCLUDE");          // 机器选了且被人工排除
-        assertThat(body).contains("false,INCLUDE");         // 机器没选但被人工加进
+        // 按 UTF-8 解码原始字节（BOM 与中文表头都在字节里）
+        String body = new String(csv.getResponse().getContentAsByteArray(),
+                java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(body).startsWith("\uFEFF排名,候选ID,文件名,状态,大小(字节),内容类型,"
+                + "综合得分,机器入选,簇编号,质检结论,人工复核动作,上传时间,导出时间");
+        // 文件名带优选集 id 与日期；Content-Type 声明 UTF-8
+        assertThat(csv.getResponse().getHeader("Content-Disposition"))
+                .contains("attachment; filename=\"selection-" + selectionId + "-")
+                .endsWith(".csv\"");
+        assertThat(csv.getResponse().getContentType()).contains("text/csv").contains("utf-8");
+        // 人工列（EXCLUDE/INCLUDE）与候选元数据都在导出里
+        assertThat(body).contains("a.mp4").contains(",EXCLUDE,");
+        assertThat(body).contains("c.mp4").contains(",INCLUDE,");
+        assertThat(body).contains("video/mp4").contains("ANALYZED").contains("PASS");
 
-        mockMvc.perform(get("/api/v1/selections/" + selectionId + "/export")
+        // 导出 JSON：每项是结构化对象，字段与 CSV 列一致
+        MvcResult json = mockMvc.perform(get("/api/v1/selections/" + selectionId + "/export")
                         .header("Authorization", bearer(ctx.tokens)))
-                .andExpect(status().isOk());   // JSON 默认
+                .andExpect(status().isOk())   // JSON 默认
+                .andReturn();
+        List<Map<String, Object>> jsonItems = objectMapper.readValue(
+                json.getResponse().getContentAsString(), List.class);
+        assertThat(jsonItems).isNotEmpty();
+        assertThat(jsonItems.get(0)).containsKeys("rank", "candidateId", "fileName", "status",
+                "sizeBytes", "contentType", "compositeScore", "machinePick", "clusterId",
+                "verdict", "reviewAction", "uploadedAt", "exportedAt");
     }
 
     // ---------- 工具：本测试扮演 worker ----------

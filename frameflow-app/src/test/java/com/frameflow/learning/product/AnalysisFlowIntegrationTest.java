@@ -36,7 +36,10 @@ import org.testcontainers.utility.DockerImageName;
  * F4 流水线集成测试：真实 RabbitMQ 容器；测试进程扮演 worker——
  * 从队列取任务、调用内部回写接口，覆盖"消息不丢、结果不重、错误不伪装"。
  */
-@SpringBootTest(properties = {"frameflow.storage.multipart-threshold=4MB"})
+// 平台运维接口需要 X-Admin-Key（见 AdminAuthFilter）；这里显式配一个测试密钥。
+// 未配置时 /api/v1/admin/** 全部拒绝，故不能沿用默认空值。
+@SpringBootTest(properties = {"frameflow.storage.multipart-threshold=4MB",
+        "frameflow.admin.api-key=test-admin-key-for-mq-ops"})
 @AutoConfigureMockMvc
 @Import({TestcontainersConfiguration.class, MinioTestConfig.class})
 class AnalysisFlowIntegrationTest {
@@ -309,14 +312,29 @@ class AnalysisFlowIntegrationTest {
             Thread.sleep(100);
         }
 
+        // ★ 回归守卫：只凭 OWNER 的 JWT 不再能操作全局 MQ。
+        // 历史缺陷是 MqAdminController 只判 role==OWNER，而 OWNER 是团队作用域角色，
+        // 注册即自动获得——于是任何注册用户都能重放全体团队的死信。
+        // 这两条断言锁死"团队角色 ≠ 平台权限"这条边界。
         mockMvc.perform(get("/api/v1/admin/mq/stats")
                         .header("Authorization", bearer(ctx.tokens)))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/v1/admin/mq/replay-dlq")
+                        .header("Authorization", bearer(ctx.tokens))
+                        .header("X-Admin-Key", "not-the-admin-key"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get("/api/v1/admin/mq/stats")
+                        .header("Authorization", bearer(ctx.tokens))
+                        .header("X-Admin-Key", "test-admin-key-for-mq-ops"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.taskQueueDepth").exists())
                 .andExpect(jsonPath("$.dlqDepth").exists());
 
         mockMvc.perform(post("/api/v1/admin/mq/replay-dlq")
-                        .header("Authorization", bearer(ctx.tokens)))
+                        .header("Authorization", bearer(ctx.tokens))
+                        .header("X-Admin-Key", "test-admin-key-for-mq-ops"))
                 .andExpect(status().isOk());
 
         // 重放的实质验证：消息回到主队列（内容是塞进 DLQ 的那条毒消息）

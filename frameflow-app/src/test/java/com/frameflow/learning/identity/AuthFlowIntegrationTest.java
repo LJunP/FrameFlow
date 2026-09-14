@@ -3,6 +3,7 @@ package com.frameflow.learning.identity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -212,6 +213,105 @@ class AuthFlowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"refreshToken\":\"" + tokens.get("refreshToken") + "\"}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    // ---------- 资料与密码维护 ----------
+
+    @Test
+    void update_profile_changes_display_name_and_requires_auth() throws Exception {
+        var tokens = register("profile@example.com", "old-name");
+
+        // 未认证 → 401
+        mockMvc.perform(put("/api/v1/users/me/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"displayName\":\"new-name\"}"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(put("/api/v1/users/me/profile")
+                        .header("Authorization", bearer(tokens))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"displayName\":\"new-name\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("new-name"))
+                .andExpect(jsonPath("$.email").value("profile@example.com"));
+
+        // 落库后的真实值（/me 重新读取，确认不是只改了响应）
+        mockMvc.perform(get("/api/v1/me").header("Authorization", bearer(tokens)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.displayName").value("new-name"));
+
+        // 超长昵称 → 400
+        mockMvc.perform(put("/api/v1/users/me/profile")
+                        .header("Authorization", bearer(tokens))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"displayName\":\"" + "x".repeat(65) + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void change_password_wrong_old_password_is_401() throws Exception {
+        var tokens = register("pw-wrong@example.com", "pw-wrong-user");
+
+        mockMvc.perform(put("/api/v1/users/me/password")
+                        .header("Authorization", bearer(tokens))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"oldPassword\":\"NotThePass!\",\"newPassword\":\"NewPassw0rd!\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+    }
+
+    @Test
+    void change_password_same_as_old_is_400() throws Exception {
+        var tokens = register("pw-same@example.com", "pw-same-user");
+
+        mockMvc.perform(put("/api/v1/users/me/password")
+                        .header("Authorization", bearer(tokens))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"oldPassword\":\"Passw0rd!\",\"newPassword\":\"Passw0rd!\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void change_password_too_short_is_400() throws Exception {
+        var tokens = register("pw-short@example.com", "pw-short-user");
+
+        mockMvc.perform(put("/api/v1/users/me/password")
+                        .header("Authorization", bearer(tokens))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"oldPassword\":\"Passw0rd!\",\"newPassword\":\"short\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void change_password_success_revokes_refresh_tokens_and_new_password_works() throws Exception {
+        var tokens = register("pw-ok@example.com", "pw-ok-user");
+
+        mockMvc.perform(put("/api/v1/users/me/password")
+                        .header("Authorization", bearer(tokens))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"oldPassword\":\"Passw0rd!\",\"newPassword\":\"NewPassw0rd!\"}"))
+                .andExpect(status().isNoContent());
+
+        // 改密后全部 refresh token 已吊销（含当前会话的）——必须重新登录
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"" + tokens.get("refreshToken") + "\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("INVALID_REFRESH_TOKEN"));
+
+        // 旧密码已死，新密码可登录
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"pw-ok@example.com\",\"password\":\"Passw0rd!\"}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"pw-ok@example.com\",\"password\":\"NewPassw0rd!\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty());
     }
 
     // ---------- 越权三层：401 之上还有 404（防枚举）与 403（角色不足） ----------

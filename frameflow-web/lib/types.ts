@@ -14,6 +14,18 @@ export interface TeamMember {
   role: 'OWNER' | 'OPERATOR' | 'REVIEWER' | 'VIEWER';
 }
 
+/** 团队邀请记录。token 只在创建响应里出现一次；列表恒为 null。revokedAt 非空即已作废。 */
+export interface TeamInvitation {
+  id: number;
+  email: string;
+  role: 'OPERATOR' | 'REVIEWER' | 'VIEWER';
+  token: string | null;
+  expiresAt: string;
+  acceptedAt: string | null;
+  createdAt: string;
+  revokedAt: string | null;
+}
+
 export interface PageOf<T> {
   items: T[];
   page: number;
@@ -103,6 +115,17 @@ export interface RegisterCandidateResponse {
   expiresAt: string;
 }
 
+/** 分片直传地址响应；key 是分片号的字符串形式（JSON 对象键只能是字符串）。 */
+export interface UploadPartsResponse {
+  partUrls: Record<string, string>;
+}
+
+/** complete 时上报的单片结果（对应后端 PartResult；分片号必须从 1 连续）。 */
+export interface UploadedPart {
+  partNumber: number;
+  etag: string;
+}
+
 export interface Finding {
   id: number;
   dimension: string;
@@ -144,4 +167,36 @@ export interface SelectionSummary {
 
 export interface SelectionDetail extends SelectionSummary {
   items: SelectionItem[];
+}
+
+/** 全局搜索：按类型分组返回（对应 /api/v1/search，字段与 docs/api 契约一致）。 */
+export interface SearchProjectHit {
+  id: number;
+  name: string;
+  status: string;
+  /** 匹配上下文：命中的是项目名称还是说明。 */
+  matchedField: 'name' | 'description';
+}
+
+export interface SearchBatchHit {
+  id: number;
+  /** 回跳父级：批次详情挂在项目下。 */
+  projectId: number;
+  status: string;
+  /** 匹配上下文：批次按所属项目名命中。 */
+  projectName: string;
+}
+
+export interface SearchCandidateHit {
+  id: number;
+  /** 回跳父级：候选详情挂在批次下。 */
+  batchId: number;
+  fileName: string;
+  status: string;
+}
+
+export interface SearchResponse {
+  projects: SearchProjectHit[];
+  batches: SearchBatchHit[];
+  candidates: SearchCandidateHit[];
 }

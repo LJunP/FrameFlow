@@ -80,16 +80,39 @@ async function tryRevokeSession(
 export async function POST(req: NextRequest, ctx: { params: Promise<{ action: string }> }) {
   const { action } = await ctx.params;
 
-  if (action === 'login' || action === 'register') {
+  if (action === 'password-reset-request' || action === 'password-reset-confirm') {
+    const body = await req.json();
+    const upstreamPath = action === 'password-reset-request'
+      ? 'auth/password-reset/request'
+      : 'auth/password-reset/confirm';
+    let upstream: Response;
+    try {
+      upstream = await fetch(`${API_BASE}/api/v1/${upstreamPath}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(AUTH_TIMEOUT_MS),
+      });
+    } catch {
+      return upstreamUnavailable();
+    }
+    if (upstream.status === 204) return new NextResponse(null, { status: 204 });
+    return NextResponse.json(await upstream.json().catch(() => ({})), { status: upstream.status });
+  }
+
+  if (action === 'login' || action === 'register' || action === 'accept-invitation') {
     const body = await req.json();
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (action === 'register') {
       // 注册幂等键在服务端生成（客户端重试不会造成双注册）
       headers['Idempotency-Key'] = crypto.randomUUID();
     }
+    // 接受邀请与登录同享"双令牌 → HttpOnly Cookie"路径：成功后受邀人直接进工作台
+    const upstreamPath =
+      action === 'accept-invitation' ? 'invitations/accept' : `auth/${action}`;
     let upstream: Response;
     try {
-      upstream = await fetch(`${API_BASE}/api/v1/auth/${action}`, {
+      upstream = await fetch(`${API_BASE}/api/v1/${upstreamPath}`, {
         method: 'POST',
         headers,
         body: JSON.stringify(body),

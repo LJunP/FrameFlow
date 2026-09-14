@@ -174,7 +174,10 @@ services:
       FRAMEFLOW_STORAGE_ACCESS_KEY: ${FRAMEFLOW_STORAGE_ACCESS_KEY:-frameflow_local}
       FRAMEFLOW_STORAGE_SECRET_KEY: ${FRAMEFLOW_STORAGE_SECRET_KEY:-frameflow_local_only_minio}
       FRAMEFLOW_STORAGE_BUCKET: ${FRAMEFLOW_STORAGE_BUCKET:-frameflow-media-local}
-      FRAMEFLOW_API_BASE: http://app:18080
+      # ★ 核心：Worker 回调 API 的地址。默认 app:18080 适用于 app 也在 Compose 里；
+      # 若按本地开发习惯把 Java 跑在宿主机，必须用 FRAMEFLOW_WORKER_API_BASE 覆盖为
+      # host.docker.internal:18080，否则容器里的 127.0.0.1 指向自己、全链路分析永远卡住。
+      FRAMEFLOW_API_BASE: ${FRAMEFLOW_WORKER_API_BASE:-http://app:18080}
       FRAMEFLOW_WORKER_KEY: ${FRAMEFLOW_WORKER_KEY:-frameflow_local_only_worker_key}
       FRAMEFLOW_WORKER_PREFETCH: ${FRAMEFLOW_WORKER_PREFETCH:-2}
       FRAMEFLOW_WORKER_MAX_ATTEMPT: ${FRAMEFLOW_WORKER_MAX_ATTEMPT:-3}
@@ -190,6 +193,10 @@ services:
       rabbitmq: {condition: service_healthy}
       minio-init: {condition: service_completed_successfully}
     networks: [backend, data]
+    # host.docker.internal 让容器能回调宿主机上的 Java（见上面的 FRAMEFLOW_WORKER_API_BASE）。
+    # Docker Desktop(Mac/Windows) 自带该域名；Linux 需显式映射到 host-gateway。
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     init: true
     read_only: true
     tmpfs: ["/tmp:size=${FRAMEFLOW_WORKER_TMPFS_SIZE:-1g},mode=1777"]

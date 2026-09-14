@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 /**
  * users 表访问。SQL 全部手写——这是本项目的一贯原则（docs/02 技术栈），
@@ -28,4 +29,10 @@ public interface UserMapper {
     @Select("SELECT id, email, password_hash, display_name, status, created_at "
             + "FROM users WHERE id = #{id}")
     UserRow findById(Long id);
+
+    @Update("UPDATE users SET display_name = #{displayName} WHERE id = #{id}")
+    int updateDisplayName(@Param("id") Long id, @Param("displayName") String displayName);
+
+    @Update("UPDATE users SET password_hash = #{passwordHash} WHERE id = #{id}")
+    int updatePasswordHash(@Param("id") Long id, @Param("passwordHash") String passwordHash);
 }

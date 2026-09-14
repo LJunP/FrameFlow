@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useApi } from '@/lib/api';
-import type { BatchSummary, Brief, Profile, Project, SemanticModelCatalog } from '@/lib/types';
+import { EmptyState } from '@/components/empty-state';
+import type { BatchSummary, Brief, PageOf, Profile, Project, SemanticModelCatalog } from '@/lib/types';
 import {
   defaultQualityProfileDraft,
   serializeQualityProfileDraft,
@@ -34,6 +35,9 @@ export default function ProjectPage() {
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [batches, setBatches] = useState<BatchSummary[]>([]);
+  const [batchPage, setBatchPage] = useState(0);
+  const [batchTotal, setBatchTotal] = useState(0);
+  const batchPageSize = 20;
   const [briefText, setBriefText] = useState('');
   const [profileName, setProfileName] = useState('');
   const [profileDraft, setProfileDraft] = useState<QualityProfileDraft>(defaultQualityProfileDraft);
@@ -42,6 +46,8 @@ export default function ProjectPage() {
   const [semanticModelLoadState, setSemanticModelLoadState] = useState<SemanticModelLoadState>('loading');
   const [semanticModelLoadError, setSemanticModelLoadError] = useState('');
   const semanticModelRequestId = useRef(0);
+  const briefInputRef = useRef<HTMLInputElement>(null);
+  const batchFormRef = useRef<HTMLFormElement>(null);
   const [batchProfileId, setBatchProfileId] = useState<number | ''>('');
   const [capacity, setCapacity] = useState(50);
   const [message, setMessage] = useState('');
@@ -64,11 +70,15 @@ export default function ProjectPage() {
       setProject(await api.get<Project>(`/projects/${id}`));
       setBriefs(await api.get<Brief[]>(`/projects/${id}/briefs`));
       setProfiles(await api.get<Profile[]>('/quality-profiles'));
-      setBatches(await api.get<BatchSummary[]>(`/projects/${id}/batches`));
+      const batchPageResult = await api.get<PageOf<BatchSummary>>(
+        `/projects/${id}/batches?page=${batchPage}&size=${batchPageSize}`,
+      );
+      setBatches(batchPageResult.items);
+      setBatchTotal(batchPageResult.total);
     } catch (err) {
       setMessage(String(err instanceof Error ? err.message : err));
     }
-  }, [api, id]);
+  }, [api, id, batchPage]);
 
   // ★ 核心：模型目录只能来自平台 API；加载失败时清空可用目录并锁住 AI Profile 提交，绝不在浏览器补一个假选项。
   const loadSemanticModels = useCallback(async () => {
@@ -142,6 +152,7 @@ export default function ProjectPage() {
           }}
         >
           <input
+            ref={briefInputRef}
             style={{ flex: 1, minWidth: 260 }}
             placeholder="创作要求：主体、风格、禁项（如：不得出现水印）"
             value={briefText}
@@ -151,7 +162,11 @@ export default function ProjectPage() {
           <button className="btn">发布新快照</button>
         </form>
         {briefs.length === 0 ? (
-          <p className="muted">还没有 Brief——批次必须绑定一条 Brief 快照。</p>
+          <EmptyState
+            title="还没有 Brief 快照"
+            description="每个批次都必须绑定一条 Brief 快照。先在上方填写创作要求，发布第一条快照。"
+            action={{ label: '填写创作要求', onClick: () => briefInputRef.current?.focus() }}
+          />
         ) : (
           <table style={{ marginTop: 10 }}>
             <thead>
@@ -309,6 +324,7 @@ export default function ProjectPage() {
       <div className="card">
         <h2>创建批次（绑定当前 Brief + Profile 版本）</h2>
         <form
+          ref={batchFormRef}
           className="row"
           onSubmit={async (e) => {
             e.preventDefault();
@@ -353,34 +369,49 @@ export default function ProjectPage() {
       </div>
 
       <div className="card">
-        <h2>历史批次</h2>
-        {batches.length === 0 ? (
-          <p className="muted">还没有批次——用上面的表单创建第一个批次。</p>
+        <h2>历史批次{batchTotal > 0 ? `（${batchTotal}）` : ''}</h2>
+        {batchTotal === 0 ? (
+          <EmptyState
+            title="还没有批次"
+            description="批次用来承接一批候选素材，并绑定当前的 Brief 与质检标准版本。"
+            action={
+              project.currentBriefId
+                ? { label: '创建第一个批次', onClick: () => batchFormRef.current?.scrollIntoView({ block: 'center' }) }
+                : { label: '先发布 Brief 快照', onClick: () => briefInputRef.current?.focus() }
+            }
+          />
         ) : (
-          <table style={{ marginTop: 10 }}>
-            <thead>
-              <tr>
-                <th>批次</th>
-                <th>状态</th>
-                <th>容量</th>
-                <th>候选进度</th>
-                <th>标准版本</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {batches.map((b) => (
-                <tr key={b.id}>
-                  <td className="mono">#{b.id}</td>
-                  <td><span className={`badge ${b.status === 'OPEN' ? '' : 'ok'}`}>{b.status}</span></td>
-                  <td>{b.capacity}</td>
-                  <td>{formatBatchCounts(b.candidateCounts)}</td>
-                  <td className="muted">{b.profileVersionNo === null ? '—' : `v${b.profileVersionNo}`}</td>
-                  <td><Link href={`/batches/${b.id}`}>打开 ↗</Link></td>
+          <>
+            <nav className="row" aria-label="批次分页" style={{ marginBottom: 12 }}>
+              <button className="btn secondary" disabled={batchPage === 0} onClick={() => setBatchPage((page) => page - 1)}>上一页</button>
+              <span>第 {batchPage + 1} / {Math.max(1, Math.ceil(batchTotal / batchPageSize))} 页</span>
+              <button className="btn secondary" disabled={(batchPage + 1) * batchPageSize >= batchTotal} onClick={() => setBatchPage((page) => page + 1)}>下一页</button>
+            </nav>
+            <table style={{ marginTop: 10 }}>
+              <thead>
+                <tr>
+                  <th>批次</th>
+                  <th>状态</th>
+                  <th>容量</th>
+                  <th>候选进度</th>
+                  <th>标准版本</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {batches.map((b) => (
+                  <tr key={b.id}>
+                    <td className="mono">#{b.id}</td>
+                    <td><span className={`badge ${b.status === 'OPEN' ? '' : 'ok'}`}>{b.status}</span></td>
+                    <td>{b.capacity}</td>
+                    <td>{formatBatchCounts(b.candidateCounts)}</td>
+                    <td className="muted">{b.profileVersionNo === null ? '—' : `v${b.profileVersionNo}`}</td>
+                    <td><Link href={`/batches/${b.id}`}>打开 ↗</Link></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
     </>

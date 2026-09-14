@@ -5,7 +5,7 @@
 import { useAuth } from './auth-context';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { classifyRefreshStatus } from './security-contracts';
-import type { AuthPayload } from './types';
+import type { AuthPayload, UploadedPart } from './types';
 
 const REFRESH_CLIENT_TIMEOUT_MS = 5000;
 
@@ -37,6 +37,28 @@ export function refreshSession(): Promise<AuthPayload | null> {
     })();
   }
   return refreshInFlight;
+}
+
+/**
+ * 批次分析进度的 SSE 订阅地址。
+ *
+ * ★ 核心：浏览器 EventSource 无法设置自定义请求头（带不了 Authorization），
+ * 因此 access token 只能通过查询参数传给同源路由处理器
+ * /api/batches/[id]/events，由它在服务端换成 Bearer 头再连 Java 后端。
+ */
+export function batchEventsUrl(batchId: string | number, accessToken: string): string {
+  return `/api/batches/${batchId}/events?access_token=${encodeURIComponent(accessToken)}`;
+}
+
+/**
+ * 全局搜索请求路径。
+ *
+ * ★ 核心：关键词统一在这里编码——搜索框内容可能含空格、`&`、`#`、中文，
+ * 各处手写拼串漏掉 encodeURIComponent 会静默截断查询（如 "#" 之后的
+ * 内容直接丢失），表现为"搜索结果莫名其妙对不上"。
+ */
+export function globalSearchPath(keyword: string, limit = 10): string {
+  return `/search?q=${encodeURIComponent(keyword)}&limit=${limit}`;
 }
 
 export function useApi() {
@@ -100,6 +122,7 @@ export function useApi() {
       request<T>(path, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) }),
     put: <T>(path: string, body: unknown) =>
       request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
+    del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   }), [request]);
 }
 
@@ -120,4 +143,80 @@ export function putWithProgress(
     xhr.onerror = () => reject(new Error('网络错误（对象存储不可达？）'));
     xhr.send(file);
   });
+}
+
+// 分片并发度：太小吞吐差，太大在弱网/本地 MinIO 上容易触发超时与重试风暴
+const MULTIPART_CONCURRENCY = 3;
+
+/** 单片 PUT：与 SIMPLE 同一个 XHR 姿势，但必须把响应头 ETag 带回去——complete 合并靠它。 */
+function putPart(
+  url: string,
+  blob: Blob,
+  contentType: string,
+  onBytes: (delta: number) => void,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', url);
+    xhr.setRequestHeader('Content-Type', contentType);
+    let loaded = 0;
+    xhr.upload.onprogress = (e) => {
+      // ★ 核心：并发分片各自触发 progress，只能累加增量；直接记 e.loaded 会被别的分片覆盖。
+      onBytes(e.loaded - loaded);
+      loaded = e.loaded;
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 300) return reject(new Error(`分片上传失败 HTTP ${xhr.status}`));
+      // ★ 核心：浏览器跨域读响应头要求对象存储 CORS 暴露 ETag；拿不到 ETag 合并无从谈起。
+      const etag = xhr.getResponseHeader('ETag');
+      if (!etag) return reject(new Error('未读到分片 ETag（对象存储 CORS 需暴露 ETag 响应头）'));
+      resolve(etag);
+    };
+    xhr.onerror = () => reject(new Error('网络错误（对象存储不可达？）'));
+    xhr.send(blob);
+  });
+}
+
+/**
+ * MULTIPART 直传：按 partSizeBytes 切片 → 领每片预签名 URL → 小并发逐片 PUT
+ * → 返回按分片号排序的 ETag 列表，交给 complete 合并。
+ * fetchPartUrls 由调用方用 api.post 注入，保持本函数与请求层解耦、可单测。
+ */
+export async function uploadMultipartParts(opts: {
+  file: File;
+  partSizeBytes: number;
+  fetchPartUrls: (partNumbers: number[]) => Promise<Record<string, string>>;
+  onProgress: (percent: number) => void;
+}): Promise<UploadedPart[]> {
+  const { file, partSizeBytes, fetchPartUrls, onProgress } = opts;
+  const partCount = Math.ceil(file.size / partSizeBytes);
+  const partNumbers = Array.from({ length: partCount }, (_, i) => i + 1);
+  const partUrls = await fetchPartUrls(partNumbers);
+
+  const uploaded: UploadedPart[] = [];
+  let uploadedBytes = 0;
+  const report = () => onProgress(Math.min(100, Math.round((uploadedBytes / file.size) * 100)));
+
+  let nextIndex = 0;
+  async function worker() {
+    // 单线程事件循环里 nextIndex++ 与 await 之间不会交错，各 worker 取片互不重叠
+    while (nextIndex < partCount) {
+      const index = nextIndex++;
+      const partNumber = partNumbers[index];
+      const url = partUrls[String(partNumber)];
+      if (!url) throw new Error(`缺少分片 ${partNumber} 的上传地址`);
+      const start = index * partSizeBytes;
+      const blob = file.slice(start, Math.min(start + partSizeBytes, file.size));
+      const etag = await putPart(url, blob, file.type || 'application/octet-stream', (delta) => {
+        uploadedBytes += delta;
+        report();
+      });
+      uploaded.push({ partNumber, etag });
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(MULTIPART_CONCURRENCY, partCount) }, () => worker()),
+  );
+  // 后端 complete 会按分片号排序校验连续性，这里先排好，响应也更好读
+  return uploaded.sort((a, b) => a.partNumber - b.partNumber);
 }

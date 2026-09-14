@@ -28,6 +28,10 @@ __MACOSX/
 # Local tooling
 .zcode/
 .codex/
+.workbuddy-ai/
+
+# TypeScript incremental cache
+frameflow-web/tsconfig.tsbuildinfo
 
 # Node frontend
 node_modules/

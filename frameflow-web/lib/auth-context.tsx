@@ -17,6 +17,7 @@ interface AuthState {
   ready: boolean;
   sessionError: string | null;
   setSession: (p: AuthPayload) => void;
+  updateUser: (user: AuthPayload['user']) => void;
   clearSession: () => void;
   retrySession: () => Promise<void>;
   logout: () => Promise<void>;
@@ -45,6 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setTeam(null);
     setSessionError(null);
+  }, []);
+
+  // 资料编辑（如改昵称）后同步会话内的用户信息；token 与团队保持不变
+  const updateUser = useCallback((next: AuthPayload['user']) => {
+    setUser((current) => sameAuthUser(current, next) ? current : next);
   }, []);
 
   const retrySession = useCallback(async () => {
@@ -79,8 +85,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [accessToken, clearSession]);
 
   const value = useMemo(
-    () => ({ accessToken, user, team, ready, sessionError, setSession, clearSession, retrySession, logout }),
-    [accessToken, user, team, ready, sessionError, setSession, clearSession, retrySession, logout],
+    () => ({ accessToken, user, team, ready, sessionError, setSession, updateUser, clearSession, retrySession, logout }),
+    [accessToken, user, team, ready, sessionError, setSession, updateUser, clearSession, retrySession, logout],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

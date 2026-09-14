@@ -138,6 +138,36 @@ public class AuthService {
         refreshTokens.revokeAllForUser(userId, OffsetDateTime.now(clock));
     }
 
+    /** 更新昵称：返回最新用户信息，前端据此同步会话内的显示名。 */
+    @Transactional
+    public UserResponse updateProfile(long userId, String displayName) {
+        UserRow user = users.findById(userId);
+        users.updateDisplayName(userId, displayName);
+        return new UserResponse(user.getId(), user.getEmail(), displayName);
+    }
+
+    /**
+     * 修改密码：验旧 → 拒绝新旧相同 → 换哈希 → 吊销全部刷新令牌。
+     */
+    // ★ 核心：改密成功后必须吊销该用户所有 refresh token——密码泄露场景下
+    // 攻击者手里可能正握着有效会话；不换发新凭证，"改密码"就只是心理安慰。
+    // 前端收到 204 后应清空本地会话并引导重新登录（旧 access token 最多还
+    // 能活 15 分钟，这是无状态 JWT 换即时性换来的取舍，与登出同一语义）。
+    // 改坏后果：去掉 revokeAllForUser，被盗的 refresh token 在改密后仍可续期。
+    @Transactional
+    public void changePassword(long userId, String oldPassword, String newPassword) {
+        UserRow user = users.findById(userId);
+        // 已登录会话内改密，无枚举顾虑，可以给明确提示（与登录的统一话术不同）
+        if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+            throw new ApiException(ErrorCode.INVALID_CREDENTIALS, "原密码不正确");
+        }
+        if (oldPassword.equals(newPassword)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "新密码不能与原密码相同");
+        }
+        users.updatePasswordHash(userId, passwordEncoder.encode(newPassword));
+        refreshTokens.revokeAllForUser(userId, OffsetDateTime.now(clock));
+    }
+
     public AuthResponse me(long userId) {
         UserRow user = users.findById(userId);
         MemberRow member = members.findFirstByUser(userId);
@@ -157,6 +187,57 @@ public class AuthService {
         return members.listByTeam(teamId).stream()
                 .map(this::toMemberResponse)
                 .toList();
+    }
+
+    /**
+     * 变更成员角色（仅 OWNER）。目标角色只能是 OPERATOR/REVIEWER/VIEWER——
+     * 合法性由 UpdateMemberRoleRequest 的 @Pattern 在入口处保证（见该 DTO 的
+     * ★ 注释），这里 valueOf 是安全解析。
+     */
+    // ★ 核心：两条"不可动"规则必须在写库前判定——
+    // 1) 不能改自己的角色：OWNER 把自己降级会让团队陷入"无人可管"状态，
+    //    权限体系里"剥夺自己的最高权限"必须由另一个同等权限者完成；
+    // 2) 不能改 OWNER 的角色：OWNER 是团队的根权限，本接口不产生也不
+    //    消灭 OWNER（角色转移若要支持，须单独设计带审计的交接流程）。
+    // 改坏后果：漏掉任何一条，OWNER 都可能把自己锁死或被别人静默夺权。
+    @Transactional
+    public MemberResponse updateMemberRole(long userId, long teamId, long targetUserId, String newRole) {
+        teamAccess.requireRole(userId, teamId, Role.OWNER);
+        MemberRow target = requireMutableTarget(userId, teamId, targetUserId);
+        members.updateRole(teamId, targetUserId, Role.valueOf(newRole).name());
+        UserRow user = users.findById(targetUserId);
+        return new MemberResponse(user.getId(), user.getEmail(), user.getDisplayName(), newRole);
+    }
+
+    /**
+     * 移除成员（仅 OWNER）：只删除 team_members 成员关系，不删 users 记录——
+     * 用户账号是全局身份，被移出团队后仍应能登录（只是失去该团队上下文）。
+     */
+    // ★ 核心：与 updateMemberRole 共用同一套"不可动"判定（自己/OWNER），
+    // 移除操作不可逆且立即切断访问权限，判错方向（漏判）没有挽回余地。
+    @Transactional
+    public void removeMember(long userId, long teamId, long targetUserId) {
+        teamAccess.requireRole(userId, teamId, Role.OWNER);
+        requireMutableTarget(userId, teamId, targetUserId);
+        members.delete(teamId, targetUserId);
+    }
+
+    /**
+     * "可变更/可移除的目标成员"统一判定：
+     * 自己 → 403；目标不在团队 → 404（不泄露成员关系存在性）；目标是 OWNER → 403。
+     */
+    private MemberRow requireMutableTarget(long userId, long teamId, long targetUserId) {
+        if (userId == targetUserId) {
+            throw new ApiException(ErrorCode.FORBIDDEN);
+        }
+        MemberRow target = members.findByUserAndTeam(targetUserId, teamId);
+        if (target == null) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND);
+        }
+        if (Role.OWNER.name().equals(target.getRole())) {
+            throw new ApiException(ErrorCode.FORBIDDEN);
+        }
+        return target;
     }
 
     private AuthResponse issueAuthResponse(long userId, String email, String displayName,

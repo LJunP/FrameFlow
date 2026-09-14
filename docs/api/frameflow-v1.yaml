@@ -42,18 +42,77 @@ paths:
       summary: 登出（吊销全部刷新令牌）
       responses:
         "204": { description: 已登出 }
+  /api/v1/auth/password-reset/request:
+    post:
+      tags: [auth]
+      summary: 申请找回密码（始终 204，防邮箱枚举；未接入邮件发送）
+      responses:
+        "204": { description: 已受理 }
+  /api/v1/auth/password-reset/confirm:
+    post:
+      tags: [auth]
+      summary: 凭重置令牌设置新密码并吊销全部会话
+      responses:
+        "204": { description: 已重置 }
   /api/v1/me:
     get:
       tags: [auth]
       summary: 当前用户信息
       responses:
         "200": { description: 用户与所属团队 }
+  /api/v1/users/me/profile:
+    put:
+      tags: [auth]
+      summary: 更新当前用户昵称（1-64 字符）
+      responses:
+        "200": { description: 更新后的用户对象 }
+  /api/v1/users/me/password:
+    put:
+      tags: [auth]
+      summary: 修改密码（验旧换新，成功后吊销全部刷新令牌）
+      responses:
+        "204": { description: 已修改，需重新登录 }
   /api/v1/teams/{teamId}/members:
     get:
       tags: [team]
       summary: 团队成员列表（仅 OWNER）
       responses:
         "200": { description: 成员列表 }
+  /api/v1/teams/{teamId}/members/{userId}/role:
+    put:
+      tags: [team]
+      summary: 变更成员角色（仅 OWNER）
+      responses:
+        "200": { description: 变更后的成员视图 }
+  /api/v1/teams/{teamId}/members/{userId}:
+    delete:
+      tags: [team]
+      summary: 移除成员（仅 OWNER）
+      responses:
+        "204": { description: 已移除 }
+  /api/v1/teams/{teamId}/invitations:
+    post:
+      tags: [team]
+      summary: 创建成员邀请（仅 OWNER，角色限 OPERATOR/REVIEWER/VIEWER）
+      responses:
+        "200": { description: 邀请已创建，返回一次性令牌 }
+    get:
+      tags: [team]
+      summary: 邀请记录列表（仅 OWNER）
+      responses:
+        "200": { description: 邀请列表（含待接受/已接受状态） }
+  /api/v1/teams/{teamId}/invitations/{invitationId}:
+    delete:
+      tags: [team]
+      summary: 撤销未接受的邀请（仅 OWNER）
+      responses:
+        "204": { description: 已撤销 }
+  /api/v1/invitations/accept:
+    post:
+      tags: [team]
+      summary: 接受邀请（公开，凭令牌；无账号则建档，已有账号需验原密码）
+      responses:
+        "200": { description: 入团成功并返回令牌 }
   /api/v1/projects:
     get:
       tags: [project]
@@ -85,9 +144,9 @@ paths:
   /api/v1/projects/{id}/batches:
     get:
       tags: [batch]
-      summary: 项目下的历史批次列表（新批次在前）
+      summary: 项目下的历史批次分页列表（新批次在前，0-based page+size）
       responses:
-        "200": { description: 批次列表 }
+        "200": { description: 分页结果 items/page/size/total }
   /api/v1/projects/{id}/briefs:
     get:
       tags: [brief]
@@ -187,6 +246,16 @@ paths:
       summary: 批次进度（每次请求先检查归属，再读统计缓存；不存在时保留空响应）
       responses:
         "200": { description: 各状态候选计数 }
+  /api/v1/batches/{id}/events:
+    get:
+      tags: [batch]
+      summary: 批次分析进度 SSE 实时推送（建立连接校验团队成员；计数变化推 progress，终态推 done）
+      description: >-
+        text/event-stream 长连接。连接即推一帧当前计数，之后仅在计数变化时推送 progress
+        事件，无变化时以注释帧心跳保活；候选中不再有 ANALYZING 且不再有 UPLOADED 时
+        推送 done 事件并关闭连接。鉴权与其他批次接口一致（Bearer access token）。
+      responses:
+        "200": { description: 事件流（progress / done 事件与心跳注释帧） }
   /api/v1/batches/{id}/candidates:
     get:
       tags: [batch]
@@ -283,27 +352,100 @@ paths:
     get:
       tags: [selection]
       summary: 导出（仅 LOCKED；format=json|csv）
+      description: >-
+        仅 LOCKED 优选集可导出（DRAFT 返回 409 NOT_LOCKED）。每行 = 优选项 ×
+        候选元数据 × 排名三项合并（单次 JOIN 查询，无 N+1）。列/字段：
+        rank、candidateId、fileName、status、sizeBytes、contentType、
+        compositeScore、machinePick、clusterId、verdict、reviewAction、
+        uploadedAt、exportedAt。
+        machinePick 为排名机器是否将候选选入 Top-K，与 reviewAction（人工）
+        并存，保证 F7「机器/人工并存可审计」在交付文件里可还原；clusterId
+        为快照内簇编号，候选不在排名快照内（纯人工 INCLUDE）时为 null。
+        verdict 为候选级质检结论（ANALYZED→PASS，其余终态原样透出，
+        ANALYSIS_ERROR 不得改写为视频不合格）；reviewAction 为人工叠加动作
+        （INCLUDE/EXCLUDE，未动为 null）。format=json（默认）返回上述字段的
+        对象数组；format=csv 返回带 UTF-8 BOM 的中文表头 CSV
+        （机器入选列取值「是/否」），
+        Content-Type: text/csv;charset=utf-8，
+        Content-Disposition: attachment; filename="selection-{id}-{yyyyMMdd}.csv"。
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: format
+          in: query
+          required: false
+          schema: { type: string, enum: [json, csv], default: json }
       responses:
-        "200": { description: 导出内容 }
+        "200":
+          description: 导出内容（json 为对象数组；csv 为 UTF-8 BOM + 中文表头文本）
+          content:
+            application/json:
+              schema: { type: array, items: { type: object } }
+            text/csv:
+              schema: { type: string }
+  /api/v1/search:
+    get:
+      tags: [search]
+      summary: 全局搜索（项目/批次/候选，按团队裁剪）
+      description: >-
+        关键词 ILIKE 部分匹配（用户输入中的 % 与 _ 被转义为字面量），trim 后
+        至少 2 个字符，否则 400 VALIDATION_ERROR；limit 默认 10、上限 20（按类型
+        各自生效）；结果按创建时间倒序，且只返回调用者所属团队的数据。
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 20, default: 10 }
+      responses:
+        "200": { description: 分组命中结果 projects/batches/candidates }
   /api/v1/internal/analysis-results:
     post:
       tags: [internal]
       summary: worker 回写分析结果（X-Worker-Key 鉴权，幂等）
       responses:
         "200": { description: 回写结果（duplicate 标识是否重放） }
+  # ★ 平台运维接口：MQ 是 vhost 内的全局基础设施，不属于任何团队，
+  # 因此不能用"团队 OWNER"授权——注册即成为自己团队的 OWNER，那样等于
+  # 任何注册用户都能重放全体团队的死信。这里要求平台管理员密钥 X-Admin-Key；
+  # 未配置该密钥时接口全部拒绝（fail-closed）。
   /api/v1/admin/mq/stats:
     get:
       tags: [internal]
-      summary: 队列深度（主队列/死信，OWNER）
+      summary: 队列深度（主队列/死信，平台管理员密钥）
+      parameters:
+        - $ref: '#/components/parameters/AdminKey'
       responses:
         "200": { description: 深度统计 }
+        "401": { description: 缺少或错误的 X-Admin-Key（含未配置密钥） }
   /api/v1/admin/mq/replay-dlq:
     post:
       tags: [internal]
-      summary: 重放死信到主队列（OWNER）
+      summary: 重放死信到主队列（平台管理员密钥，跨团队操作）
+      parameters:
+        - $ref: '#/components/parameters/AdminKey'
       responses:
         "200": { description: 重放数量 }
+        "401": { description: 缺少或错误的 X-Admin-Key（含未配置密钥） }
 components:
+  parameters:
+    WorkerKey:
+      name: X-Worker-Key
+      in: header
+      required: true
+      description: Worker 回写接口的共享密钥（未配置或错误一律 401）
+      schema: { type: string }
+    AdminKey:
+      name: X-Admin-Key
+      in: header
+      required: true
+      description: 平台管理员密钥。MQ 等全局基础设施操作专用，与团队 OWNER 角色无关
+      schema: { type: string }
   securitySchemes:
     bearerAuth:
       type: http

@@ -1,9 +1,88 @@
 import Link from 'next/link';
 import { MarketingHeader } from '@/components/marketing/marketing-header';
+import { Reveal } from '@/components/marketing/reveal';
 
 const workflow = [['01', '导入候选', '直接上传一批 AI 视频，保留可恢复的上传与对象存储对账。'], ['02', '确定性质检', '时长、分辨率、帧率、黑帧和卡顿由可重复规则给出证据。'], ['03', '人工复核', 'AI 只提示需要关注的候选；语义异常始终由人最终裁决。'], ['04', '锁定交付', '聚类、排名、人工调整和导出共同形成可追溯的优选快照。']];
 const capabilities = [['批量而非盲看', '从候选队列开始收敛，不让团队在每一条视频上重复耗时。'], ['证据而非黑箱', '每条 Finding 都能回到时间码、检测器版本和原始证据。'], ['规则可解释', '质检标准版本化。团队编辑业务语言，系统在边界生成内部规则。'], ['决策可追溯', '机器 Top-K 与人工 INCLUDE / EXCLUDE 独立保存，锁定后可导出。']];
 
 export default function MarketingHome() {
-  return <div className="marketing-shell"><a className="skip-link" href="#main-content">跳到主要内容</a><MarketingHeader /><main id="main-content"><section className="hero-stage" aria-labelledby="hero-title"><div className="hero-grid" aria-hidden="true" /><div className="hero-orb orb-one" aria-hidden="true" /><div className="hero-orb orb-two" aria-hidden="true" /><div className="hero-inner"><p className="hero-kicker"><span /> AI VIDEO QUALITY WORKSPACE</p><h1 id="hero-title">让每一帧选择，<br /><em>都有证据。</em></h1><p className="hero-copy">FrameFlow Select 是面向 AI 生成短视频的批量质检与优选平台。把上传、分析、人工判断和交付放进一条可追溯的工作流。</p><div className="hero-actions"><Link className="hero-primary" href="/login?mode=register">建立你的工作区 <span aria-hidden="true">↗</span></Link><Link className="hero-secondary" href="#workflow">查看工作流 <span aria-hidden="true">↓</span></Link></div><div className="hero-signal" aria-label="产品能力摘要"><span>规则版本</span><i /><span>证据定位</span><i /><span>人工决策</span></div></div><div className="hero-console" aria-label="FrameFlow 产品界面示意"><div className="console-top"><span>FF / REVIEW</span><span className="console-live">LIVE FLOW</span></div><div className="console-body"><div className="console-frames"><span className="frame active" /><span className="frame" /><span className="frame" /><span className="frame" /><span className="frame" /></div><div className="console-analysis"><div className="analysis-line"><span>画面完整度</span><b>PASS</b></div><div className="analysis-line warning"><span>与 Brief 对齐</span><b>REVIEW</b></div><div className="analysis-timeline"><i /><i /><i className="selected" /><i /><i /></div></div></div><div className="console-score"><span>RECOMMENDED</span><strong>92.4</strong><small>可解释评分</small></div></div></section><section id="workflow" className="marketing-section workflow-section" aria-labelledby="workflow-title"><div className="section-heading"><p>THE FLOW</p><h2 id="workflow-title">把“看完再选”<br />变成一条清晰的生产线。</h2></div><div className="workflow-list">{workflow.map(([number, title, description]) => <article key={number} className="workflow-step"><span>{number}</span><div><h3>{title}</h3><p>{description}</p></div><b aria-hidden="true">↘</b></article>)}</div></section><section id="capabilities" className="marketing-section capability-section" aria-labelledby="capability-title"><div className="section-heading compact"><p>BUILT FOR REVIEW</p><h2 id="capability-title">不是另一个素材库。<br />是团队的选择系统。</h2></div><div className="capability-grid">{capabilities.map(([title, description], index) => <article className={`capability-card card-${index + 1}`} key={title}><span className="capability-index">0{index + 1}</span><h3>{title}</h3><p>{description}</p><div className="capability-visual" aria-hidden="true"><i /><i /><i /><i /></div></article>)}</div></section><section id="evidence" className="marketing-section evidence-section" aria-labelledby="evidence-title"><div className="evidence-copy"><p>HUMAN IN THE LOOP</p><h2 id="evidence-title">自动化负责收敛，<br /><em>人负责最终判断。</em></h2><p>确定性不合格才能自动阻断。AI 返回的 VIOLATE、UNKNOWN 或 ERROR 永远只会进入人工复核，不会替代你的业务判断。</p><Link href="/login?mode=register" className="text-link">开始建立可追溯的审阅流程 <span aria-hidden="true">→</span></Link></div><div className="evidence-board" aria-label="审阅证据界面示意"><div className="evidence-video"><span>00:01.2</span><i /></div><div className="evidence-finding"><span>FINDING / 03</span><strong>与创作 Brief 对齐</strong><p>需要人工确认主体呈现与画面表达。</p><b>REVIEW REQUIRED</b></div></div></section></main><footer className="marketing-footer"><span>FRAMEFLOW SELECT</span><p>为 AI 短视频团队建立证据化的选择流程。</p><Link href="/login?mode=register">开始使用 ↗</Link></footer></div>;
+  return (
+    <div className="marketing-shell">
+      <a className="skip-link" href="#main-content">跳到主要内容</a>
+      <MarketingHeader />
+      <main id="main-content">
+        <section className="hero-stage" aria-labelledby="hero-title">
+          <div className="hero-grid" aria-hidden="true" />
+          <div className="hero-orb orb-one" aria-hidden="true" />
+          <div className="hero-orb orb-two" aria-hidden="true" />
+          <div className="hero-inner">
+            <p className="hero-kicker"><span /> AI VIDEO QUALITY WORKSPACE</p>
+            <h1 id="hero-title">让每一帧选择，<br /><em>都有证据。</em></h1>
+            <p className="hero-copy">FrameFlow Select 是面向 AI 生成短视频的批量质检与优选平台。把上传、分析、人工判断和交付放进一条可追溯的工作流。</p>
+            <div className="hero-actions">
+              <Link className="hero-primary" href="/login?mode=register">免费开始 <span aria-hidden="true">↗</span></Link>
+              <Link className="hero-secondary" href="#workflow">查看工作流 <span aria-hidden="true">↓</span></Link>
+            </div>
+            <div className="hero-signal" aria-label="产品能力摘要"><span>规则版本</span><i /><span>证据定位</span><i /><span>人工决策</span></div>
+          </div>
+          <div className="hero-console" aria-label="FrameFlow 产品界面示意">
+            <div className="console-top"><span>FF / REVIEW</span><span className="console-live">LIVE FLOW</span></div>
+            <div className="console-body">
+              <div className="console-frames"><span className="frame active" /><span className="frame" /><span className="frame" /><span className="frame" /><span className="frame" /></div>
+              <div className="console-analysis">
+                <div className="analysis-line"><span>画面完整度</span><b>PASS</b></div>
+                <div className="analysis-line warning"><span>与 Brief 对齐</span><b>REVIEW</b></div>
+                <div className="analysis-timeline"><i /><i /><i className="selected" /><i /><i /></div>
+              </div>
+            </div>
+            <div className="console-score"><span>RECOMMENDED</span><strong>92.4</strong><small>可解释评分</small></div>
+          </div>
+        </section>
+
+        <section id="workflow" className="marketing-section workflow-section" aria-labelledby="workflow-title">
+          <Reveal>
+            <div className="section-heading"><p>THE FLOW</p><h2 id="workflow-title">把“看完再选”<br />变成一条清晰的生产线。</h2></div>
+          </Reveal>
+          <div className="workflow-list">
+            {workflow.map(([number, title, description], index) => (
+              <Reveal key={number} delay={index * 90}>
+                <article className="workflow-step"><span>{number}</span><div><h3>{title}</h3><p>{description}</p></div><b aria-hidden="true">↘</b></article>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        <section id="capabilities" className="marketing-section capability-section" aria-labelledby="capability-title">
+          <Reveal>
+            <div className="section-heading compact"><p>BUILT FOR REVIEW</p><h2 id="capability-title">不是另一个素材库。<br />是团队的选择系统。</h2></div>
+          </Reveal>
+          <div className="capability-grid">
+            {capabilities.map(([title, description], index) => (
+              <Reveal key={title} delay={index * 80} className="capability-cell">
+                <article className={`capability-card card-${index + 1}`}><span className="capability-index">0{index + 1}</span><h3>{title}</h3><p>{description}</p><div className="capability-visual" aria-hidden="true"><i /><i /><i /><i /></div></article>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        <section id="evidence" className="marketing-section evidence-section" aria-labelledby="evidence-title">
+          <Reveal>
+            <div className="evidence-copy">
+              <p>HUMAN IN THE LOOP</p>
+              <h2 id="evidence-title">自动化负责收敛，<br /><em>人负责最终判断。</em></h2>
+              <p>确定性不合格才能自动阻断。AI 返回的 VIOLATE、UNKNOWN 或 ERROR 永远只会进入人工复核，不会替代你的业务判断。</p>
+              <Link href="/login?mode=register" className="text-link">免费开始 <span aria-hidden="true">→</span></Link>
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <div className="evidence-board" aria-label="审阅证据界面示意">
+              <div className="evidence-video"><span>00:01.2</span><i /></div>
+              <div className="evidence-finding"><span>FINDING / 03</span><strong>与创作 Brief 对齐</strong><p>需要人工确认主体呈现与画面表达。</p><b>REVIEW REQUIRED</b></div>
+            </div>
+          </Reveal>
+        </section>
+      </main>
+      <footer className="marketing-footer"><span>FRAMEFLOW SELECT</span><p>为 AI 短视频团队建立证据化的选择流程。</p><Link href="/login?mode=register">免费开始 ↗</Link></footer>
+    </div>
+  );
 }

@@ -88,19 +88,33 @@ public class SelectionController {
         List<ExportRow> rows = selectionService.exportRows(
                 Long.parseLong(jwt.getSubject()), id);
         if ("csv".equalsIgnoreCase(format)) {
-            StringBuilder sb = new StringBuilder(
-                    "rank,candidate_id,score,cluster_id,machine_pick,human_action,note\n");
+            // ★ 核心：前缀 UTF-8 BOM——Excel 靠它识别"这是 UTF-8"，
+            // 否则中文表头会按本地代码页乱码。BOM 只出现一次，在文件最开头。
+            StringBuilder sb = new StringBuilder("\uFEFF");
+            sb.append(CSV_HEADER).append('\n');
             for (ExportRow r : rows) {
                 sb.append(r.rank()).append(',')
                         .append(r.candidateId()).append(',')
-                        .append(r.score()).append(',')
-                        .append(r.clusterId()).append(',')
-                        .append(r.machinePick()).append(',')
-                        .append(csv(r.humanAction())).append(',')
-                        .append(csv(r.note())).append('\n');
+                        .append(csv(r.fileName())).append(',')
+                        .append(csv(r.status())).append(',')
+                        .append(r.sizeBytes()).append(',')
+                        .append(csv(r.contentType())).append(',')
+                        .append(r.compositeScore()).append(',')
+                        .append(r.machinePick() ? "是" : "否").append(',')
+                        .append(r.clusterId() == null ? "" : r.clusterId()).append(',')
+                        .append(csv(r.verdict())).append(',')
+                        .append(csv(r.reviewAction())).append(',')
+                        .append(csv(r.uploadedAt())).append(',')
+                        .append(csv(r.exportedAt())).append('\n');
             }
+            // 文件名带优选集 id 与日期：同一批次多次导出不会互相覆盖
+            String fileName = "selection-" + id + "-"
+                    + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE)
+                    + ".csv";
             return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+                    .contentType(MediaType.parseMediaType("text/csv;charset=utf-8"))
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + fileName + "\"")
                     .body(sb.toString());
         }
         if (!"json".equalsIgnoreCase(format)) {
@@ -114,6 +128,10 @@ public class SelectionController {
             throw new ApiException(ErrorCode.INTERNAL_ERROR, "导出序列化失败");
         }
     }
+
+    /** CSV 表头（中文，与产品界面一致）；顺序与 ExportRow 字段一一对应。 */
+    private static final String CSV_HEADER =
+            "排名,候选ID,文件名,状态,大小(字节),内容类型,综合得分,机器入选,簇编号,质检结论,人工复核动作,上传时间,导出时间";
 
     /** CSV 最小引号原则：仅当值含逗号/引号/换行才包裹（任何解析器都兼容）。 */
     private String csv(String value) {

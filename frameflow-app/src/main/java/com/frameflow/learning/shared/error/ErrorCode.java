@@ -17,6 +17,11 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "无权执行该操作"),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "资源不存在"),
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "邮箱已被注册"),
+    MEMBER_ALREADY_EXISTS(HttpStatus.CONFLICT, "该邮箱已是团队成员"),
+    // 令牌无效/已用/过期统一为同一错误——与登录"用户不存在或密码错误"同理，
+    // 不区分细节可避免向试探者泄露邀请状态
+    INVITATION_INVALID(HttpStatus.BAD_REQUEST, "邀请链接无效、已被使用或已过期"),
+    PASSWORD_RESET_INVALID(HttpStatus.BAD_REQUEST, "重置链接无效、已被使用或已过期"),
     NAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "同名资源已存在"),
     // ★ 核心：乐观锁冲突专用错误码——客户端应重新读取数据后重试，
     // 与其它 409（如重名）语义不同，绝不能混用
@@ -33,6 +38,10 @@ public enum ErrorCode {
     INVALID_STATE(HttpStatus.CONFLICT, "当前状态不允许该操作"),
     SELECTION_LOCKED(HttpStatus.CONFLICT, "优选集已锁定，内容不可变更"),
     NOT_LOCKED(HttpStatus.CONFLICT, "优选集尚未锁定，不能导出"),
+    // ★ 核心：「路径存在但方法不支持」必须独立成码。它之前没有专属 handler，
+    // 被下面的 INTERNAL_ERROR 兜底成 500，导致调用方把"接口方法写错了"
+    // 误判成"服务挂了"，并污染 5xx 告警——与 NoResourceFoundException 同理。
+    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "该路径不支持此请求方法"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "服务内部错误");
 
     private final HttpStatus status;

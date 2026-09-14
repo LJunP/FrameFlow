@@ -1,12 +1,10 @@
 package com.frameflow.learning.product.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.frameflow.learning.product.repo.RankingEntryRow;
 import com.frameflow.learning.product.repo.RankingMapper;
 import com.frameflow.learning.product.repo.SelectionMapper;
-import com.frameflow.learning.product.repo.SelectionMapper.SelectionItemRow;
 import com.frameflow.learning.product.repo.SelectionRow;
 import com.frameflow.learning.shared.error.ApiException;
 import com.frameflow.learning.shared.error.ErrorCode;
@@ -114,35 +112,55 @@ public class SelectionService {
     }
 
 
-    /** 导出行：排名信息 × 优选项 × 候选信息 三方合并（仅锁定后可导出）。 */
+    /** 导出行：优选项 × 候选元数据 × 排名（单次 JOIN 查询，无 N+1；仅锁定后可导出）。 */
     public List<ExportRow> exportRows(long userId, long selectionId) {
         SelectionRow set = requireSelectionOfMyTeam(userId, selectionId);
         if (!"LOCKED".equals(set.getStatus())) {
             throw new ApiException(ErrorCode.NOT_LOCKED);
         }
-        List<RankingEntryRow> entries = rankings.entriesBySnapshot(set.getSnapshotId());
-        var entryByCandidate = new java.util.HashMap<Long, RankingEntryRow>();
-        for (RankingEntryRow e : entries) {
-            entryByCandidate.put(e.getCandidateId(), e);
-        }
-        List<ExportRow> rows = new ArrayList<>();
-        for (SelectionItemRow item : selections.itemsBySelection(selectionId)) {
-            RankingEntryRow entry = entryByCandidate.get(item.getCandidateId());
-            rows.add(new ExportRow(
-                    entry == null ? 0 : entry.getRankNo(),
-                    item.getCandidateId(),
-                    entry == null ? 0 : entry.getScore(),
-                    entry == null ? 0 : entry.getClusterId(),
-                    item.isMachinePick(),
-                    item.getHumanAction(),
-                    item.getNote()));
-        }
-        rows.sort((a, b) -> Integer.compare(a.rank(), b.rank()));
-        return rows;
+        // 导出时刻整批共用：同一份交付文件里所有行的时间戳必须一致
+        String exportedAt = java.time.OffsetDateTime.now().toString();
+        return selections.exportItems(selectionId, set.getSnapshotId()).stream()
+                .map(i -> new ExportRow(
+                        i.getRankNo() == null ? 0 : i.getRankNo(),
+                        i.getCandidateId(),
+                        i.getFileName(),
+                        i.getStatus(),
+                        i.getSizeBytes() == null ? 0L : i.getSizeBytes(),
+                        i.getContentType(),
+                        i.getCompositeScore() == null ? 0 : i.getCompositeScore(),
+                        i.isMachinePick(),
+                        i.getClusterId(),
+                        verdictOf(i.getStatus()),
+                        i.getHumanAction(),
+                        i.getUploadedAt() == null ? null : i.getUploadedAt().toString(),
+                        exportedAt))
+                .toList();
     }
 
-    public record ExportRow(int rank, long candidateId, int score, int clusterId,
-                            boolean machinePick, String humanAction, String note) {
+    /**
+     * ★ 核心：verdict 是"候选级质检结论"。candidates 表没有独立 verdict 列，
+     * 又不能为了导出改 schema，唯一权威来源就是候选终态 status：
+     * 资格门只放行 ANALYZED（确定性全过）与 REVIEW_REQUIRED（语义存疑待人工）；
+     * AUTO_REJECT / ANALYSIS_ERROR / INVALID 一律原样透出——尤其 ANALYSIS_ERROR
+     * 必须以自己的名字出现，绝不能被改写成"视频不合格"（红线：ANALYSIS_ERROR
+     * 不得伪装成视频不合格）。
+     */
+    private static String verdictOf(String status) {
+        return "ANALYZED".equals(status) ? "PASS" : status;
+    }
+
+    /**
+     * 导出行。★ 核心：machinePick 与 clusterId 必须保留——F7 的交付原则是
+     * "机器 Top-K 与人工调整并存可审计"，只导出人工动作会让交付文件丢失
+     * "这条是谁选进来的"证据，事后无法复盘机器与人工的分歧。
+     * clusterId 在候选不在排名快照内（纯人工 INCLUDE）时为 null。
+     */
+    public record ExportRow(int rank, long candidateId, String fileName, String status,
+                            long sizeBytes, String contentType, int compositeScore,
+                            boolean machinePick, Integer clusterId,
+                            String verdict, String reviewAction, String uploadedAt,
+                            String exportedAt) {
     }
 
     // ---------- 内部 ----------

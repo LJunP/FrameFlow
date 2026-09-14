@@ -17,11 +17,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * T6 MQ 运维：队列深度报告（积压告警的数据源）与 DLQ 重放。
- * 仅 OWNER 可用（运维敏感操作）。
+ *
+ * ★ 核心（2026-09-13 修复）：这里曾经用「JWT 的 role == OWNER」做授权，
+ * 但 OWNER 是**团队作用域**角色，而 MQ 是 vhost 内的**全局**基础设施——
+ * 结果任何注册用户（注册即成为自己团队的 OWNER）都能读取全局队列、
+ * 并重放**全体团队**的死信。团队角色与平台权限是两回事，不能混用。
+ *
+ * 现在的授权分两层：
+ * 1. 必须已登录（SecurityConfig 的 anyRequest().authenticated()，提供操作者身份）；
+ * 2. 必须持有平台管理员密钥 X-Admin-Key（AdminAuthFilter，且未配置时拒绝全部）。
  */
 @RestController
 @RequestMapping("/api/v1/admin/mq")
 public class MqAdminController {
+
+    private static final org.slf4j.Logger log =
+            org.slf4j.LoggerFactory.getLogger(MqAdminController.class);
 
     private final RabbitAdmin rabbitAdmin;
     private final RabbitTemplate rabbitTemplate;
@@ -37,7 +48,6 @@ public class MqAdminController {
     /** 队列深度：主队列积压 + 死信堆积（F10 接告警时的指标来源）。 */
     @GetMapping("/stats")
     public QueueStats stats(@AuthenticationPrincipal Jwt jwt) {
-        requireOwner(jwt);
         return new QueueStats(
                 String.valueOf(queueDepth(RabbitConfig.TASK_QUEUE)),
                 String.valueOf(queueDepth(RabbitConfig.DLQ_QUEUE)));
@@ -51,9 +61,11 @@ public class MqAdminController {
     @PostMapping("/replay-dlq")
     public Map<String, Integer> replayDlq(@AuthenticationPrincipal Jwt jwt,
                                           @RequestParam(defaultValue = "100") int max) {
-        requireOwner(jwt);
+        // 重放是跨团队的破坏性操作，必须留下"谁在什么时候放了多少条"的痕迹
+        int capped = Math.min(Math.max(max, 0), 100);
+        log.warn("MQ DLQ 重放 operatorUserId={} max={}", jwt.getSubject(), capped);
         int replayed = 0;
-        while (replayed < max) {
+        while (replayed < capped) {
             Message dead = rabbitTemplate.receive(RabbitConfig.DLQ_QUEUE, 500);
             if (dead == null) {
                 break;
@@ -76,11 +88,4 @@ public class MqAdminController {
         return Integer.parseInt(count);
     }
 
-    /** admin 接口无团队上下文，角色直接取 JWT 的 role claim（F5 后引入全局角色判定）。 */
-    private void requireOwner(Jwt jwt) {
-        if (!"OWNER".equals(jwt.getClaim("role"))) {
-            throw new com.frameflow.learning.shared.error.ApiException(
-                    com.frameflow.learning.shared.error.ErrorCode.FORBIDDEN);
-        }
-    }
 }

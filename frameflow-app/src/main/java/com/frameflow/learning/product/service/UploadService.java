@@ -115,6 +115,10 @@ public class UploadService {
             String reason = "大小不匹配：登记 " + candidate.getSizeBytes()
                     + " 字节，实际 " + head.contentLength() + " 字节";
             candidates.markInvalid(candidate.getId(), reason);
+            // ★ 与签名分支保持一致：候选状态从 PENDING_UPLOAD 变成 INVALID 后，
+            // 批次进度缓存必须立即失效，否则 /batches/{id}/progress 与 SSE
+            // 会在 TTL 内继续返回"还差 N 条未上传"的旧计数。
+            progressCache.evict(candidate.getBatchId());
             return new CompleteUploadResponse(candidate.getId(), "INVALID", reason);
         }
         String reason = MediaSignature.check(storage.rangeGet(candidate.getObjectKey(), 0, 16));

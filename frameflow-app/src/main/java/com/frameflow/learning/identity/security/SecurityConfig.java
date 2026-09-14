@@ -74,7 +74,12 @@ public class SecurityConfig {
                         // 注意必须用 HttpMethod.POST 枚举：写成字符串 "POST" 会被
                         // 当成路径模式参与匹配（等于多放行了一条 POST 规则）。
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register",
-                                "/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
+                                "/api/v1/auth/login", "/api/v1/auth/refresh",
+                                "/api/v1/auth/password-reset/request",
+                                "/api/v1/auth/password-reset/confirm").permitAll()
+                        // 接受邀请：受邀人没有会话可带，唯一凭证是令牌本身（见
+                        // InvitationController 注释）。仅放行这一个精确路径。
+                        .requestMatchers(HttpMethod.POST, "/api/v1/invitations/accept").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(rs -> rs
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
