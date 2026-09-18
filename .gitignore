@@ -49,6 +49,9 @@ frameflow-ai-worker/.venv/
 **/__pycache__/
 *.egg-info/
 
+# Load test working data (media is regenerable; results are host-specific)
+local-loadtest-data/
+
 # Generated / local media (reproducible via generator; never commit binaries)
 experiments/fixtures/generated/
 media/

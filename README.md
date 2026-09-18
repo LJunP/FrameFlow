@@ -341,6 +341,41 @@ npm --prefix frameflow-web run build
 `.github/workflows/ci.yml` 覆盖 Java、Worker、Web、部署与运维配置检查、镜像构建。
 **Registry 推送需要手动工作流输入与对应环境授权**，不会因普通源码 push 自动部署生产。
 
+## 性能
+
+**当前状态：未测量。** 这一节现在是空的，而它空着这件事本身需要说明。
+
+F1–F12 全部在回答「做得对不对」，没有任何一条在回答「多快、压不压得住」。
+功能文档两万五千字，性能零个数字——这是优先级选择的后果，不是遗漏。
+
+管线形态是「预签名直传 → RabbitMQ 派发 → Python Worker 分析 → 幂等回写」，
+这条链最值得量的不是单点延迟，是**背压下的行为**：
+队列积压时吞吐怎么衰减、延迟分布怎么变、DLQ 什么时候开始接东西。
+
+压测方案与脚本已就绪，等待在本机执行：
+
+```bash
+export FF_EMAIL='you@example.com' FF_PASSWORD='...'
+bash scripts/loadtest/run-loadtest.sh --preflight   # 只核查环境
+bash scripts/loadtest/run-loadtest.sh               # 跑五个阶段
+```
+
+| 阶段 | 产出指标 |
+|---|---|
+| A · 吞吐基线 | 端到端吞吐（视频/分钟）、仅上传吞吐 |
+| B · 耗时分解 | 注册 / 上传 / 确认 / 分析等待 / 排名 的 p50·p90·p99 与占比 |
+| C · 背压 | 吞吐衰减曲线、峰值队列深度、瞬时速率分布 |
+| D · DLQ | dlqDepth 增量与投递总数的比值 |
+| E · 弱网续传 | MULTIPART 中断后的续传成功率、平均补传分片数 |
+
+方法、刻意的设计决定与已知限制见 [压测方案](scripts/loadtest/README.md)。
+其中三条值得先看：一律用墙钟而非服务端自报指标；样本不足时 p99 返回 `null`
+而不是一个数；**DLQ 的 delta 为 0 不算通过**——一个从未接过消息的死信队列，
+你不知道它在不在工作。
+
+跑完之后本节替换为实测数字，并标注运行环境与素材规格。
+**单机压测的数字用于横向对比（改动前后），不代表生产容量。**
+
 ## 仓库结构
 
 ```text
@@ -349,7 +384,7 @@ FrameFlow/
 ├── frameflow-ai-worker/   媒体检测、模型适配、消息消费与离线评测
 ├── frameflow-web/         Next.js 页面、同源代理与前端契约测试
 ├── infra/                 环境模板、镜像、部署、监控、备份与故障工具
-├── scripts/               合成媒体、产品门禁与试点工具
+├── scripts/               合成媒体、产品门禁、试点工具与压测（scripts/loadtest/）
 ├── tests/pilot/           试点报告与统计校验
 ├── experiments/fixtures/  可复现的合成测试输入定义
 └── docs/                  产品、架构、开发路线、API、模块说明与证据
