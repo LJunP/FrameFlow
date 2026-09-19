@@ -112,6 +112,8 @@ services:
         VCS_REF: ${FRAMEFLOW_GIT_SHA:-local}
     environment:
       FRAMEFLOW_ENV: local
+      # 平台运维接口（/api/v1/admin/**）。留空则运维接口关闭。
+      FRAMEFLOW_ADMIN_API_KEY: ${FRAMEFLOW_ADMIN_API_KEY:-}
       FRAMEFLOW_DB_URL: jdbc:postgresql://postgres:5432/${FRAMEFLOW_POSTGRES_DB:-frameflow_local}
       FRAMEFLOW_DB_USERNAME: ${FRAMEFLOW_DB_USERNAME:-frameflow_local}
       FRAMEFLOW_DB_PASSWORD: ${FRAMEFLOW_DB_PASSWORD:-frameflow_local_only_db}

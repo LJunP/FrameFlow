@@ -190,6 +190,16 @@ class LoadTest:
         self.result.preflight = pf
         return ok
 
+    def _broker_depth(self) -> dict | None:
+        """直接问 broker。不信任被测系统自报的队列深度——
+        本项目实测过 /admin/mq/stats 恒返回 0 而 broker 实际有 10 条待处理。"""
+        if not self.args.broker_url:
+            return None
+        return self.client.broker_depth(
+            self.args.broker_url, self.args.broker_user, self.args.broker_password,
+            self.args.broker_vhost, self.args.broker_queue,
+        )
+
     @staticmethod
     def _probe_media_tooling() -> str:
         for cmd, label in (("ffmpeg", "本机 ffmpeg"), ("docker", "Docker")):
@@ -202,8 +212,10 @@ class LoadTest:
         raise RuntimeError("ffmpeg 与 docker 都不可用；无法生成真实媒体")
 
     # ── 测试媒体 ────────────────────────────────────────────
-    def ensure_media(self, count: int) -> list[Path]:
-        media_dir = Path(self.args.media_dir)
+    def ensure_media(self, count: int, *, seconds: int | None = None,
+                     subdir: str = "default") -> list[Path]:
+        seconds = seconds or self.args.clip_seconds
+        media_dir = Path(self.args.media_dir) / subdir
         media_dir.mkdir(parents=True, exist_ok=True)
         existing = sorted(p for p in media_dir.glob("*.mp4"))
         if len(existing) >= count:
@@ -215,7 +227,7 @@ class LoadTest:
         # 复用仓库自带的可复现生成器：同一 SHA 必须产出同样的字节
         subprocess.run(
             [sys.executable, str(gen), "--out", str(media_dir),
-             "--count", str(count), "--duration", str(self.args.clip_seconds)],
+             "--count", str(count), "--duration", str(seconds)],
             check=True, cwd=REPO_ROOT,
         )
         found = sorted(p for p in media_dir.glob("*.mp4"))
@@ -237,6 +249,13 @@ class LoadTest:
             }).value
             self.project_id = created["id"]
 
+        # 批次要求项目已有 Brief 快照；没有就发一条。
+        try:
+            self.client.get(f"/api/v1/projects/{self.project_id}/briefs/current")
+        except ApiError:
+            self.client.post(f"/api/v1/projects/{self.project_id}/briefs",
+                             {"content": "压测用 Brief：确定性质检，不启用语义检查。"})
+
         profiles = self.client.get("/api/v1/quality-profiles").value
         pitems = profiles.get("items", profiles) if isinstance(profiles, dict) else profiles
         if pitems:
@@ -245,9 +264,26 @@ class LoadTest:
             created = self.client.post("/api/v1/quality-profiles", {
                 "name": "loadtest-profile",
                 "description": "压测专用",
-                "spec": json.dumps({"deterministic": {"enabled": True}, "semantic": {"enabled": False}}),
+                "spec": json.dumps(self._default_spec()),
             }).value
             self.profile_id = created["id"]
+
+    @staticmethod
+    def _default_spec() -> dict:
+        """确定性维度 only，语义检查不开——压测量的是管线吞吐，不是模型。
+
+        取自 experiments/fixtures/pre-f9-correctness/deterministic-profile.json，
+        阈值放宽到不会把合成素材判为不合格（duration 上限调大）。
+        """
+        return {
+            "dimensions": {
+                "duration": {"min": 1, "max": 600, "severity": "BLOCKER"},
+                "resolution": {"minWidth": 64, "minHeight": 64, "severity": "BLOCKER"},
+                "fps": {"min": 1, "severity": "BLOCKER"},
+            },
+            "weights": {"duration": 10, "resolution": 10, "fps": 10},
+            "duplicates": {"hammingThreshold": 6},
+        }
 
     def create_batch(self, capacity: int) -> int:
         res = self.client.post("/api/v1/batches", {
@@ -273,8 +309,9 @@ class LoadTest:
             tr.candidate_id = body["candidateId"]
             tr.mode = body.get("mode")
 
+            parts: list[dict] = []
             if tr.mode == "MULTIPART":
-                tr.t_upload, tr.parts_total, tr.parts_retried = self._upload_multipart(
+                tr.t_upload, tr.parts_total, tr.parts_retried, parts = self._upload_multipart(
                     tr.candidate_id, payload, int(body.get("partSizeBytes") or 5 * 1024 * 1024),
                     interrupt=interrupt_parts,
                 )
@@ -283,7 +320,11 @@ class LoadTest:
                 tr.t_upload = round(up.seconds, 4)
                 tr.parts_total = 1
 
-            comp = self.client.post(f"/api/v1/candidates/{tr.candidate_id}/complete")
+            # MULTIPART 的 /complete 必须带分片 ETag 列表，否则 PARTS_INVALID。
+            comp = self.client.post(
+                f"/api/v1/candidates/{tr.candidate_id}/complete",
+                {"parts": parts} if parts else None,
+            )
             tr.t_complete = round(comp.seconds, 4)
             tr.terminal_status = (comp.value or {}).get("status")
         except ApiError as exc:
@@ -293,7 +334,7 @@ class LoadTest:
         return tr
 
     def _upload_multipart(self, candidate_id: int, payload: bytes, part_size: int,
-                          *, interrupt: bool) -> tuple[float, int, int]:
+                          *, interrupt: bool) -> tuple[float, int, int, list[dict]]:
         """分片直传。interrupt=True 时故意跳过一半分片，再走续传路径补齐。
 
         这一段模拟的是弱网：不是「慢」，是「断」。
@@ -304,25 +345,35 @@ class LoadTest:
         numbers = list(range(1, total + 1))
         start = time.perf_counter()
 
+        etags: dict[int, str] = {}
+
+        def send(nums: list[int]) -> None:
+            urls = self.client.post(f"/api/v1/candidates/{candidate_id}/upload-parts",
+                                    {"partNumbers": nums}).value["partUrls"]
+            for n in nums:
+                res = self.client.put_bytes(urls[str(n)] if str(n) in urls else urls[n], chunks[n - 1])
+                tag = self.client.etag_of(res)
+                if tag:
+                    etags[n] = tag
+
         first_pass = numbers[: max(1, total // 2)] if interrupt else numbers
-        urls = self.client.post(f"/api/v1/candidates/{candidate_id}/upload-parts",
-                                {"partNumbers": first_pass}).value["partUrls"]
-        for n in first_pass:
-            self.client.put_bytes(urls[str(n)] if str(n) in urls else urls[n], chunks[n - 1])
+        send(first_pass)
 
         retried = 0
         if interrupt:
             # 续传：问服务端「你收到了哪些」，而不是本地记账。
             session = self.client.get(f"/api/v1/candidates/{candidate_id}/upload-session").value
             done = {int(p["partNumber"]) for p in (session.get("completedParts") or [])}
+            # 服务端报回的 ETag 才是权威；本地记的可能是断点前的旧值。
+            for p in (session.get("completedParts") or []):
+                etags[int(p["partNumber"])] = str(p["etag"])
             missing = [n for n in numbers if n not in done]
             retried = len(missing)
             if missing:
-                urls2 = self.client.post(f"/api/v1/candidates/{candidate_id}/upload-parts",
-                                         {"partNumbers": missing}).value["partUrls"]
-                for n in missing:
-                    self.client.put_bytes(urls2[str(n)] if str(n) in urls2 else urls2[n], chunks[n - 1])
-        return round(time.perf_counter() - start, 4), total, retried
+                send(missing)
+
+        parts = [{"partNumber": n, "etag": etags[n]} for n in numbers if n in etags]
+        return round(time.perf_counter() - start, 4), total, retried, parts
 
     # ── 等待批次分析完成 ────────────────────────────────────
     TERMINAL = {"ANALYZED", "ANALYSIS_ERROR", "AUTO_REJECT", "REVIEW_REQUIRED", "INVALID"}
@@ -342,9 +393,10 @@ class LoadTest:
                 }
                 if self.has_admin:
                     try:
-                        point["queue"] = self.client.mq_stats()
+                        point["queue"] = self.client.mq_stats()      # 应用自报
                     except ApiError:
                         point["queue"] = None
+                point["broker"] = self._broker_depth()               # broker 真值
                 sampler.append(point)
             if done >= expected:
                 return {"completed": True, "seconds": round(time.perf_counter() - start, 3), "progress": last}
@@ -452,21 +504,27 @@ class LoadTest:
             dt = cur["t"] - prev["t"]
             if dt <= 0:
                 continue
+            b = cur.get("broker") or {}
             curve.append({
                 "t": cur["t"],
                 "instant_videos_per_min": round((cur["done"] - prev["done"]) / dt * 60, 2),
-                "queue_depth": (cur.get("queue") or {}).get("taskQueueDepth"),
+                "broker_ready": b.get("ready"),
+                "broker_unacked": b.get("unacked"),
+                "app_reported_depth": (cur.get("queue") or {}).get("taskQueueDepth"),
                 "done": cur["done"],
             })
 
-        peak_depth = max((c["queue_depth"] for c in curve if isinstance(c.get("queue_depth"), int)), default=None)
+        peak_depth = max((c["broker_ready"] for c in curve if isinstance(c.get("broker_ready"), int)), default=None)
+        peak_app = max((c["app_reported_depth"] for c in curve if isinstance(c.get("app_reported_depth"), int)), default=None)
         rates = [c["instant_videos_per_min"] for c in curve]
         self.result.phase_c_backpressure = {
             "batch_id": batch_id,
             "videos": n,
             "uploaded_ok": uploaded,
             "concurrency": self.args.backpressure_concurrency,
-            "peak_queue_depth": peak_depth,
+            "peak_queue_depth_broker": peak_depth,
+            "peak_queue_depth_app_reported": peak_app,
+            "app_metric_agrees_with_broker": (peak_app == peak_depth) if (peak_app is not None and peak_depth is not None) else None,
             "samples": samples if self.args.keep_samples else f"<{len(samples)} 个采样点，用 --keep-samples 保留>",
             "throughput_curve": curve,
             "instant_rate_summary": summarize(rates),
@@ -498,8 +556,15 @@ class LoadTest:
         if n <= 0:
             self.result.phase_e_resume = {"skipped": True}
             return
-        # 分片模式需要文件大于 partSize，用更长的片子
-        media = self.ensure_media(1)
+        # 服务端 multipart-threshold 默认 32MB；短片远达不到，必须单独生成长素材，
+        # 否则服务端选 SIMPLE，续传路径根本不会被走到。
+        media = self.ensure_media(1, seconds=self.args.resume_clip_seconds, subdir="large")
+        size_mb = media[0].stat().st_size / 1024 / 1024
+        if size_mb < 32:
+            self.result.notes.append(
+                f"阶段 E 素材仅 {size_mb:.1f}MB，低于服务端 32MB 分片门槛；"
+                f"加大 --resume-clip-seconds 才能测到续传路径"
+            )
         batch_id = self.create_batch(n)
         traces = [self.push_candidate(batch_id, media[0], i, interrupt_parts=True) for i in range(n)]
 
@@ -599,7 +664,10 @@ def render_summary(r: Result) -> str:
     if c and not c.get("skipped"):
         add("\n【C · 背压】")
         add(f"  投递 {c['uploaded_ok']}/{c['videos']}，并发 {c['concurrency']}")
-        add(f"  峰值队列深度 {c['peak_queue_depth']}")
+        add(f"  峰值队列深度（broker 真值）{c['peak_queue_depth_broker']}")
+        add(f"  峰值队列深度（应用自报）  {c['peak_queue_depth_app_reported']}")
+        if c.get("app_metric_agrees_with_broker") is False:
+            add("  ⚠ 应用自报的队列深度与 broker 不符 —— 该指标不能用于告警")
         add(f"  持续吞吐 {c['sustained_videos_per_min']} 视频/分钟")
         s = c.get("instant_rate_summary") or {}
         if s.get("n"):
@@ -646,11 +714,19 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--resume-attempts", type=int, default=5, help="阶段 E 的尝试次数；0 跳过")
     p.add_argument("--distinct-clips", type=int, default=5, help="生成多少个不同的素材（其余复用）")
     p.add_argument("--clip-seconds", type=int, default=8)
+    p.add_argument("--resume-clip-seconds", type=int, default=60,
+                   help="阶段 E 的素材时长；需让文件超过服务端 multipart-threshold（默认 32MB）")
     p.add_argument("--analysis-timeout", type=float, default=900.0)
     p.add_argument("--poll-interval", type=float, default=2.0)
     p.add_argument("--timeout", type=float, default=120.0, help="单次 HTTP 超时")
     p.add_argument("--media-dir", default="local-loadtest-data/media")
     p.add_argument("--out", default="local-loadtest-data/results")
+    p.add_argument("--broker-url", default=os.environ.get("FF_BROKER_URL", ""),
+                   help="RabbitMQ 管理 API，如 http://127.0.0.1:15672；队列深度的真值来源")
+    p.add_argument("--broker-user", default=os.environ.get("FF_BROKER_USER", "frameflow_local"))
+    p.add_argument("--broker-password", default=os.environ.get("FF_BROKER_PASSWORD", ""))
+    p.add_argument("--broker-vhost", default=os.environ.get("FF_BROKER_VHOST", "/frameflow-local"))
+    p.add_argument("--broker-queue", default=os.environ.get("FF_BROKER_QUEUE", "frameflow.analysis.tasks"))
     p.add_argument("--keep-samples", action="store_true", help="在 JSON 里保留全部采样点")
     p.add_argument("--preflight", action="store_true", help="只做环境核查，不跑负载")
     return p

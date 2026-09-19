@@ -92,7 +92,11 @@ class Client:
         return self._request("POST", path, body=body, **kw)
 
     def put_bytes(self, url: str, payload: bytes, content_type: str = "application/octet-stream") -> Timed:
-        """向预签名 URL 直传字节。不带 Authorization —— 预签名 URL 自带凭证。"""
+        """向预签名 URL 直传字节。不带 Authorization —— 预签名 URL 自带凭证。
+
+        返回值的 .value 是响应头字典，其中 ETag 是 MULTIPART 完成时必须回传的凭据：
+        少了它 /complete 会以 PARTS_INVALID 拒绝。
+        """
         return self._request(
             "PUT",
             url,
@@ -101,6 +105,14 @@ class Client:
             absolute=True,
             expect_json=False,
         )
+
+    @staticmethod
+    def etag_of(res: Timed) -> str | None:
+        headers = res.value if isinstance(res.value, dict) else {}
+        for key in ("ETag", "etag", "Etag"):
+            if key in headers:
+                return str(headers[key]).strip()
+        return None
 
     # ── 领域方法 ──────────────────────────────────────────────
     def login(self, email: str, password: str) -> Timed:
@@ -122,6 +134,29 @@ class Client:
             except (TypeError, ValueError):
                 out[key] = -1  # 明确表示「读不到」，不要伪装成 0
         return out
+
+    def broker_depth(self, mgmt_url: str, user: str, password: str,
+                     vhost: str, queue: str) -> dict[str, int] | None:
+        """直接问 broker 要 ready / unacked —— 压测的队列深度真值来源。
+
+        不信任被测系统自报的指标：如果应用侧的深度接口坏了，
+        只读它就会把「积压 10 条」测成「没有积压」。
+        """
+        import base64
+        from urllib.parse import quote
+        path = f"/api/queues/{quote(vhost, safe='')}/{quote(queue, safe='')}"
+        auth = base64.b64encode(f"{user}:{password}".encode()).decode()
+        try:
+            res = self._request("GET", mgmt_url.rstrip("/") + path,
+                                headers={"Authorization": f"Basic {auth}"}, absolute=True)
+        except ApiError:
+            return None
+        body = res.value or {}
+        return {
+            "ready": int(body.get("messages_ready") or 0),
+            "unacked": int(body.get("messages_unacknowledged") or 0),
+            "consumers": int(body.get("consumers") or 0),
+        }
 
     def progress(self, batch_id: int) -> dict[str, int]:
         return dict((self.get(f"/api/v1/batches/{batch_id}/progress").value) or {})

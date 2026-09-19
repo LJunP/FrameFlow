@@ -21,7 +21,7 @@ FrameFlow 的功能文档有两万五千字，性能**一个数字都没有**。
 | **D · DLQ** | dlqDepth 增量 / 投递总数 | 失败有没有被正确隔离，而不是静默丢弃 |
 | **E · 弱网续传** | MULTIPART 中断后的续传成功率、平均补传分片数 | 断点续传的正确性只有"真的断一次"才能验 |
 
-## 三个刻意的设计决定
+## 四个刻意的设计决定
 
 **1. 一律用墙钟，不用服务端自报的指标。**
 服务端可以报"分析耗时 200ms"，但用户等的是从点上传到看到结果的全部时间。
@@ -31,7 +31,13 @@ FrameFlow 的功能文档有两万五千字，性能**一个数字都没有**。
 并发不够的时候 P99 会和 P50 贴在一起。那不是"尾延迟很好"，
 是没排上队。脚本在 `n < 100` 时显式标注 `p99_trustworthy: false`。
 
-**3. DLQ 的 delta 为 0 不算通过。**
+**3. 队列深度以 broker 为真值，不信被测系统自报。**
+首轮压测发现 `/api/v1/admin/mq/stats` 在 broker 实际积压 38 条时全程报 `0`。
+只读应用自报的指标，会把「严重积压」测成「毫无积压」。
+脚本因此直接查 RabbitMQ 管理 API，并把应用自报值一起记下来做对照
+（`app_metric_agrees_with_broker`）。**被测系统的自我报告是待验证对象，不是测量工具。**
+
+**4. DLQ 的 delta 为 0 不算通过。**
 `phase_d_dlq.note` 里写死了这句：
 > delta 为 0 只说明本轮没进 DLQ，不证明 DLQ 路径可用；那需要单独的故障注入。
 
@@ -68,9 +74,12 @@ bash scripts/loadtest/run-loadtest.sh --videos 60 --concurrency 8 \
 
 ## 已知限制
 
-- **E 阶段依赖素材大于 `partSize`。** 素材太小时服务端会选 SIMPLE 模式，
+- **MULTIPART 的 `/complete` 必须回传分片 ETag 列表**，否则 `PARTS_INVALID`。
+  ETag 来自每个分片 PUT 的响应头；续传时以服务端 `upload-session` 报回的为准，
+  本地记的可能是断点前的旧值。（首版脚本漏了这一步，把续传成功率误报成 0.0。）
+- **E 阶段依赖素材大于服务端 `multipart-threshold`（默认 32MB）。** 素材太小时服务端会选 SIMPLE 模式，
   `multipart_attempts` 会是 0，脚本会明确提示而不是伪造一个成功率。
-  用 `--clip-seconds` 加长素材重跑。
+  用 `--resume-clip-seconds` 加长素材重跑（90 秒约 62MB，够用）。
 - **B 阶段的占比不是串行时间轴。** register/upload/complete 是并发累加的，
   analysis_wait 是墙钟。占比只用于看量级。
 - **没有 ADMIN_KEY 时 C/D 阶段降级**：队列深度读不到，衰减曲线只能基于完成数推算。
@@ -91,3 +100,10 @@ bash scripts/loadtest/run-loadtest.sh --videos 60 --concurrency 8 \
 **还有一个反向检查**：把 Worker 数量减半重跑。
 吞吐**必须**掉下来。如果没掉，说明这套测量根本没压到 Worker，
 量到的是别的东西。
+
+## 首轮实测（2026-09-19）
+
+结果与逐项解读见主 [README 的「性能」章节](../../README.md#性能)。
+一句话：端到端 5.22 视频/分钟，仅上传 2,398 视频/分钟，**分析段占 99.2%**；
+背压下吞吐不衰减；续传成功率 1.00；
+并且**测出了一个队列深度指标恒为 0 的真实缺陷**。
